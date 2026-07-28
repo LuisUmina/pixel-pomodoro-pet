@@ -33,10 +33,12 @@ export class ResizeGrip {
     this.#startX = event.screenX;
     this.#startScale = this.#scale;
 
-    this.handle.setPointerCapture(event.pointerId);
-    this.handle.addEventListener("pointermove", this.#onPointerMove);
-    this.handle.addEventListener("pointerup", this.#onPointerUp);
-    this.handle.addEventListener("pointercancel", this.#onPointerUp);
+    // Listening on the window rather than capturing on the handle: a quick
+    // drag easily outruns an 8px target, and the widget is being resized out
+    // from under the pointer the whole time.
+    window.addEventListener("pointermove", this.#onPointerMove);
+    window.addEventListener("pointerup", this.#onPointerUp);
+    window.addEventListener("pointercancel", this.#onPointerUp);
   };
 
   readonly #onPointerMove = (event: PointerEvent): void => {
@@ -45,11 +47,10 @@ export class ResizeGrip {
     this.onPreview(this.#scale);
   };
 
-  readonly #onPointerUp = (event: PointerEvent): void => {
-    this.handle.releasePointerCapture(event.pointerId);
-    this.handle.removeEventListener("pointermove", this.#onPointerMove);
-    this.handle.removeEventListener("pointerup", this.#onPointerUp);
-    this.handle.removeEventListener("pointercancel", this.#onPointerUp);
+  readonly #onPointerUp = (): void => {
+    window.removeEventListener("pointermove", this.#onPointerMove);
+    window.removeEventListener("pointerup", this.#onPointerUp);
+    window.removeEventListener("pointercancel", this.#onPointerUp);
 
     // Only the settled value is worth persisting, not every frame of the drag.
     this.onCommit(this.#scale);

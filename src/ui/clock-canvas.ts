@@ -35,9 +35,9 @@ export class ClockCanvas {
   }
 
   render(text: string, color: string): void {
-    const ratio = (window.devicePixelRatio || 1) * this.#resolution;
+    const layout = (window.devicePixelRatio || 1) * this.#resolution;
     // Whole device pixels per font pixel, or the digits lose their hard edges.
-    const pixel = Math.max(1, Math.round(SCALE * ratio));
+    const pixel = Math.max(1, Math.round(SCALE * layout));
 
     const signature = `${text}|${color}|${pixel}`;
     if (signature === this.#signature) {
@@ -45,12 +45,15 @@ export class ClockCanvas {
     }
     this.#signature = signature;
 
-    const width = measureText(text);
+    const width = measureText(text) * pixel;
+    const height = FONT_HEIGHT * pixel;
 
-    this.#canvas.style.width = `${width * SCALE}px`;
-    this.#canvas.style.height = `${FONT_HEIGHT * SCALE}px`;
-    this.#canvas.width = width * pixel;
-    this.#canvas.height = FONT_HEIGHT * pixel;
+    this.#canvas.width = width;
+    this.#canvas.height = height;
+
+    // One backing pixel per device pixel — see PetCanvas for why.
+    this.#canvas.style.width = `${width / layout}px`;
+    this.#canvas.style.height = `${height / layout}px`;
 
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
     this.#ctx.shadowColor = color;

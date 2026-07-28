@@ -82,17 +82,24 @@ export class PetCanvas {
   }
 
   #resize(): void {
-    const ratio = (window.devicePixelRatio || 1) * this.#resolution;
+    const layout = (window.devicePixelRatio || 1) * this.#resolution;
 
     // A whole number of device pixels per sprite pixel: anything fractional
     // would leave the blocks with soft, uneven edges.
-    this.#pixel = Math.max(1, Math.round(SCALE * ratio));
+    this.#pixel = Math.max(1, Math.round(SCALE * layout));
 
-    this.#canvas.style.width = `${DUCK_SIZE * SCALE}px`;
     // Extra rows so the bob never clips the duck's feet.
-    this.#canvas.style.height = `${(DUCK_SIZE + MAX_BOB) * SCALE}px`;
-    this.#canvas.width = DUCK_SIZE * this.#pixel;
-    this.#canvas.height = (DUCK_SIZE + MAX_BOB) * this.#pixel;
+    const width = DUCK_SIZE * this.#pixel;
+    const height = (DUCK_SIZE + MAX_BOB) * this.#pixel;
+
+    this.#canvas.width = width;
+    this.#canvas.height = height;
+
+    // Lay it out so one backing pixel lands on exactly one device pixel.
+    // Sizing the element independently would make the browser resample the
+    // art, which is what turns crisp blocks to mush at fractional scales.
+    this.#canvas.style.width = `${width / layout}px`;
+    this.#canvas.style.height = `${height / layout}px`;
   }
 
   readonly #step = (timestamp: number): void => {
