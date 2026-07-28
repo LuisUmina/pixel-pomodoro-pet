@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import type { PomodoroSettings } from "../core/types";
+import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
 import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
 import type { JsonStore } from "./persistence";
 
@@ -12,6 +13,8 @@ export interface Preferences {
   readonly settings: PomodoroSettings;
   readonly task: string;
   readonly soundEnabled: boolean;
+  /** Widget size multiplier; the native window is resized to match. */
+  readonly uiScale: number;
   /** ISO day that `completedToday` belongs to; a new day resets the count. */
   readonly day: string;
   readonly completedToday: number;
@@ -31,6 +34,7 @@ export function defaultPreferences(day: string): Preferences {
     settings: DEFAULT_SETTINGS,
     task: "",
     soundEnabled: true,
+    uiScale: DEFAULT_UI_SCALE,
     day,
     completedToday: 0,
   };
@@ -55,6 +59,8 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     settings: readSettings(raw["settings"]),
     task: typeof raw["task"] === "string" ? raw["task"].slice(0, TASK_MAX_LENGTH) : "",
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
+    uiScale:
+      typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,
     day: today,
     // Yesterday's tally is not today's.
     completedToday: sameDay ? readCount(raw["completedToday"]) : 0,

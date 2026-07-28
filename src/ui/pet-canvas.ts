@@ -22,6 +22,7 @@ export class PetCanvas {
   #frameElapsed = 0;
   #lastTimestamp = 0;
   #pixel = SCALE;
+  #resolution = 1;
   #handle: number | null = null;
   #dirty = true;
 
@@ -38,6 +39,20 @@ export class PetCanvas {
 
   setPalette(palette: SpritePalette): void {
     this.#palette = palette;
+    this.#dirty = true;
+  }
+
+  /**
+   * Extra backing-store resolution for when the widget is scaled up, so the
+   * duck gains real pixels instead of being stretched.
+   */
+  setResolution(multiplier: number): void {
+    if (multiplier === this.#resolution) {
+      return;
+    }
+
+    this.#resolution = multiplier;
+    this.#resize();
     this.#dirty = true;
   }
 
@@ -67,16 +82,17 @@ export class PetCanvas {
   }
 
   #resize(): void {
-    const ratio = window.devicePixelRatio || 1;
-    const cssWidth = DUCK_SIZE * SCALE;
-    // Extra rows so the bob never clips the duck's feet.
-    const cssHeight = (DUCK_SIZE + MAX_BOB) * SCALE;
+    const ratio = (window.devicePixelRatio || 1) * this.#resolution;
 
-    this.#canvas.style.width = `${cssWidth}px`;
-    this.#canvas.style.height = `${cssHeight}px`;
-    this.#canvas.width = Math.round(cssWidth * ratio);
-    this.#canvas.height = Math.round(cssHeight * ratio);
-    this.#pixel = SCALE * ratio;
+    // A whole number of device pixels per sprite pixel: anything fractional
+    // would leave the blocks with soft, uneven edges.
+    this.#pixel = Math.max(1, Math.round(SCALE * ratio));
+
+    this.#canvas.style.width = `${DUCK_SIZE * SCALE}px`;
+    // Extra rows so the bob never clips the duck's feet.
+    this.#canvas.style.height = `${(DUCK_SIZE + MAX_BOB) * SCALE}px`;
+    this.#canvas.width = DUCK_SIZE * this.#pixel;
+    this.#canvas.height = (DUCK_SIZE + MAX_BOB) * this.#pixel;
   }
 
   readonly #step = (timestamp: number): void => {

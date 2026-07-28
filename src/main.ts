@@ -2,11 +2,12 @@ import "./ui/styles.css";
 
 import { playChime } from "./audio/chime";
 import { completionNotice } from "./core/format";
-import { createInitialState, isBreak, reduce } from "./core/pomodoro";
+import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { Ticker } from "./core/ticker";
-import type { Phase, PomodoroEvent } from "./core/types";
+import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
+import { clampUiScale } from "./scale";
 import type { PetState } from "./sprites/duck";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { browserStore } from "./store/persistence";
@@ -25,6 +26,7 @@ function main(): void {
     completedToday: preferences.completedToday,
   });
 
+  let uiScale = preferences.uiScale;
   let ghost = false;
   let celebrating = false;
   let celebrationTimer: ReturnType<typeof setTimeout> | null = null;
@@ -53,6 +55,8 @@ function main(): void {
     },
     toggleGhost: () => setGhost(!ghost),
     hide: () => desktop.hide(),
+    changeSettings: (settings) => applySettings(settings),
+    changeScale: (scale, persist) => applyScale(scale, persist),
   });
 
   const ticker = new Ticker((elapsedMs) => dispatch({ type: "tick", elapsedMs }));
@@ -98,6 +102,31 @@ function main(): void {
       celebrating = false;
       render();
     }, CELEBRATION_MS);
+  }
+
+  function applySettings(settings: PomodoroSettings): void {
+    preferences = { ...preferences, settings };
+    state = withSettings(state, settings);
+    save();
+    render();
+  }
+
+  /**
+   * Scales the widget. The webview zooms its layout and the shell resizes the
+   * window by the same factor, so the two never disagree. A drag in progress
+   * passes `persist: false` to keep it out of storage until it settles.
+   */
+  function applyScale(scale: number, persist: boolean): void {
+    uiScale = clampUiScale(scale);
+    document.documentElement.style.setProperty("--ui-scale", String(uiScale));
+    desktop.setScale(uiScale);
+
+    if (persist) {
+      preferences = { ...preferences, uiScale };
+      savePreferences(browserStore, preferences);
+    }
+
+    render();
   }
 
   function setGhost(enabled: boolean): void {
@@ -148,6 +177,7 @@ function main(): void {
       petState: petState(),
       soundEnabled: preferences.soundEnabled,
       ghost,
+      uiScale,
     });
   }
 
@@ -160,7 +190,8 @@ function main(): void {
   document.addEventListener("contextmenu", (event) => event.preventDefault());
 
   widget.start();
-  render();
+  // Restores the size the widget was left at, window included.
+  applyScale(uiScale, false);
 }
 
 main();

@@ -18,6 +18,15 @@
           </span>
           <span class="titlebar__path" id="path" data-tauri-drag-region>~/focus</span>
           <span class="titlebar__actions">
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="settings"
+              title="Settings"
+              aria-pressed="false"
+            >
+              ⚙
+            </button>
             <button type="button" class="iconbtn" data-action="theme" title="Cycle theme">
               ◑
             </button>
@@ -85,8 +94,63 @@
 
         <footer class="statusline">
           <span class="rounds" id="rounds"></span>
-          <span class="tally" id="tally">0 today</span>
+          <span class="statusline__right">
+            <span class="tally" id="tally">0 today</span>
+            <span class="grip" id="grip" title="Drag to resize"></span>
+          </span>
         </footer>
+
+        <!-- Overlays the card rather than growing it, so the window size is
+             never a function of whether settings happen to be open. -->
+        <section class="settings" id="settings" hidden>
+          <header class="settings__bar">
+            <span class="settings__title">settings</span>
+            <button type="button" class="iconbtn" data-action="settings" title="Close">
+              ✕
+            </button>
+          </header>
+
+          <div class="settings__body">
+            <label class="field">
+              <span class="field__label">focus</span>
+              <input type="number" id="set-focus" min="1" max="180" step="1" />
+              <span class="field__unit">min</span>
+            </label>
+            <label class="field">
+              <span class="field__label">break</span>
+              <input type="number" id="set-short" min="1" max="180" step="1" />
+              <span class="field__unit">min</span>
+            </label>
+            <label class="field">
+              <span class="field__label">long break</span>
+              <input type="number" id="set-long" min="1" max="180" step="1" />
+              <span class="field__unit">min</span>
+            </label>
+            <label class="field">
+              <span class="field__label">rounds</span>
+              <input type="number" id="set-rounds" min="1" max="12" step="1" />
+              <span class="field__unit">/cycle</span>
+            </label>
+
+            <label class="check">
+              <input type="checkbox" id="set-auto-breaks" />
+              <span>auto-start breaks</span>
+            </label>
+            <label class="check">
+              <input type="checkbox" id="set-auto-focus" />
+              <span>auto-start focus</span>
+            </label>
+
+            <div class="field field--sizes">
+              <span class="field__label">size</span>
+              <span class="sizes" id="set-sizes"></span>
+            </div>
+
+            <button type="button" class="btn" data-action="defaults">
+              RESTORE DEFAULTS
+            </button>
+          </div>
+        </section>
       </div>
     </div>
 

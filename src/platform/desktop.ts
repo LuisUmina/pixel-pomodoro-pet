@@ -12,6 +12,8 @@ export interface DesktopBridge {
   readonly available: boolean;
   on(event: ShellEvent, handler: () => void): void;
   setClickThrough(enabled: boolean): void;
+  /** Resizes the native window to match the widget's UI scale. */
+  setScale(scale: number): void;
   notify(title: string, body: string): void;
   hide(): void;
 }
@@ -50,6 +52,10 @@ function createTauriBridge(): DesktopBridge {
       void core.then((api) => api.invoke("set_click_through", { enabled }));
     },
 
+    setScale(scale) {
+      void core.then((api) => api.invoke("set_widget_scale", { scale }));
+    },
+
     notify(title, body) {
       void (async () => {
         if (await canNotify()) {
@@ -69,6 +75,7 @@ function createBrowserBridge(): DesktopBridge {
     available: false,
     on() {},
     setClickThrough() {},
+    setScale() {},
     notify(title, body) {
       console.info(`[notification] ${title} — ${body}`);
     },

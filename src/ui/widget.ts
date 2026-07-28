@@ -4,7 +4,10 @@ import type { PomodoroSettings, PomodoroState, TimerStatus } from "../core/types
 import type { PetState } from "../sprites/duck";
 import type { Theme } from "../sprites/themes";
 import { ClockCanvas } from "./clock-canvas";
+import { actionElement, element } from "./dom";
 import { PetCanvas } from "./pet-canvas";
+import { ResizeGrip } from "./resize-grip";
+import { SettingsPanel } from "./settings-panel";
 
 export interface WidgetActions {
   toggle(): void;
@@ -15,6 +18,9 @@ export interface WidgetActions {
   toggleSound(): void;
   toggleGhost(): void;
   hide(): void;
+  changeSettings(settings: PomodoroSettings): void;
+  /** `persist` is false while a resize drag is still in flight. */
+  changeScale(scale: number, persist: boolean): void;
 }
 
 export interface WidgetModel {
@@ -24,6 +30,7 @@ export interface WidgetModel {
   readonly petState: PetState;
   readonly soundEnabled: boolean;
   readonly ghost: boolean;
+  readonly uiScale: number;
 }
 
 const TOGGLE_LABELS: Readonly<Record<TimerStatus, string>> = {
@@ -39,6 +46,8 @@ export class Widget {
   readonly #widget: HTMLElement;
   readonly #pet: PetCanvas;
   readonly #clock: ClockCanvas;
+  readonly #settings: SettingsPanel;
+  readonly #grip: ResizeGrip;
   readonly #path: HTMLElement;
   readonly #phase: HTMLElement;
   readonly #progress: HTMLElement;
@@ -48,21 +57,35 @@ export class Widget {
   readonly #tally: HTMLElement;
   readonly #soundButton: HTMLElement;
   readonly #ghostButton: HTMLElement;
+  readonly #settingsButton: HTMLElement;
 
   #roundsSignature = "";
+  /** Last rendered model, so opening the panel can fill it in immediately. */
+  #model: WidgetModel | null = null;
 
   constructor(actions: WidgetActions) {
-    this.frame = required("frame");
-    this.#widget = required("widget");
-    this.#pet = new PetCanvas(required<HTMLCanvasElement>("pet"));
-    this.#clock = new ClockCanvas(required<HTMLCanvasElement>("clock"));
-    this.#path = required("path");
-    this.#phase = required("phase");
-    this.#progress = required("progress");
-    this.#toggle = required("toggle");
-    this.#task = required<HTMLInputElement>("task");
-    this.#rounds = required("rounds");
-    this.#tally = required("tally");
+    this.frame = element("frame");
+    this.#widget = element("widget");
+    this.#pet = new PetCanvas(element<HTMLCanvasElement>("pet"));
+    this.#clock = new ClockCanvas(element<HTMLCanvasElement>("clock"));
+    this.#path = element("path");
+    this.#phase = element("phase");
+    this.#progress = element("progress");
+    this.#toggle = element("toggle");
+    this.#task = element<HTMLInputElement>("task");
+    this.#rounds = element("rounds");
+    this.#tally = element("tally");
+
+    this.#settings = new SettingsPanel({
+      changeSettings: (settings) => actions.changeSettings(settings),
+      changeScale: (scale) => actions.changeScale(scale, true),
+    });
+
+    this.#grip = new ResizeGrip(
+      element("grip"),
+      (scale) => actions.changeScale(scale, false),
+      (scale) => actions.changeScale(scale, true),
+    );
 
     const handlers: Readonly<Record<string, () => void>> = {
       toggle: actions.toggle,
@@ -72,18 +95,20 @@ export class Widget {
       sound: actions.toggleSound,
       ghost: actions.toggleGhost,
       hide: actions.hide,
+      settings: () => this.#toggleSettings(),
+      defaults: () => this.#settings.restoreDefaults(),
     };
 
-    const buttons = document.querySelectorAll<HTMLElement>("[data-action]");
-    for (const button of buttons) {
+    for (const button of document.querySelectorAll<HTMLElement>("[data-action]")) {
       const handler = handlers[button.dataset["action"] ?? ""];
       if (handler) {
         button.addEventListener("click", handler);
       }
     }
 
-    this.#soundButton = requireAction("sound");
-    this.#ghostButton = requireAction("ghost");
+    this.#soundButton = actionElement("sound");
+    this.#ghostButton = actionElement("ghost");
+    this.#settingsButton = actionElement("settings");
 
     this.#task.addEventListener("input", () => actions.setTask(this.#task.value));
     // Enter should hand focus back rather than submit anything.
@@ -101,11 +126,13 @@ export class Widget {
   render(model: WidgetModel): void {
     const { state, settings, theme } = model;
     const accent = phaseColor(theme, state);
+    this.#model = model;
 
     this.#widget.dataset["phase"] = state.phase;
     this.#widget.dataset["status"] = state.status;
     this.#path.textContent = `~/${phaseLabel(state.phase).replace(" ", "-")}`;
 
+    this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
     this.#phase.textContent = `${phaseLabel(state.phase)} · ${state.round}/${settings.roundsPerCycle}`;
     this.#progress.style.width = `${(progress(state) * 100).toFixed(1)}%`;
@@ -122,8 +149,27 @@ export class Widget {
     this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
 
+    this.#pet.setResolution(model.uiScale);
     this.#pet.setPalette(theme.sprite);
     this.#pet.setState(model.petState);
+
+    this.#grip.setScale(model.uiScale);
+
+    // Only while visible: the panel writes into its inputs, and there is no
+    // reason to do that four times a second behind a closed panel.
+    if (this.#settings.isOpen) {
+      this.#settings.render(settings, model.uiScale);
+    }
+  }
+
+  #toggleSettings(): void {
+    this.#settings.toggle();
+    this.#settingsButton.setAttribute("aria-pressed", String(this.#settings.isOpen));
+
+    // An idle timer produces no renders, so seed the fields on open.
+    if (this.#settings.isOpen && this.#model) {
+      this.#settings.render(this.#model.settings, this.#model.uiScale);
+    }
   }
 
   #renderRounds(done: number, total: number): void {
@@ -146,22 +192,4 @@ export class Widget {
 function phaseColor(theme: Theme, state: PomodoroState): string {
   const key = state.phase === "focus" ? "--phase-focus" : "--phase-rest";
   return theme.css[key] ?? "#ffffff";
-}
-
-function required<T extends HTMLElement = HTMLElement>(id: string): T {
-  const element = document.getElementById(id);
-  if (!element) {
-    throw new Error(`index.html is missing #${id}`);
-  }
-
-  return element as T;
-}
-
-function requireAction(action: string): HTMLElement {
-  const element = document.querySelector<HTMLElement>(`[data-action="${action}"]`);
-  if (!element) {
-    throw new Error(`index.html is missing [data-action="${action}"]`);
-  }
-
-  return element;
 }
