@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# frontend build output
+dist/
+*.local
+
+# rust / tauri build output
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# generated app icons (regenerate with `npm run icons`)
+src-tauri/icons/
+
+# test coverage
+coverage/
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# os
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*

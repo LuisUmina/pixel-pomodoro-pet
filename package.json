@@ -1,0 +1,30 @@
+{
+  "name": "pixel-pomodoro-pet",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Pomodoro de escritorio siempre visible con una mascota pixel-art developer",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "app:dev": "tauri dev",
+    "app:build": "tauri build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "icons": "node scripts/generate-icon.mjs && tauri icon assets/icon.png"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.9.0",
+    "@tauri-apps/plugin-global-shortcut": "^2.3.0",
+    "@tauri-apps/plugin-notification": "^2.3.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.9.2",
+    "typescript": "^5.9.3",
+    "vite": "^6.3.6",
+    "vitest": "^2.1.9"
+  }
+}
