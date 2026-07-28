@@ -10,6 +10,7 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     let toggle = MenuItem::with_id(app, "toggle", "Start / Pause", true, Some("Ctrl+Alt+Space"))?;
     let skip = MenuItem::with_id(app, "skip", "Skip phase", true, Some("Ctrl+Alt+N"))?;
     let reset = MenuItem::with_id(app, "reset", "Reset phase", true, Some("Ctrl+Alt+R"))?;
+    let ghost = MenuItem::with_id(app, "ghost", "Toggle click-through", true, None::<&str>)?;
     let show = MenuItem::with_id(app, "show", "Show widget", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
@@ -20,6 +21,7 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
             &skip,
             &reset,
             &PredefinedMenuItem::separator(app)?,
+            &ghost,
             &show,
             &PredefinedMenuItem::separator(app)?,
             &quit,
@@ -39,6 +41,7 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
             "toggle" => emit(app, events::TOGGLE),
             "skip" => emit(app, events::SKIP),
             "reset" => emit(app, events::RESET),
+            "ghost" => emit(app, events::GHOST),
             "show" => reveal(app),
             "quit" => app.exit(0),
             _ => {}
