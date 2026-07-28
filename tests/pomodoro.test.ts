@@ -6,6 +6,7 @@ import {
   phaseDurationMs,
   progress,
   reduce,
+  withSettings,
 } from "../src/core/pomodoro";
 import type { PomodoroEvent, PomodoroSettings, PomodoroState } from "../src/core/types";
 
@@ -170,6 +171,57 @@ describe("setTask", () => {
     expect(state.task).toBe("refactor auth");
     expect(state.status).toBe("running");
     expect(state.remainingMs).toBe(running.remainingMs);
+  });
+});
+
+describe("withSettings", () => {
+  it("stretches an idle phase to the new duration", () => {
+    const state = createInitialState(settings);
+    const longer = withSettings(state, { ...settings, focusMinutes: 50 });
+
+    expect(longer.totalMs).toBe(50 * 60_000);
+    expect(longer.remainingMs).toBe(50 * 60_000);
+  });
+
+  it("keeps the time left on a running phase", () => {
+    const { state } = run(createInitialState(settings), [
+      { type: "start" },
+      { type: "tick", elapsedMs: 60_000 },
+    ]);
+
+    const stretched = withSettings(state, { ...settings, focusMinutes: 50 });
+
+    expect(stretched.remainingMs).toBe(state.remainingMs);
+    expect(stretched.totalMs).toBe(50 * 60_000);
+  });
+
+  it("clamps the time left so it can never exceed the new total", () => {
+    const { state } = run(createInitialState(settings), [
+      { type: "start" },
+      { type: "tick", elapsedMs: 60_000 },
+    ]);
+
+    const shortened = withSettings(state, { ...settings, focusMinutes: 5 });
+
+    expect(shortened.totalMs).toBe(5 * 60_000);
+    expect(shortened.remainingMs).toBe(5 * 60_000);
+    expect(progress(shortened)).toBe(0);
+  });
+
+  it("leaves the state untouched when the duration did not move", () => {
+    const state = createInitialState(settings);
+
+    expect(withSettings(state, { ...settings, shortBreakMinutes: 9 })).toBe(state);
+  });
+
+  it("only touches the phase currently on screen", () => {
+    const state = createInitialState(settings);
+    const changed = withSettings(state, { ...settings, longBreakMinutes: 30 });
+
+    expect(changed).toBe(state);
+    expect(phaseDurationMs("longBreak", { ...settings, longBreakMinutes: 30 })).toBe(
+      30 * 60_000,
+    );
   });
 });
 

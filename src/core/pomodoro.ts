@@ -50,6 +50,31 @@ export function createInitialState(
   };
 }
 
+/**
+ * Re-applies the phase durations after the user edits them.
+ *
+ * An idle phase simply adopts the new length. A phase already under way keeps
+ * the time it has left — shortening the focus duration mid-session should not
+ * retroactively decide you are done — except that it can never exceed the new
+ * total, which would leave the progress bar reading backwards.
+ */
+export function withSettings(
+  state: PomodoroState,
+  settings: PomodoroSettings,
+): PomodoroState {
+  const totalMs = phaseDurationMs(state.phase, settings);
+  if (totalMs === state.totalMs) {
+    return state;
+  }
+
+  return {
+    ...state,
+    totalMs,
+    remainingMs:
+      state.status === "idle" ? totalMs : Math.min(state.remainingMs, totalMs),
+  };
+}
+
 /** Fraction of the current phase already spent, clamped to 0..1. */
 export function progress(state: PomodoroState): number {
   if (state.totalMs <= 0) {
