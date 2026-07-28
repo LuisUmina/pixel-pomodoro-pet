@@ -22,6 +22,12 @@ Cambiar de tema repinta también al pato:
   volver sea una decisión consciente.
 - **Mascota animada** con cinco estados: `idle`, `focus`, `rest`, `celebrate` y
   `sleepy`. Respira, parpadea y le salen chispas al terminar una sesión.
+- **Ajustes editables** detrás del engrane: duraciones de focus, descanso corto
+  y largo, rondas por ciclo y auto-arranque. Cambiar una duración con el timer
+  corriendo respeta el tiempo que ya llevas.
+- **Tamaño ajustable** — cuatro presets (80 / 100 / 125 / 150 %) y un grip en
+  la esquina para redimensionar arrastrando. La ventana nativa se redimensiona
+  con la interfaz, y el pixel art se mantiene nítido en cada escala.
 - **Temas de editor** — Tokyo Night, Dracula y Gruvbox. Cambiar de tema
   **repinta también al pato**, no solo la interfaz.
 - **Reloj en fuente pixel propia**, dibujada con el mismo motor de sprites que
@@ -33,8 +39,10 @@ Cambiar de tema repinta también al pato:
   flota de verdad sobre el IDE.
 - **Bandeja del sistema y hotkeys globales**, para manejar el timer sin salir
   del editor.
-- **Recuerda dónde lo dejaste**: posición de la ventana, tema, tarea y pomodoros
-  del día.
+- **No roba el foco**: aparece sin robarle el teclado a lo que estés haciendo,
+  que es la diferencia entre un widget y un estorbo.
+- **Recuerda dónde lo dejaste**: posición y tamaño de la ventana, tema, tarea y
+  pomodoros del día.
 
 ## Atajos
 
@@ -113,7 +121,7 @@ es un no-op en vez de un crash.
 ## Roadmap
 
 **v0.2** — modo mini/zen, heatmap de focus estilo contribuciones de GitHub,
-rachas, sound packs y panel de ajustes.
+rachas y sound packs.
 
 **v0.3** — integración con git (branch en el widget, borrador de mensaje de
 commit al cerrar la sesión), evolución de la mascota y logros.
