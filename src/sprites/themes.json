@@ -1,0 +1,92 @@
+{
+  "tokyo-night": {
+    "name": "Tokyo Night",
+    "css": {
+      "--surface": "#1a1b26",
+      "--surface-alt": "#24283b",
+      "--surface-deep": "#16161e",
+      "--border": "#3b4261",
+      "--text": "#c0caf5",
+      "--text-dim": "#565f89",
+      "--accent": "#7aa2f7",
+      "--accent-alt": "#bb9af7",
+      "--phase-focus": "#7aa2f7",
+      "--phase-rest": "#9ece6a",
+      "--danger": "#f7768e",
+      "--glow": "rgba(122, 162, 247, 0.5)"
+    },
+    "sprite": {
+      "o": "#2b1e10",
+      "b": "#e8b04b",
+      "B": "#f7d17a",
+      "d": "#b57f2c",
+      "k": "#ff9e64",
+      "K": "#d1743f",
+      "e": "#16161e",
+      "w": "#ffffff",
+      "c": "#f7768e",
+      "a": "#9ece6a",
+      "A": "#c3f39a"
+    }
+  },
+  "dracula": {
+    "name": "Dracula",
+    "css": {
+      "--surface": "#282a36",
+      "--surface-alt": "#343746",
+      "--surface-deep": "#21222c",
+      "--border": "#6272a4",
+      "--text": "#f8f8f2",
+      "--text-dim": "#6272a4",
+      "--accent": "#bd93f9",
+      "--accent-alt": "#ff79c6",
+      "--phase-focus": "#bd93f9",
+      "--phase-rest": "#50fa7b",
+      "--danger": "#ff5555",
+      "--glow": "rgba(189, 147, 249, 0.5)"
+    },
+    "sprite": {
+      "o": "#3b1d33",
+      "b": "#ff79c6",
+      "B": "#ffa8dc",
+      "d": "#c94f9c",
+      "k": "#ffb86c",
+      "K": "#d98c47",
+      "e": "#21222c",
+      "w": "#f8f8f2",
+      "c": "#bd93f9",
+      "a": "#50fa7b",
+      "A": "#8affa8"
+    }
+  },
+  "gruvbox": {
+    "name": "Gruvbox",
+    "css": {
+      "--surface": "#282828",
+      "--surface-alt": "#3c3836",
+      "--surface-deep": "#1d2021",
+      "--border": "#665c54",
+      "--text": "#ebdbb2",
+      "--text-dim": "#928374",
+      "--accent": "#fabd2f",
+      "--accent-alt": "#8ec07c",
+      "--phase-focus": "#fabd2f",
+      "--phase-rest": "#b8bb26",
+      "--danger": "#fb4934",
+      "--glow": "rgba(250, 189, 47, 0.45)"
+    },
+    "sprite": {
+      "o": "#3c2c14",
+      "b": "#d79921",
+      "B": "#fabd2f",
+      "d": "#a07717",
+      "k": "#d65d0e",
+      "K": "#af3a03",
+      "e": "#1d2021",
+      "w": "#ebdbb2",
+      "c": "#cc241d",
+      "a": "#98971a",
+      "A": "#b8bb26"
+    }
+  }
+}
