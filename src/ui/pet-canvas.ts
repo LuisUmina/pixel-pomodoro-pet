@@ -38,6 +38,11 @@ export class PetCanvas {
   }
 
   setPalette(palette: SpritePalette): void {
+    // Called on every render; only a real theme change is worth a repaint.
+    if (palette === this.#palette) {
+      return;
+    }
+
     this.#palette = palette;
     this.#dirty = true;
   }

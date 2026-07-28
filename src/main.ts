@@ -27,6 +27,7 @@ function main(): void {
   });
 
   let uiScale = preferences.uiScale;
+  let savedSignature = JSON.stringify(preferences);
   let ghost = false;
   let celebrating = false;
   let celebrationTimer: ReturnType<typeof setTimeout> | null = null;
@@ -123,7 +124,7 @@ function main(): void {
 
     if (persist) {
       preferences = { ...preferences, uiScale };
-      savePreferences(browserStore, preferences);
+      save();
     }
 
     render();
@@ -166,6 +167,15 @@ function main(): void {
       task: state.task,
       completedToday: state.completedToday,
     };
+
+    // `save` runs on every tick — four times a second for hours. Comparing
+    // first keeps that from becoming four synchronous disk writes a second.
+    const signature = JSON.stringify(preferences);
+    if (signature === savedSignature) {
+      return;
+    }
+
+    savedSignature = signature;
     savePreferences(browserStore, preferences);
   }
 
