@@ -69,6 +69,16 @@ body {
   opacity: 0.42;
 }
 
+/* Click-through is invisible by its nature — clicks simply pass through — so
+   the border colour backs up the `[ghost]` marker in the title bar. */
+.frame[data-ghost="true"] {
+  background: var(--accent);
+}
+
+.widget[data-ghost="true"] .titlebar__path {
+  color: var(--accent);
+}
+
 .widget {
   --phase: var(--phase-focus);
 

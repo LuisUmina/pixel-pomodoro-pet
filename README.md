@@ -51,10 +51,18 @@ Cambiar de tema repinta también al pato:
 | `Ctrl+Alt+Space` | Start / Pause |
 | `Ctrl+Alt+N` | Saltar fase |
 | `Ctrl+Alt+R` | Reiniciar fase |
+| `Ctrl+Alt+G` | Click-through on / off |
+| `Ctrl+Alt+H` | Ocultar / mostrar el widget |
 
-El menú de la bandeja repite esas acciones y añade **Toggle click-through** y
-**Show widget**. El click-through se apaga desde ahí a propósito: una vez que la
-ventana ignora el cursor, su propio botón ya no se puede clickear.
+Los dos últimos existen porque sus botones son **puertas de una sola dirección**:
+un widget que ignora el cursor o que está oculto no se puede clickear para
+deshacerlo. La bandeja también sirve, pero su icono se pierde con facilidad en
+los iconos ocultos de Windows, así que el teclado es la salida garantizada.
+Cerrar y volver a abrir la app también limpia el click-through: ese estado no
+se persiste, a propósito.
+
+Mientras el click-through está activo, la barra de título lo dice —
+`~/focus [ghost]`— porque si no, el modo sería invisible.
 
 ## Desarrollo
 

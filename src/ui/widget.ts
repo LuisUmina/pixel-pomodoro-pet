@@ -130,7 +130,10 @@ export class Widget {
 
     this.#widget.dataset["phase"] = state.phase;
     this.#widget.dataset["status"] = state.status;
-    this.#path.textContent = `~/${phaseLabel(state.phase).replace(" ", "-")}`;
+    // Click-through leaves no other trace on screen, and the widget cannot be
+    // clicked to ask, so the title bar has to say it outright.
+    const path = `~/${phaseLabel(state.phase).replace(" ", "-")}`;
+    this.#path.textContent = model.ghost ? `${path} [ghost]` : path;
 
     this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
@@ -148,6 +151,8 @@ export class Widget {
 
     this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
+    this.frame.dataset["ghost"] = String(model.ghost);
+    this.#widget.dataset["ghost"] = String(model.ghost);
 
     this.#pet.setResolution(model.uiScale);
     this.#pet.setPalette(theme.sprite);

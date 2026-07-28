@@ -10,8 +10,14 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     let toggle = MenuItem::with_id(app, "toggle", "Start / Pause", true, Some("Ctrl+Alt+Space"))?;
     let skip = MenuItem::with_id(app, "skip", "Skip phase", true, Some("Ctrl+Alt+N"))?;
     let reset = MenuItem::with_id(app, "reset", "Reset phase", true, Some("Ctrl+Alt+R"))?;
-    let ghost = MenuItem::with_id(app, "ghost", "Toggle click-through", true, None::<&str>)?;
-    let show = MenuItem::with_id(app, "show", "Show widget", true, None::<&str>)?;
+    let ghost = MenuItem::with_id(
+        app,
+        "ghost",
+        "Toggle click-through",
+        true,
+        Some("Ctrl+Alt+G"),
+    )?;
+    let show = MenuItem::with_id(app, "show", "Show widget", true, Some("Ctrl+Alt+H"))?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
     let menu = Menu::with_items(

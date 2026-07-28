@@ -4,15 +4,28 @@ use tauri::plugin::TauriPlugin;
 use tauri::{App, Emitter, Runtime};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
-use crate::events;
+use crate::{events, window};
 
-/// Each hotkey and the widget event it fires.
-fn bindings() -> [(Shortcut, &'static str); 3] {
+/// What a hotkey does: most just hand off to the timer running in the webview.
+#[derive(Clone, Copy)]
+enum Action {
+    Emit(&'static str),
+    ToggleVisibility,
+}
+
+/// Each hotkey and the action it triggers.
+///
+/// The last two exist because their features are otherwise one-way doors: a
+/// click-through or hidden widget cannot be clicked to undo either, and the
+/// tray icon is easy to lose in the notification overflow.
+fn bindings() -> [(Shortcut, Action); 5] {
     let ctrl_alt = Modifiers::CONTROL | Modifiers::ALT;
     [
-        (Shortcut::new(Some(ctrl_alt), Code::Space), events::TOGGLE),
-        (Shortcut::new(Some(ctrl_alt), Code::KeyN), events::SKIP),
-        (Shortcut::new(Some(ctrl_alt), Code::KeyR), events::RESET),
+        (Shortcut::new(Some(ctrl_alt), Code::Space), Action::Emit(events::TOGGLE)),
+        (Shortcut::new(Some(ctrl_alt), Code::KeyN), Action::Emit(events::SKIP)),
+        (Shortcut::new(Some(ctrl_alt), Code::KeyR), Action::Emit(events::RESET)),
+        (Shortcut::new(Some(ctrl_alt), Code::KeyG), Action::Emit(events::GHOST)),
+        (Shortcut::new(Some(ctrl_alt), Code::KeyH), Action::ToggleVisibility),
     ]
 }
 
@@ -24,8 +37,17 @@ pub fn plugin<R: Runtime>() -> TauriPlugin<R> {
                 return;
             }
 
-            if let Some((_, name)) = bindings().iter().find(|(binding, _)| binding == pressed) {
-                let _ = app.emit(name, ());
+            let bindings = bindings();
+            let Some((_, action)) = bindings.iter().find(|(binding, _)| binding == pressed)
+            else {
+                return;
+            };
+
+            match action {
+                Action::Emit(name) => {
+                    let _ = app.emit(*name, ());
+                }
+                Action::ToggleVisibility => window::toggle_visibility(app),
             }
         })
         .build()
@@ -34,11 +56,11 @@ pub fn plugin<R: Runtime>() -> TauriPlugin<R> {
 pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     let manager = app.global_shortcut();
 
-    for (shortcut, name) in bindings() {
+    for (shortcut, _) in bindings() {
         // A hotkey already claimed by another app must not stop the widget
         // from booting — the tray and the UI buttons still work.
         if let Err(error) = manager.register(shortcut) {
-            eprintln!("could not bind the global shortcut for {name}: {error}");
+            eprintln!("could not bind a global shortcut: {error}");
         }
     }
 

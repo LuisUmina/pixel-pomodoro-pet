@@ -1,6 +1,6 @@
 //! Behaviour of the single floating widget window.
 
-use tauri::{App, AppHandle, LogicalSize, Manager, WebviewWindow};
+use tauri::{App, AppHandle, LogicalSize, Manager, Runtime, WebviewWindow};
 
 /// Must match the window label declared in `tauri.conf.json`.
 pub const WIDGET_LABEL: &str = "widget";
@@ -16,7 +16,10 @@ const MIN_SCALE: f64 = 0.7;
 const MAX_SCALE: f64 = 2.0;
 
 /// Handle to the widget window, if it still exists.
-pub fn widget(app: &AppHandle) -> Option<WebviewWindow> {
+///
+/// Generic over the runtime so the global-shortcut plugin, which is itself
+/// generic, can reach it.
+pub fn widget<R: Runtime>(app: &AppHandle<R>) -> Option<WebviewWindow<R>> {
     app.get_webview_window(WIDGET_LABEL)
 }
 
@@ -30,6 +33,23 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     window.set_always_on_top(true)?;
 
     Ok(())
+}
+
+/// Hides the widget, or brings it back if it is already hidden.
+///
+/// Handled here rather than in the webview: a hidden window cannot be asked to
+/// show itself reliably, and this is the escape hatch for having hidden it.
+pub fn toggle_visibility<R: Runtime>(app: &AppHandle<R>) {
+    let Some(widget) = widget(app) else {
+        return;
+    };
+
+    if widget.is_visible().unwrap_or(false) {
+        let _ = widget.hide();
+    } else {
+        let _ = widget.show();
+        let _ = widget.set_focus();
+    }
 }
 
 /// Toggles mouse transparency so the widget can float over another app
