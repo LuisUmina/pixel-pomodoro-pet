@@ -29,7 +29,10 @@ pub fn run() {
             shortcuts::setup(app)?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![window::set_click_through])
+        .invoke_handler(tauri::generate_handler![
+            window::set_click_through,
+            window::set_widget_scale
+        ])
         .run(tauri::generate_context!())
         .expect("failed to start pixel-pomodoro-pet");
 }
