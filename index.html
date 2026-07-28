@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Pomodoro Pet</title>
+  </head>
+  <body>
+    <!-- Two nested clipped boxes fake a chunky pixel border with bevelled
+         corners: the outer one is the border colour, the inner the surface. -->
+    <div class="frame" id="frame">
+      <div class="widget" id="widget" data-phase="focus" data-status="idle">
+        <header class="titlebar" data-tauri-drag-region>
+          <span class="titlebar__lights" data-tauri-drag-region>
+            <i class="light light--danger"></i>
+            <i class="light light--warn"></i>
+            <i class="light light--ok"></i>
+          </span>
+          <span class="titlebar__path" id="path" data-tauri-drag-region>~/focus</span>
+          <span class="titlebar__actions">
+            <button type="button" class="iconbtn" data-action="theme" title="Cycle theme">
+              ◑
+            </button>
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="sound"
+              title="Toggle sound"
+              aria-pressed="true"
+            >
+              ♪
+            </button>
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="ghost"
+              title="Click-through — turn back off from the tray"
+              aria-pressed="false"
+            >
+              ◇
+            </button>
+            <button type="button" class="iconbtn" data-action="hide" title="Hide to tray">
+              ─
+            </button>
+          </span>
+        </header>
+
+        <main class="stage" data-tauri-drag-region>
+          <canvas class="pet" id="pet" data-tauri-drag-region></canvas>
+        </main>
+
+        <section class="readout">
+          <canvas class="clock" id="clock"></canvas>
+          <p class="phase" id="phase">focus</p>
+        </section>
+
+        <div class="progress">
+          <span class="progress__fill" id="progress"></span>
+        </div>
+
+        <label class="task">
+          <span class="task__prompt">$</span>
+          <input
+            type="text"
+            id="task"
+            class="task__input"
+            maxlength="48"
+            spellcheck="false"
+            autocomplete="off"
+            placeholder="what are you working on?"
+          />
+        </label>
+
+        <div class="controls">
+          <button type="button" class="btn btn--primary" data-action="toggle" id="toggle">
+            START
+          </button>
+          <button type="button" class="btn" data-action="skip" title="Skip (Ctrl+Alt+N)">
+            SKIP
+          </button>
+          <button type="button" class="btn" data-action="reset" title="Reset (Ctrl+Alt+R)">
+            RESET
+          </button>
+        </div>
+
+        <footer class="statusline">
+          <span class="rounds" id="rounds"></span>
+          <span class="tally" id="tally">0 today</span>
+        </footer>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

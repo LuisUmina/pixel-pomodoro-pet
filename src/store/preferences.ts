@@ -1,0 +1,120 @@
+import { DEFAULT_SETTINGS } from "../core/pomodoro";
+import type { PomodoroSettings } from "../core/types";
+import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
+import type { JsonStore } from "./persistence";
+
+const STORAGE_KEY = "pixel-pomodoro-pet:preferences";
+
+export const TASK_MAX_LENGTH = 48;
+
+export interface Preferences {
+  readonly themeId: ThemeId;
+  readonly settings: PomodoroSettings;
+  readonly task: string;
+  readonly soundEnabled: boolean;
+  /** ISO day that `completedToday` belongs to; a new day resets the count. */
+  readonly day: string;
+  readonly completedToday: number;
+}
+
+export function isoDay(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function pad(value: number): string {
+  return value.toString().padStart(2, "0");
+}
+
+export function defaultPreferences(day: string): Preferences {
+  return {
+    themeId: DEFAULT_THEME_ID,
+    settings: DEFAULT_SETTINGS,
+    task: "",
+    soundEnabled: true,
+    day,
+    completedToday: 0,
+  };
+}
+
+/**
+ * Reads preferences defensively: anything missing, malformed or out of range
+ * falls back to the default rather than propagating into the timer.
+ */
+export function loadPreferences(store: JsonStore, today: string): Preferences {
+  const defaults = defaultPreferences(today);
+  const raw = store.get(STORAGE_KEY);
+
+  if (!isRecord(raw)) {
+    return defaults;
+  }
+
+  const sameDay = raw["day"] === today;
+
+  return {
+    themeId: isThemeId(raw["themeId"]) ? raw["themeId"] : defaults.themeId,
+    settings: readSettings(raw["settings"]),
+    task: typeof raw["task"] === "string" ? raw["task"].slice(0, TASK_MAX_LENGTH) : "",
+    soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
+    day: today,
+    // Yesterday's tally is not today's.
+    completedToday: sameDay ? readCount(raw["completedToday"]) : 0,
+  };
+}
+
+export function savePreferences(store: JsonStore, preferences: Preferences): void {
+  store.set(STORAGE_KEY, preferences);
+}
+
+function readSettings(value: unknown): PomodoroSettings {
+  if (!isRecord(value)) {
+    return DEFAULT_SETTINGS;
+  }
+
+  return {
+    focusMinutes: readMinutes(value["focusMinutes"], DEFAULT_SETTINGS.focusMinutes),
+    shortBreakMinutes: readMinutes(
+      value["shortBreakMinutes"],
+      DEFAULT_SETTINGS.shortBreakMinutes,
+    ),
+    longBreakMinutes: readMinutes(
+      value["longBreakMinutes"],
+      DEFAULT_SETTINGS.longBreakMinutes,
+    ),
+    roundsPerCycle: clampInteger(
+      value["roundsPerCycle"],
+      DEFAULT_SETTINGS.roundsPerCycle,
+      1,
+      12,
+    ),
+    autoStartBreaks:
+      typeof value["autoStartBreaks"] === "boolean"
+        ? value["autoStartBreaks"]
+        : DEFAULT_SETTINGS.autoStartBreaks,
+    autoStartFocus:
+      typeof value["autoStartFocus"] === "boolean"
+        ? value["autoStartFocus"]
+        : DEFAULT_SETTINGS.autoStartFocus,
+  };
+}
+
+function readMinutes(value: unknown, fallback: number): number {
+  return clampInteger(value, fallback, 1, 180);
+}
+
+function readCount(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.floor(value)
+    : 0;
+}
+
+function clampInteger(value: unknown, fallback: number, min: number, max: number): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
