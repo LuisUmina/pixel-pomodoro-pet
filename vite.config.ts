@@ -1,5 +1,5 @@
-/// <reference types="vitest" />
-import { defineConfig } from "vite";
+// `vitest/config` re-exports Vite's defineConfig with the `test` block typed.
+import { defineConfig } from "vitest/config";
 
 // Tauri injects this when running `tauri dev` against a physical device.
 const host = process.env["TAURI_DEV_HOST"];
