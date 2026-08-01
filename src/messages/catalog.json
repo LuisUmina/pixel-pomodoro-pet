@@ -1,0 +1,109 @@
+[
+  { "id": "focus-start-dev-1", "trigger": "focusStart", "tone": "dev", "text": "Timer's running. Try not to open a new tab." },
+  { "id": "focus-start-dev-2", "trigger": "focusStart", "tone": "dev", "text": "The bug isn't going to fix itself. Probably." },
+  { "id": "focus-start-dev-3", "trigger": "focusStart", "tone": "dev", "text": "Focus mode. I'll be here, judging silently." },
+  { "id": "focus-start-dev-4", "trigger": "focusStart", "tone": "dev", "text": "Deep work. Slack can wait, it always does." },
+  { "id": "focus-start-dev-5", "trigger": "focusStart", "tone": "dev", "text": "Off we go. No 'quick look' at anything." },
+  { "id": "focus-start-dev-6", "trigger": "focusStart", "tone": "dev", "text": "Late session. I'll pretend this is normal.", "hours": [22, 5] },
+  { "id": "focus-start-dev-7", "trigger": "focusStart", "tone": "dev", "text": "Early start. Suspicious, but I respect it.", "hours": [5, 9] },
+
+  { "id": "focus-start-hype-1", "trigger": "focusStart", "tone": "hype", "text": "You showed up. That was the hard part." },
+  { "id": "focus-start-hype-2", "trigger": "focusStart", "tone": "hype", "text": "One block of real work. Make it count." },
+  { "id": "focus-start-hype-3", "trigger": "focusStart", "tone": "hype", "text": "Head down. Future you is already grateful." },
+  { "id": "focus-start-hype-4", "trigger": "focusStart", "tone": "hype", "text": "This is the one that moves the needle." },
+  { "id": "focus-start-hype-5", "trigger": "focusStart", "tone": "hype", "text": "Nothing else exists for the next stretch." },
+
+  { "id": "focus-start-plain-1", "trigger": "focusStart", "tone": "plain", "text": "Focus session started." },
+  { "id": "focus-start-plain-2", "trigger": "focusStart", "tone": "plain", "text": "Timer running." },
+
+  { "id": "focus-done-dev-1", "trigger": "focusDone", "tone": "dev", "text": "Session done. Stand up, you're not a server." },
+  { "id": "focus-done-dev-2", "trigger": "focusDone", "tone": "dev", "text": "Go touch something that isn't a keyboard." },
+  { "id": "focus-done-dev-3", "trigger": "focusDone", "tone": "dev", "text": "That's a wrap. Hydrate, human." },
+  { "id": "focus-done-dev-4", "trigger": "focusDone", "tone": "dev", "text": "Committed to the timer, at least. Go rest." },
+  { "id": "focus-done-dev-5", "trigger": "focusDone", "tone": "dev", "text": "First one down. The rest come easier.", "minCompleted": 1, "maxCompleted": 1 },
+  { "id": "focus-done-dev-6", "trigger": "focusDone", "tone": "dev", "text": "Four deep. Genuinely impressive.", "minCompleted": 4 },
+  { "id": "focus-done-dev-7", "trigger": "focusDone", "tone": "dev", "text": "Still going at this hour? Log off eventually.", "minCompleted": 3, "hours": [22, 5] },
+
+  { "id": "focus-done-hype-1", "trigger": "focusDone", "tone": "hype", "text": "Nailed it. That was real progress." },
+  { "id": "focus-done-hype-2", "trigger": "focusDone", "tone": "hype", "text": "Another one in the bank." },
+  { "id": "focus-done-hype-3", "trigger": "focusDone", "tone": "hype", "text": "That's how it gets done. One block at a time." },
+  { "id": "focus-done-hype-4", "trigger": "focusDone", "tone": "hype", "text": "First session of the day. Momentum starts here.", "minCompleted": 1, "maxCompleted": 1 },
+  { "id": "focus-done-hype-5", "trigger": "focusDone", "tone": "hype", "text": "Four sessions in. That's a serious day.", "minCompleted": 4 },
+
+  { "id": "focus-done-plain-1", "trigger": "focusDone", "tone": "plain", "text": "Focus session complete." },
+  { "id": "focus-done-plain-2", "trigger": "focusDone", "tone": "plain", "text": "Session finished. Break next." },
+
+  { "id": "break-start-dev-1", "trigger": "breakStart", "tone": "dev", "text": "Break time. Rereading the same line doesn't count." },
+  { "id": "break-start-dev-2", "trigger": "breakStart", "tone": "dev", "text": "Rest. The build will still be slow later." },
+  { "id": "break-start-dev-3", "trigger": "breakStart", "tone": "dev", "text": "Go get water. You're mostly made of it." },
+  { "id": "break-start-dev-4", "trigger": "breakStart", "tone": "dev", "text": "Look at something further than 60cm away." },
+  { "id": "break-start-dev-5", "trigger": "breakStart", "tone": "dev", "text": "Stretch. Your spine has filed a ticket." },
+
+  { "id": "break-start-hype-1", "trigger": "breakStart", "tone": "hype", "text": "Rest is part of the work. Take it properly." },
+  { "id": "break-start-hype-2", "trigger": "breakStart", "tone": "hype", "text": "Step away. You earned this one." },
+  { "id": "break-start-hype-3", "trigger": "breakStart", "tone": "hype", "text": "Breathe. You'll come back sharper." },
+  { "id": "break-start-hype-4", "trigger": "breakStart", "tone": "hype", "text": "Good stopping point. Let it settle." },
+
+  { "id": "break-start-plain-1", "trigger": "breakStart", "tone": "plain", "text": "Break started." },
+  { "id": "break-start-plain-2", "trigger": "breakStart", "tone": "plain", "text": "Break running." },
+
+  { "id": "break-done-dev-1", "trigger": "breakDone", "tone": "dev", "text": "Break's over. Try to look excited." },
+  { "id": "break-done-dev-2", "trigger": "breakDone", "tone": "dev", "text": "Back to it. The duck is watching." },
+  { "id": "break-done-dev-3", "trigger": "breakDone", "tone": "dev", "text": "Time's up. Now, where were we?" },
+  { "id": "break-done-dev-4", "trigger": "breakDone", "tone": "dev", "text": "Recess over. Open the editor." },
+  { "id": "break-done-dev-5", "trigger": "breakDone", "tone": "dev", "text": "Rested. No more excuses available." },
+
+  { "id": "break-done-hype-1", "trigger": "breakDone", "tone": "hype", "text": "Refreshed. Let's pick it back up." },
+  { "id": "break-done-hype-2", "trigger": "breakDone", "tone": "hype", "text": "Round two. You've got this." },
+  { "id": "break-done-hype-3", "trigger": "breakDone", "tone": "hype", "text": "Back in — you were on a roll." },
+  { "id": "break-done-hype-4", "trigger": "breakDone", "tone": "hype", "text": "Reset done. The next block starts now." },
+
+  { "id": "break-done-plain-1", "trigger": "breakDone", "tone": "plain", "text": "Break finished." },
+  { "id": "break-done-plain-2", "trigger": "breakDone", "tone": "plain", "text": "Ready for the next session." },
+
+  { "id": "paused-dev-1", "trigger": "paused", "tone": "dev", "text": "Paused. I'll wait. I have nowhere to be." },
+  { "id": "paused-dev-2", "trigger": "paused", "tone": "dev", "text": "Timer stopped. Suspicious, but fine." },
+  { "id": "paused-dev-3", "trigger": "paused", "tone": "dev", "text": "This is where sessions go to die." },
+  { "id": "paused-dev-4", "trigger": "paused", "tone": "dev", "text": "Holding. Resume whenever, I guess." },
+  { "id": "paused-dev-5", "trigger": "paused", "tone": "dev", "text": "Pause taken. Don't make it a lifestyle." },
+
+  { "id": "paused-hype-1", "trigger": "paused", "tone": "hype", "text": "Paused. Come back when you're ready." },
+  { "id": "paused-hype-2", "trigger": "paused", "tone": "hype", "text": "No judgement. Resume when it's time." },
+  { "id": "paused-hype-3", "trigger": "paused", "tone": "hype", "text": "Take the moment. Then let's finish it." },
+  { "id": "paused-hype-4", "trigger": "paused", "tone": "hype", "text": "Paused, not finished. Big difference." },
+
+  { "id": "paused-plain-1", "trigger": "paused", "tone": "plain", "text": "Timer paused." },
+  { "id": "paused-plain-2", "trigger": "paused", "tone": "plain", "text": "Paused." },
+
+  { "id": "idle-dev-1", "trigger": "idle", "tone": "dev", "text": "Still here. Still waiting. Still a duck." },
+  { "id": "idle-dev-2", "trigger": "idle", "tone": "dev", "text": "The timer works better when it's running." },
+  { "id": "idle-dev-3", "trigger": "idle", "tone": "dev", "text": "I'd start a session, but I have no hands." },
+  { "id": "idle-dev-4", "trigger": "idle", "tone": "dev", "text": "Nothing scheduled. Bold strategy." },
+  { "id": "idle-dev-5", "trigger": "idle", "tone": "dev", "text": "Say the word and I'll count down to zero." },
+  { "id": "idle-dev-6", "trigger": "idle", "tone": "dev", "text": "Zero sessions so far. The day is young.", "maxCompleted": 0 },
+  { "id": "idle-dev-7", "trigger": "idle", "tone": "dev", "text": "It's late. The code will still be broken tomorrow.", "hours": [22, 5] },
+  { "id": "idle-dev-8", "trigger": "idle", "tone": "dev", "text": "Awake before the coffee. Bold.", "hours": [5, 9] },
+
+  { "id": "idle-hype-1", "trigger": "idle", "tone": "hype", "text": "Ready whenever you are." },
+  { "id": "idle-hype-2", "trigger": "idle", "tone": "hype", "text": "One session is all it takes to start." },
+  { "id": "idle-hype-3", "trigger": "idle", "tone": "hype", "text": "The hardest part is pressing start." },
+  { "id": "idle-hype-4", "trigger": "idle", "tone": "hype", "text": "Pick one thing. Just one." },
+  { "id": "idle-hype-5", "trigger": "idle", "tone": "hype", "text": "Big day already. Anything left in the tank?", "minCompleted": 4 },
+
+  { "id": "idle-plain-1", "trigger": "idle", "tone": "plain", "text": "Timer idle." },
+  { "id": "idle-plain-2", "trigger": "idle", "tone": "plain", "text": "No session running." },
+
+  { "id": "welcome-dev-1", "trigger": "welcomeBack", "tone": "dev", "text": "You're back. I didn't move." },
+  { "id": "welcome-dev-2", "trigger": "welcomeBack", "tone": "dev", "text": "Oh good, you're alive." },
+  { "id": "welcome-dev-3", "trigger": "welcomeBack", "tone": "dev", "text": "Welcome back. Nothing happened." },
+  { "id": "welcome-dev-4", "trigger": "welcomeBack", "tone": "dev", "text": "There you are. The timer missed you." },
+  { "id": "welcome-dev-5", "trigger": "welcomeBack", "tone": "dev", "text": "Back from the void. Shall we?" },
+
+  { "id": "welcome-hype-1", "trigger": "welcomeBack", "tone": "hype", "text": "Welcome back. Let's pick up where you left off." },
+  { "id": "welcome-hype-2", "trigger": "welcomeBack", "tone": "hype", "text": "Good to see you. Ready for one?" },
+  { "id": "welcome-hype-3", "trigger": "welcomeBack", "tone": "hype", "text": "Back at it. Let's make this one count." },
+  { "id": "welcome-hype-4", "trigger": "welcomeBack", "tone": "hype", "text": "You returned. That already counts." },
+
+  { "id": "welcome-plain-1", "trigger": "welcomeBack", "tone": "plain", "text": "Welcome back." },
+  { "id": "welcome-plain-2", "trigger": "welcomeBack", "tone": "plain", "text": "Session ready." }
+]
