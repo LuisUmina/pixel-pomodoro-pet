@@ -9,6 +9,10 @@ un pomodoro.
 
 ![El widget flotando sobre el terminal](docs/widget-native.png)
 
+El pato comenta lo que va pasando, en la voz que elijas:
+
+![El pato hablando durante una sesión de focus](docs/widget-speaking.png)
+
 Cambiar de tema repinta también al pato:
 
 | Tokyo Night | Dracula | Gruvbox |
@@ -22,6 +26,11 @@ Cambiar de tema repinta también al pato:
   volver sea una decisión consciente.
 - **Mascota animada** con cinco estados: `idle`, `focus`, `rest`, `celebrate` y
   `sleepy`. Respira, parpadea y le salen chispas al terminar una sesión.
+- **El pato habla**: comenta al arrancar, al cerrar una sesión, al entrar al
+  descanso y de vez en cuando por su cuenta. Cuatro voces —`DEV` con humor
+  seco, `HYPE` motivacional, `PLAIN` solo lo funcional y `OFF` para callarlo—
+  y frases que saben en qué fase estás, cuántos pomodoros llevas y qué hora
+  es. Clic para descartar.
 - **Ajustes editables** detrás del engrane: duraciones de focus, descanso corto
   y largo, rondas por ciclo y auto-arranque. Cambiar una duración con el timer
   corriendo respeta el tiempo que ya llevas.
@@ -83,17 +92,18 @@ Build Tools de MSVC y WebView2 (ya viene con Windows 10/11).
 
 ```
 src/
-  core/        Timer y rotación de fases. Funciones puras, sin DOM ni Tauri.
+  core/        Timer, rotación de fases y elección de frase. Funciones puras.
   sprites/     Datos de pixel art (JSON) + renderer a canvas + temas.
-  ui/          DOM, canvas de la mascota y del reloj, auto-fade.
+  messages/    Catálogo de frases (JSON) y su validación.
+  ui/          DOM, canvas de la mascota y del reloj, burbuja, auto-fade.
   platform/    Única frontera con Tauri, detrás de una interfaz.
   store/       Preferencias, con lectura defensiva.
   audio/       Blips chiptune sintetizados con WebAudio.
 src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
-tests/         Vitest sobre core/ y sprites/.
+tests/         Vitest sobre core/, sprites/ y messages/.
 ```
 
-Cuatro decisiones que vale la pena explicar:
+Cinco decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -107,6 +117,13 @@ donde cada uno indexa una paleta. Eso hace que el arte sea diffeable en git,
 pese bytes, y —lo importante— que un tema pueda repintar al pato cambiando la
 paleta. Las expresiones son *parches* de unos pocos píxeles sobre la base, no
 una grilla completa por estado.
+
+**Las reglas de "no ser molesto" son código puro y testeado.** Lo que decide
+si el pato habla —`speak(estado, petición, catálogo, random)`— recibe el reloj
+y el azar como argumentos, así que el enfriamiento entre frases ambientales, el
+no repetir lo último dicho y las condiciones por hora o por pomodoros del día
+se prueban sin levantar la app. Ahí está el verdadero riesgo de esta función:
+una mascota que habla de más se desinstala, y eso no se verifica mirándola.
 
 **El icono se genera del mismo JSON.** `scripts/generate-icon.mjs` lee
 `duck.json` y escribe el PNG que `tauri icon` reparte a todos los tamaños, con

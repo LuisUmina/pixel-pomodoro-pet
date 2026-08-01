@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. Ninguna fase de este documento está empezada.
+**Estado:** v0.1 entregada. **Fase 1 terminada.** El resto sin empezar.
 
 ---
 
@@ -15,7 +15,7 @@ dependencias sí se respetan.
 
 | # | Fase | Costo | Depende de |
 | --- | --- | --- | --- |
-| 1 | [Burbujas de diálogo](#fase-1--burbujas-de-diálogo) | S | — |
+| 1 | [Burbujas de diálogo](#fase-1--burbujas-de-diálogo) ✅ | S | — |
 | 2 | [Recordatorios](#fase-2--recordatorios) | S/M | 1 |
 | 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) | M | — |
 | 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) | M | — |
@@ -25,10 +25,9 @@ dependencias sí se respetan.
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
 
-**Recomendación:** empezar por la **1**. Es la más barata, es la que más
-cambia la sensación de que "hay algo vivo ahí", y es la que desbloquea los
-recordatorios que pediste. Si prefieres impacto visual antes que utilidad,
-empieza por la **3**.
+**Siguiente recomendada:** la **2**, que ya solo consiste en escribir textos y
+un par de switches encima del canal que abrió la fase 1. Si prefieres impacto
+visual antes que utilidad, la **3**.
 
 ---
 
@@ -59,7 +58,28 @@ interrumpe nace con su interruptor y su modo silencio.
 
 ---
 
-## Fase 1 — Burbujas de diálogo
+## Fase 1 — Burbujas de diálogo ✅
+
+**Terminada · Costo: S · Desbloquea la fase 2**
+
+Entregado tal como estaba planeado, con dos desviaciones que vale la pena
+dejar anotadas:
+
+- **La burbuja no tiene cola.** El escenario mide apenas más que el pato, así
+  que cualquier cola apuntando hacia abajo cae sobre su cabeza y no se ve
+  nunca. La caja encima del pato se lee igual de bien y encaja mejor con la
+  estética de terminal.
+- **El texto se revela con un reflow síncrono, no con `requestAnimationFrame`.**
+  Un widget que se pasa la vida sin foco no puede confiar en que el navegador
+  le dé un frame cuando lo pide: en las pruebas, `rAF` no disparó y la burbuja
+  se quedaba en el DOM con opacidad 0.
+
+Los recordatorios de la fase 2 se entregan por este mismo canal.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: S · Sin dependencias · Desbloquea la fase 2**
 
@@ -94,6 +114,8 @@ de casi todo lo demás: los recordatorios, las reacciones al historial y el
 **Toca:** `src/messages/` (nuevo), `src/ui/bubble.ts` (nuevo),
 `src/core/dialogue.ts` (nuevo, puro y testeable), `widget.ts`,
 `settings-panel.ts`, `styles.css`.
+
+</details>
 
 ---
 
