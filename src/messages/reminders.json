@@ -1,0 +1,72 @@
+[
+  {
+    "id": "water",
+    "label": "water",
+    "hint": "Drink something, during breaks",
+    "phases": ["shortBreak", "longBreak"],
+    "everyMinutes": 45,
+    "enabledByDefault": true,
+    "lines": [
+      "Water. You have been running on coffee fumes.",
+      "A glass of water. It takes twenty seconds.",
+      "Hydrate. Your brain is mostly water and it shows.",
+      "Go refill something, and actually bring it back."
+    ]
+  },
+  {
+    "id": "eyes",
+    "label": "eyes",
+    "hint": "The 20-20-20 rule, while you focus",
+    "phases": ["focus"],
+    "everyMinutes": 20,
+    "enabledByDefault": true,
+    "lines": [
+      "Twenty seconds looking at something far away.",
+      "Eyes off the screen. Find the furthest wall.",
+      "Blink on purpose. You had stopped doing it.",
+      "Look out a window. Twenty seconds is enough."
+    ]
+  },
+  {
+    "id": "posture",
+    "label": "posture",
+    "hint": "Sit up straight, while you focus",
+    "phases": ["focus"],
+    "everyMinutes": 30,
+    "enabledByDefault": false,
+    "lines": [
+      "Sit up. You have folded into the chair again.",
+      "Shoulders down, screen at eye level.",
+      "Uncross your legs and plant both feet.",
+      "Chin back. You are leaning into the monitor."
+    ]
+  },
+  {
+    "id": "stretch",
+    "label": "stretch",
+    "hint": "Move a little, during breaks",
+    "phases": ["shortBreak", "longBreak"],
+    "everyMinutes": 60,
+    "enabledByDefault": false,
+    "lines": [
+      "Stand up. Reach for the ceiling. Sit back down.",
+      "Roll your shoulders backwards. Both of them.",
+      "Stretch your wrists. You will want them later.",
+      "Walk to another room and come back."
+    ]
+  },
+  {
+    "id": "breathe",
+    "label": "breathe",
+    "hint": "Reset your breathing, during breaks",
+    "phases": ["shortBreak", "longBreak"],
+    "everyMinutes": 90,
+    "enabledByDefault": false,
+    "lines": [
+      "Four in, four hold, four out. Twice.",
+      "One slow breath, all the way out this time.",
+      "Unclench your jaw. Yes, it was clenched.",
+      "Breathe out for longer than you breathe in."
+    ]
+  }
+]
