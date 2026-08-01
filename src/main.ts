@@ -407,7 +407,12 @@ function main(): void {
   widget.start();
   // Restores the size the widget was left at, window included.
   applyScale(uiScale, false);
-  setTimeout(() => ambient(Date.now()), AMBIENT_CHECK_MS);
+
+  // Taken now rather than inside the callback: read a minute from now it
+  // would be the same instant the tick reports, so the first tick would
+  // measure nothing and every reminder would lose its opening minute.
+  const openedAt = Date.now();
+  setTimeout(() => ambient(openedAt), AMBIENT_CHECK_MS);
 }
 
 main();
