@@ -1,0 +1,155 @@
+{
+  "id": "terminal",
+  "name": "Terminal",
+  "label": "TERM",
+  "hint": "A tiny CRT that types to itself",
+  "size": 32,
+  "base": [
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "......oooooooooooooooooooo......",
+    "......onnnnnnnnnnnnnnnnnno......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeaeaaaaeaaaeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeddedddeddddeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeaeAAeeeeeeeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onoeeeeeeeeeeeeeeono......",
+    "......onnnnnnnnnnnnnnnnnno......",
+    "......oooooooooooooooooooo......",
+    "..............onno..............",
+    "..............onno..............",
+    "..........oooooooooooo..........",
+    "................................",
+    "................................"
+  ],
+  "patches": {
+    "cursorOff": { "x": 12, "y": 19, "rows": ["ee"] },
+    "typed": { "x": 12, "y": 19, "rows": ["aaAA"] },
+    "flash1": { "x": 10, "y": 15, "rows": ["A.AAAA.AAA"] },
+    "dimText1": { "x": 10, "y": 15, "rows": ["d.dddd.ddd"] },
+    "dimPrompt": { "x": 10, "y": 19, "rows": ["d.dd"] },
+    "scanA": { "x": 9, "y": 16, "rows": ["NNNNNNNNNNNNNN"] },
+    "scanB": { "x": 9, "y": 21, "rows": ["NNNNNNNNNNNNNN"] },
+    "sparkleLeft": { "x": 2, "y": 13, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 27, "y": 17, "rows": [".a.", "aAa", ".a."] }
+  },
+  "behaviors": [
+    {
+      "id": "blink-cursor",
+      "loops": 3,
+      "weights": { "idle": 7 },
+      "frames": [
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 900 },
+        { "patches": [], "offsetY": 0, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "self-type",
+      "loops": 1,
+      "weights": { "idle": 4 },
+      "frames": [
+        { "patches": ["typed"], "offsetY": 0, "durationMs": 600 },
+        { "patches": [], "offsetY": 0, "durationMs": 400 },
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 500 },
+        { "patches": [], "offsetY": 0, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "scan-sweep",
+      "loops": 1,
+      "weights": { "idle": 2 },
+      "frames": [
+        { "patches": ["scanA"], "offsetY": 0, "durationMs": 260 },
+        { "patches": ["scanB"], "offsetY": 0, "durationMs": 260 },
+        { "patches": [], "offsetY": 0, "durationMs": 900 },
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 600 }
+      ]
+    },
+    {
+      "id": "compile",
+      "loops": 2,
+      "weights": { "focus": 6 },
+      "frames": [
+        { "patches": ["typed"], "offsetY": 0, "durationMs": 400 },
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 350 },
+        { "patches": [], "offsetY": 0, "durationMs": 350 },
+        { "patches": ["flash1"], "offsetY": 0, "durationMs": 260 }
+      ]
+    },
+    {
+      "id": "busy",
+      "loops": 2,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 300 },
+        { "patches": [], "offsetY": 0, "durationMs": 300 },
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 300 },
+        { "patches": [], "offsetY": 0, "durationMs": 900 }
+      ]
+    },
+    {
+      "id": "screensaver",
+      "loops": 2,
+      "weights": { "rest": 5 },
+      "frames": [
+        { "patches": ["dimText1", "dimPrompt"], "offsetY": 0, "durationMs": 1400 },
+        { "patches": ["dimText1"], "offsetY": 0, "durationMs": 900 }
+      ]
+    },
+    {
+      "id": "glow",
+      "loops": 1,
+      "weights": { "rest": 3 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 900 },
+        { "patches": ["flash1"], "offsetY": 0, "durationMs": 500 },
+        { "patches": [], "offsetY": 0, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "sparks",
+      "loops": 4,
+      "weights": { "celebrate": 1 },
+      "frames": [
+        { "patches": ["sparkleLeft", "flash1"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["sparkleRight"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["sparkleLeft", "sparkleRight", "flash1"], "offsetY": 0, "durationMs": 170 },
+        { "patches": [], "offsetY": 0, "durationMs": 170 }
+      ]
+    },
+    {
+      "id": "standby",
+      "loops": 3,
+      "weights": { "sleepy": 6 },
+      "frames": [
+        { "patches": ["dimText1", "dimPrompt", "cursorOff"], "offsetY": 0, "durationMs": 1400 },
+        { "patches": ["dimText1", "dimPrompt"], "offsetY": 0, "durationMs": 1400 }
+      ]
+    },
+    {
+      "id": "deep-standby",
+      "loops": 2,
+      "weights": { "sleepy": 3 },
+      "frames": [
+        { "patches": ["dimText1", "dimPrompt", "cursorOff"], "offsetY": 0, "durationMs": 1900 },
+        { "patches": ["dimText1", "cursorOff"], "offsetY": 0, "durationMs": 1300 }
+      ]
+    }
+  ]
+}

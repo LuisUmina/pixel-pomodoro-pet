@@ -4,6 +4,7 @@ import type { Phase, PomodoroSettings } from "../core/types";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
+import { CHARACTERS } from "../sprites/characters";
 import { element } from "./dom";
 
 export interface SettingsPanelActions {
@@ -13,6 +14,7 @@ export interface SettingsPanelActions {
   changeReminder(id: string, enabled: boolean): void;
   /** Minutes of silence from now; 0 turns it back off. */
   changeQuiet(minutes: number): void;
+  changeCharacter(id: string): void;
   /** Everything this panel controls, not just the durations. */
   restoreDefaults(): void;
 }
@@ -23,6 +25,7 @@ export interface SettingsModel {
   readonly voice: Voice;
   readonly reminders: Readonly<Record<string, boolean>>;
   readonly quietMinutesLeft: number;
+  readonly characterId: string;
 }
 
 const MIN_MINUTES = 1;
@@ -65,11 +68,13 @@ export class SettingsPanel {
   readonly #voices: HTMLElement;
   readonly #reminders: HTMLElement;
   readonly #quiet: HTMLElement;
+  readonly #pets: HTMLElement;
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
   readonly #reminderBoxes = new Map<string, HTMLInputElement>();
   readonly #quietButtons = new Map<number, HTMLButtonElement>();
+  readonly #petButtons = new Map<string, HTMLButtonElement>();
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
@@ -86,6 +91,7 @@ export class SettingsPanel {
     this.#voices = element("set-voice");
     this.#reminders = element("set-reminders");
     this.#quiet = element("set-quiet");
+    this.#pets = element("set-pet");
 
     for (const input of this.#numberInputs()) {
       // `input` reacts as you type but leaves the field alone; `change` fires
@@ -105,6 +111,7 @@ export class SettingsPanel {
     this.#buildVoiceButtons();
     this.#buildReminderRows();
     this.#buildQuietButtons();
+    this.#buildPetButtons();
   }
 
   get isOpen(): boolean {
@@ -154,6 +161,10 @@ export class SettingsPanel {
     const active = activeQuietPreset(model.quietMinutesLeft);
     for (const [preset, button] of this.#quietButtons) {
       button.setAttribute("aria-pressed", String(preset === active));
+    }
+
+    for (const [id, button] of this.#petButtons) {
+      button.setAttribute("aria-pressed", String(id === model.characterId));
     }
   }
 
@@ -250,6 +261,16 @@ export class SettingsPanel {
 
       this.#quietButtons.set(preset, button);
       this.#quiet.append(button);
+    }
+  }
+
+  #buildPetButtons(): void {
+    for (const character of CHARACTERS) {
+      const button = chip(character.label, () => this.actions.changeCharacter(character.id));
+      button.title = character.hint;
+
+      this.#petButtons.set(character.id, button);
+      this.#pets.append(button);
     }
   }
 }

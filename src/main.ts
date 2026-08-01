@@ -20,7 +20,7 @@ import type { Trigger, Voice } from "./messages/types";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
 import { clampUiScale } from "./scale";
-import type { PetState } from "./sprites/duck";
+import type { PetState } from "./sprites/characters";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { browserStore } from "./store/persistence";
 import {
@@ -87,6 +87,11 @@ function main(): void {
       render();
     },
     changeQuiet: (minutes) => applyQuiet(minutes),
+    changeCharacter: (id) => {
+      preferences = { ...preferences, characterId: id };
+      save();
+      render();
+    },
     restoreDefaults: () => restoreDefaults(),
   });
 
@@ -261,6 +266,7 @@ function main(): void {
       voice: shipped.voice,
       reminders: shipped.reminders,
       quietUntil: shipped.quietUntil,
+      characterId: shipped.characterId,
     };
 
     state = withSettings(state, shipped.settings);
@@ -359,6 +365,7 @@ function main(): void {
       voice: preferences.voice,
       reminders: preferences.reminders,
       quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
+      characterId: preferences.characterId,
     });
   }
 

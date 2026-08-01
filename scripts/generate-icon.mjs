@@ -3,7 +3,7 @@
  * which `tauri icon` then fans out into every platform size.
  *
  * The point is that the app icon and the duck on screen can never drift apart:
- * both read the same `src/sprites/duck.json`. Nothing here needs a dependency —
+ * both read the same `src/sprites/characters/duck.json`. Nothing here needs a dependency —
  * a PNG is a handful of CRC'd chunks around a zlib stream.
  */
 
@@ -31,7 +31,7 @@ const CRC_TABLE = Uint32Array.from({ length: 256 }, (_, index) => {
   return value >>> 0;
 });
 
-const duck = readJson("src/sprites/duck.json");
+const duck = readJson("src/sprites/characters/duck.json");
 const palette = readJson("src/sprites/themes.json")[THEME].sprite;
 
 const pixels = renderSprite(duck.base, palette);

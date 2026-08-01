@@ -1,25 +1,37 @@
 import { describe, expect, it } from "vitest";
 
-import { BEHAVIORS } from "../src/sprites/behaviors";
-import { DUCK_BASE, DUCK_SIZE } from "../src/sprites/duck";
+import { CHARACTERS, getCharacter } from "../src/sprites/characters";
 import { applyPatches } from "../src/sprites/renderer";
 import { THEME_IDS, getTheme } from "../src/sprites/themes";
 import { TRANSPARENT } from "../src/sprites/types";
 
-describe("duck sprite", () => {
-  it("is a square grid", () => {
-    expect(DUCK_BASE).toHaveLength(DUCK_SIZE);
-    for (const row of DUCK_BASE) {
-      expect(row).toHaveLength(DUCK_SIZE);
+const DUCK = getCharacter("duck");
+
+describe("character sprites", () => {
+  it("are square grids", () => {
+    for (const character of CHARACTERS) {
+      expect(character.base).toHaveLength(character.size);
+      for (const row of character.base) {
+        expect(row).toHaveLength(character.size);
+      }
     }
   });
 
-  it("only uses keys the themes can paint", () => {
-    const painted = Object.keys(getTheme("tokyo-night").sprite);
-    const used = [...new Set(DUCK_BASE.join(""))].filter((key) => key !== TRANSPARENT);
+  it("only use keys every theme can paint", () => {
+    // A key missing from one theme would make pixels vanish on switch.
+    for (const id of THEME_IDS) {
+      const painted = Object.keys(getTheme(id).sprite);
 
-    for (const key of used) {
-      expect(painted).toContain(key);
+      for (const character of CHARACTERS) {
+        const used = [...new Set(character.base.join(""))].filter(
+          (key) => key !== TRANSPARENT,
+        );
+
+        for (const key of used) {
+          expect({ theme: id, character: character.id, key, known: painted.includes(key) })
+            .toEqual({ theme: id, character: character.id, key, known: true });
+        }
+      }
     }
   });
 });
@@ -36,7 +48,7 @@ describe("themes", () => {
 
 describe("applyPatches", () => {
   it("returns the base untouched when there is nothing to overlay", () => {
-    expect(applyPatches(DUCK_BASE, [])).toBe(DUCK_BASE);
+    expect(applyPatches(DUCK.base, [])).toBe(DUCK.base);
   });
 
   it("overwrites only the patched pixels", () => {
@@ -59,14 +71,16 @@ describe("applyPatches", () => {
     expect(applyPatches(base, [{ x: 0, y: 9, rows: ["z"] }])).toEqual(base);
   });
 
-  it("never changes the grid dimensions", () => {
-    for (const behavior of BEHAVIORS) {
-      for (const frame of behavior.frames) {
-        const grid = applyPatches(DUCK_BASE, frame.patches);
+  it("never changes the grid dimensions, whatever any character composes", () => {
+    for (const character of CHARACTERS) {
+      for (const behavior of character.behaviors) {
+        for (const frame of behavior.frames) {
+          const grid = applyPatches(character.base, frame.patches);
 
-        expect(grid).toHaveLength(DUCK_SIZE);
-        for (const row of grid) {
-          expect(row).toHaveLength(DUCK_SIZE);
+          expect(grid).toHaveLength(character.size);
+          for (const row of grid) {
+            expect(row).toHaveLength(character.size);
+          }
         }
       }
     }

@@ -1,0 +1,158 @@
+{
+  "id": "spark",
+  "name": "Spark",
+  "label": "SPARK",
+  "hint": "An ember that breathes",
+  "size": 32,
+  "base": [
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "...............kk...............",
+    "...............kk...............",
+    "..........k....kk....k..........",
+    "...........k...kk...k...........",
+    "............k..kk..k............",
+    ".............k.kk.k.............",
+    "..............kkkk..............",
+    ".........kkkkkkkkkkkkkk.........",
+    "........kkkkkkkkkkkkkkkk........",
+    "..............KKKK..............",
+    ".............K.KK.K.............",
+    "............K..KK..K............",
+    "...........K...KK...K...........",
+    "..........K....KK....K..........",
+    "...............KK...............",
+    "...............KK...............",
+    "...............KK...............",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................"
+  ],
+  "patches": {
+    "rayN": { "x": 15, "y": 7, "rows": ["AA"] },
+    "rayS": { "x": 15, "y": 25, "rows": ["AA"] },
+    "rayW": { "x": 7, "y": 15, "rows": [".A", "A."] },
+    "rayE": { "x": 23, "y": 15, "rows": ["A.", ".A"] },
+    "coreA": { "x": 14, "y": 14, "rows": ["AAAA"] },
+    "coreB": { "x": 14, "y": 17, "rows": ["AAAA"] },
+    "fade": { "x": 8, "y": 15, "rows": [".KKKKKKKKKKKKKK.", "KKKKKKKKKKKKKKKK"] },
+    "dimTop": { "x": 15, "y": 8, "rows": ["KK", "KK"] },
+    "sparkleLeft": { "x": 4, "y": 9, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 26, "y": 19, "rows": [".a.", "aAa", ".a."] }
+  },
+  "behaviors": [
+    {
+      "id": "pulse",
+      "loops": 2,
+      "weights": { "idle": 6 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 1500 },
+        { "patches": ["coreA"], "offsetY": 0, "durationMs": 300 },
+        { "patches": ["coreA", "coreB"], "offsetY": 0, "durationMs": 500 },
+        { "patches": ["coreA"], "offsetY": 0, "durationMs": 300 }
+      ]
+    },
+    {
+      "id": "twinkle",
+      "loops": 1,
+      "weights": { "idle": 4 },
+      "frames": [
+        { "patches": ["rayN"], "offsetY": 0, "durationMs": 330 },
+        { "patches": ["rayE"], "offsetY": 0, "durationMs": 330 },
+        { "patches": ["rayS"], "offsetY": 0, "durationMs": 330 },
+        { "patches": ["rayW"], "offsetY": 0, "durationMs": 330 },
+        { "patches": [], "offsetY": 0, "durationMs": 600 }
+      ]
+    },
+    {
+      "id": "hover",
+      "loops": 2,
+      "weights": { "idle": 3 },
+      "frames": [
+        { "patches": [], "offsetY": 1, "durationMs": 1100 },
+        { "patches": [], "offsetY": 0, "durationMs": 1000 }
+      ]
+    },
+    {
+      "id": "steady-burn",
+      "loops": 2,
+      "weights": { "focus": 6 },
+      "frames": [
+        { "patches": ["coreA"], "offsetY": 0, "durationMs": 900 },
+        { "patches": ["coreA", "coreB"], "offsetY": 0, "durationMs": 900 },
+        { "patches": ["coreA"], "offsetY": 0, "durationMs": 700 },
+        { "patches": [], "offsetY": 0, "durationMs": 400 }
+      ]
+    },
+    {
+      "id": "flare",
+      "loops": 1,
+      "weights": { "focus": 2 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 700 },
+        { "patches": ["coreA", "rayN", "rayS"], "offsetY": 0, "durationMs": 280 },
+        { "patches": ["coreA"], "offsetY": 0, "durationMs": 400 },
+        { "patches": [], "offsetY": 0, "durationMs": 800 }
+      ]
+    },
+    {
+      "id": "soft",
+      "loops": 2,
+      "weights": { "rest": 5 },
+      "frames": [
+        { "patches": ["fade"], "offsetY": 0, "durationMs": 1400 },
+        { "patches": [], "offsetY": 1, "durationMs": 900 }
+      ]
+    },
+    {
+      "id": "shimmer",
+      "loops": 1,
+      "weights": { "rest": 3 },
+      "frames": [
+        { "patches": ["rayW"], "offsetY": 0, "durationMs": 450 },
+        { "patches": ["fade"], "offsetY": 0, "durationMs": 800 },
+        { "patches": ["rayE"], "offsetY": 0, "durationMs": 450 },
+        { "patches": [], "offsetY": 1, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "radiate",
+      "loops": 4,
+      "weights": { "celebrate": 1 },
+      "frames": [
+        { "patches": ["rayN", "rayS", "coreA"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["rayE", "rayW", "coreB"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["sparkleLeft", "sparkleRight", "coreA", "coreB"], "offsetY": 0, "durationMs": 170 },
+        { "patches": [], "offsetY": 0, "durationMs": 170 }
+      ]
+    },
+    {
+      "id": "ember",
+      "loops": 3,
+      "weights": { "sleepy": 6 },
+      "frames": [
+        { "patches": ["fade", "dimTop"], "offsetY": 1, "durationMs": 1500 },
+        { "patches": ["fade"], "offsetY": 1, "durationMs": 1500 }
+      ]
+    },
+    {
+      "id": "fade-out",
+      "loops": 2,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["fade"], "offsetY": 1, "durationMs": 1900 },
+        { "patches": ["fade", "dimTop"], "offsetY": 1, "durationMs": 1300 }
+      ]
+    }
+  ]
+}

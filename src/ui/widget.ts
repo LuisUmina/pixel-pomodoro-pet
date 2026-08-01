@@ -3,7 +3,7 @@ import { progress } from "../core/pomodoro";
 import { formatQuiet } from "../core/quiet";
 import type { PomodoroSettings, PomodoroState, TimerStatus } from "../core/types";
 import type { Voice } from "../messages/types";
-import type { PetState } from "../sprites/duck";
+import { getCharacter, type PetState } from "../sprites/characters";
 import type { Theme } from "../sprites/themes";
 import { Bubble } from "./bubble";
 import { ClockCanvas } from "./clock-canvas";
@@ -27,6 +27,7 @@ export interface WidgetActions {
   changeVoice(voice: Voice): void;
   changeReminder(id: string, enabled: boolean): void;
   changeQuiet(minutes: number): void;
+  changeCharacter(id: string): void;
   restoreDefaults(): void;
 }
 
@@ -42,6 +43,7 @@ export interface WidgetModel {
   readonly reminders: Readonly<Record<string, boolean>>;
   /** 0 when the mascot is not under a vow of silence. */
   readonly quietMinutesLeft: number;
+  readonly characterId: string;
 }
 
 const TOGGLE_LABELS: Readonly<Record<TimerStatus, string>> = {
@@ -103,6 +105,7 @@ export class Widget {
       changeVoice: (voice) => actions.changeVoice(voice),
       changeReminder: (id, enabled) => actions.changeReminder(id, enabled),
       changeQuiet: (minutes) => actions.changeQuiet(minutes),
+      changeCharacter: (id) => actions.changeCharacter(id),
       restoreDefaults: () => actions.restoreDefaults(),
     });
 
@@ -187,6 +190,7 @@ export class Widget {
     this.frame.dataset["ghost"] = String(model.ghost);
     this.#widget.dataset["ghost"] = String(model.ghost);
 
+    this.#pet.setCharacter(getCharacter(model.characterId));
     this.#pet.setResolution(model.uiScale);
     this.#pet.setPalette(theme.sprite);
     this.#pet.setState(model.petState);

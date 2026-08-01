@@ -1,5 +1,12 @@
 import { pickBehavior, type Behavior } from "../sprites/behaviors";
-import { DUCK_BASE, DUCK_SIZE, MAX_BOB, MAX_SHIFT, type PetState } from "../sprites/duck";
+import {
+  DEFAULT_CHARACTER_ID,
+  MAX_BOB,
+  MAX_SHIFT,
+  getCharacter,
+  type Character,
+  type PetState,
+} from "../sprites/characters";
 import { applyPatches, drawSprite } from "../sprites/renderer";
 import type { SpritePalette } from "../sprites/types";
 
@@ -11,6 +18,7 @@ export class PetCanvas {
   readonly #canvas: HTMLCanvasElement;
   readonly #ctx: CanvasRenderingContext2D;
 
+  #character: Character;
   #palette: SpritePalette = {};
   #state: PetState = "idle";
   #behavior: Behavior | null = null;
@@ -23,7 +31,7 @@ export class PetCanvas {
   #handle: number | null = null;
   #dirty = true;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, character = getCharacter(DEFAULT_CHARACTER_ID)) {
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       throw new Error("could not acquire a 2d context for the mascot");
@@ -31,8 +39,21 @@ export class PetCanvas {
 
     this.#canvas = canvas;
     this.#ctx = ctx;
+    this.#character = character;
     this.#nextBehavior();
     this.#resize();
+  }
+
+  setCharacter(character: Character): void {
+    if (character.id === this.#character.id) {
+      return;
+    }
+
+    this.#character = character;
+    this.#behavior = null;
+    this.#nextBehavior();
+    this.#resize();
+    this.#dirty = true;
   }
 
   setPalette(palette: SpritePalette): void {
@@ -72,7 +93,12 @@ export class PetCanvas {
   }
 
   #nextBehavior(): void {
-    const next = pickBehavior(this.#state, this.#behavior?.id, Math.random());
+    const next = pickBehavior(
+      this.#state,
+      this.#behavior?.id,
+      Math.random(),
+      this.#character.behaviors,
+    );
     if (next) {
       this.#behavior = next;
     }
@@ -104,8 +130,8 @@ export class PetCanvas {
     this.#pixel = Math.max(1, Math.round(SCALE * layout));
 
     // Room for the bob below and for a wander either side, so neither clips.
-    const width = (DUCK_SIZE + MAX_SHIFT * 2) * this.#pixel;
-    const height = (DUCK_SIZE + MAX_BOB) * this.#pixel;
+    const width = (this.#character.size + MAX_SHIFT * 2) * this.#pixel;
+    const height = (this.#character.size + MAX_BOB) * this.#pixel;
 
     this.#canvas.width = width;
     this.#canvas.height = height;
@@ -157,9 +183,9 @@ export class PetCanvas {
     }
 
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
-    drawSprite(this.#ctx, applyPatches(DUCK_BASE, frame.patches), this.#palette, {
+    drawSprite(this.#ctx, applyPatches(this.#character.base, frame.patches), this.#palette, {
       scale: this.#pixel,
-      // The duck sits in the middle of its reserved strip and walks from there.
+      // The character sits mid-strip and walks from there.
       x: (MAX_SHIFT + (frame.offsetX ?? 0)) * this.#pixel,
       y: frame.offsetY * this.#pixel,
     });

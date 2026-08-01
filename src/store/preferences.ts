@@ -5,6 +5,7 @@ import type { PomodoroSettings } from "../core/types";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
 import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
+import { DEFAULT_CHARACTER_ID, isCharacterId } from "../sprites/characters";
 import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
 import type { JsonStore } from "./persistence";
 
@@ -16,6 +17,8 @@ export const DEFAULT_VOICE: Voice = "dev";
 
 export interface Preferences {
   readonly themeId: ThemeId;
+  /** Which mascot lives in the widget. */
+  readonly characterId: string;
   readonly settings: PomodoroSettings;
   readonly task: string;
   readonly soundEnabled: boolean;
@@ -43,6 +46,7 @@ function pad(value: number): string {
 export function defaultPreferences(day: string): Preferences {
   return {
     themeId: DEFAULT_THEME_ID,
+    characterId: DEFAULT_CHARACTER_ID,
     settings: DEFAULT_SETTINGS,
     task: "",
     soundEnabled: true,
@@ -71,6 +75,7 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
 
   return {
     themeId: isThemeId(raw["themeId"]) ? raw["themeId"] : defaults.themeId,
+    characterId: isCharacterId(raw["characterId"]) ? raw["characterId"] : defaults.characterId,
     settings: readSettings(raw["settings"]),
     task: typeof raw["task"] === "string" ? raw["task"].slice(0, TASK_MAX_LENGTH) : "",
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,

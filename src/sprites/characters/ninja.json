@@ -1,0 +1,216 @@
+{
+  "id": "ninja",
+  "name": "Ninja",
+  "label": "NINJA",
+  "hint": "Silent focus",
+  "size": 32,
+  "base": [
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "...........oooooooooo...........",
+    "..........onnnnnnnnnno..........",
+    ".........onnnnnnnnnnnno.........",
+    "........onnnnnnnnnnnnnno.aa.....",
+    "........onnnnnnnnnnnnnnoa...a...",
+    "........onnnwennnnwennno..a.....",
+    "........onnneennnneennno........",
+    "........onnnnnnnnnnnnnno........",
+    "........onnnnnnnnnnnnnno........",
+    ".........onnnnnnnnnnnno.........",
+    "..........onnnnnnnnnno..........",
+    ".........onnnnnnnnnnnno.........",
+    "........onnnnnnnnnnnnnno........",
+    "........onccccccccccccno........",
+    "........onnnnnnnnnnnnnno........",
+    "........onNnnnnnnnnnnNno........",
+    "........onnnnnnnnnnnnnno........",
+    ".........onnnnnnnnnnnno.........",
+    ".........onnnnnnnnnnnno.........",
+    ".........onnnnnoonnnnno.........",
+    ".........onnnnnoonnnnno.........",
+    ".........onnnnnoonnnnno.........",
+    ".........onnnno..onnnno.........",
+    ".........oooooo..oooooo.........",
+    "................................"
+  ],
+  "patches": {
+    "blink": { "x": 12, "y": 12, "rows": ["nn....nn", "oo....oo"] },
+    "focusEyes": { "x": 12, "y": 11, "rows": ["oo....oo", "nn....nn"] },
+    "happyEyes": { "x": 11, "y": 12, "rows": [".oo....oo.", "onno..onno"] },
+    "zNear": { "x": 24, "y": 12, "rows": ["aaa", ".a.", "aaa"] },
+    "zFar": { "x": 27, "y": 7, "rows": ["aaa", ".a.", "aaa"] },
+    "sparkleLeft": { "x": 2, "y": 10, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 26, "y": 16, "rows": [".a.", "aAa", ".a."] },
+    "glanceRight": { "x": 12, "y": 12, "rows": ["ew....ew"] },
+    "lookDown": { "x": 12, "y": 12, "rows": ["nn....nn"] },
+    "wideEyes": { "x": 12, "y": 11, "rows": ["ee....ee"] },
+    "note": { "x": 25, "y": 15, "rows": [".aa", ".a.", ".a.", "aa."] },
+    "noteFar": { "x": 4, "y": 8, "rows": [".aa", ".a.", ".a.", "aa."] },
+    "curious": { "x": 24, "y": 2, "rows": ["aa.", "..a", ".a.", "...", ".a."] },
+    "stepLeft": { "x": 9, "y": 30, "rows": ["      "] },
+    "stepRight": { "x": 17, "y": 30, "rows": ["      "] }
+  },
+  "behaviors": [
+    {
+      "id": "breathe",
+      "loops": 2,
+      "weights": { "idle": 7, "rest": 2 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 1700 },
+        { "patches": ["blink"], "offsetY": 0, "durationMs": 140 },
+        { "patches": [], "offsetY": 1, "durationMs": 1500 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 140 }
+      ]
+    },
+    {
+      "id": "glance",
+      "loops": 1,
+      "weights": { "idle": 4, "rest": 2 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 700 },
+        { "patches": ["glanceRight"], "offsetY": 0, "durationMs": 1100 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 130 },
+        { "patches": [], "offsetY": 1, "durationMs": 900 }
+      ]
+    },
+    {
+      "id": "wonder",
+      "loops": 1,
+      "weights": { "idle": 2 },
+      "frames": [
+        { "patches": ["wideEyes"], "offsetY": 0, "durationMs": 500 },
+        { "patches": ["wideEyes", "curious"], "offsetY": 0, "durationMs": 1400 },
+        { "patches": ["curious"], "offsetY": 1, "durationMs": 700 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 150 }
+      ]
+    },
+    {
+      "id": "doze",
+      "loops": 2,
+      "weights": { "idle": 2 },
+      "frames": [
+        { "patches": ["lookDown"], "offsetY": 1, "durationMs": 1600 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 400 },
+        { "patches": ["lookDown"], "offsetY": 0, "durationMs": 1300 }
+      ]
+    },
+    {
+      "id": "shuffle",
+      "loops": 1,
+      "weights": { "idle": 3, "rest": 3 },
+      "frames": [
+        { "patches": ["stepLeft"], "offsetX": -1, "offsetY": 0, "durationMs": 260 },
+        { "patches": ["stepRight"], "offsetX": -2, "offsetY": 1, "durationMs": 260 },
+        { "patches": ["stepLeft"], "offsetX": -3, "offsetY": 0, "durationMs": 260 },
+        { "patches": ["glanceRight"], "offsetX": -3, "offsetY": 1, "durationMs": 900 },
+        { "patches": ["stepRight"], "offsetX": -2, "offsetY": 0, "durationMs": 260 },
+        { "patches": ["stepLeft"], "offsetX": -1, "offsetY": 1, "durationMs": 260 },
+        { "patches": ["stepRight"], "offsetX": 0, "offsetY": 0, "durationMs": 260 },
+        { "patches": [], "offsetY": 1, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "wander",
+      "loops": 1,
+      "weights": { "idle": 2 },
+      "frames": [
+        { "patches": ["stepRight"], "offsetX": 1, "offsetY": 0, "durationMs": 240 },
+        { "patches": ["stepLeft"], "offsetX": 2, "offsetY": 1, "durationMs": 240 },
+        { "patches": ["stepRight"], "offsetX": 3, "offsetY": 0, "durationMs": 240 },
+        { "patches": ["wideEyes"], "offsetX": 3, "offsetY": 1, "durationMs": 1000 },
+        { "patches": ["blink"], "offsetX": 3, "offsetY": 0, "durationMs": 150 },
+        { "patches": ["stepLeft"], "offsetX": 2, "offsetY": 1, "durationMs": 240 },
+        { "patches": ["stepRight"], "offsetX": 1, "offsetY": 0, "durationMs": 240 },
+        { "patches": ["stepLeft"], "offsetX": 0, "offsetY": 1, "durationMs": 240 }
+      ]
+    },
+    {
+      "id": "lock-in",
+      "loops": 3,
+      "weights": { "focus": 8 },
+      "frames": [
+        { "patches": ["focusEyes"], "offsetY": 0, "durationMs": 900 },
+        { "patches": ["focusEyes"], "offsetY": 1, "durationMs": 900 },
+        { "patches": ["focusEyes"], "offsetY": 1, "durationMs": 900 },
+        { "patches": ["blink"], "offsetY": 0, "durationMs": 130 }
+      ]
+    },
+    {
+      "id": "scan",
+      "loops": 1,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["focusEyes"], "offsetY": 0, "durationMs": 800 },
+        { "patches": ["glanceRight"], "offsetY": 0, "durationMs": 900 },
+        { "patches": ["focusEyes"], "offsetY": 1, "durationMs": 1100 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 130 }
+      ]
+    },
+    {
+      "id": "aha",
+      "loops": 1,
+      "weights": { "focus": 1 },
+      "frames": [
+        { "patches": ["focusEyes"], "offsetY": 1, "durationMs": 600 },
+        { "patches": ["wideEyes", "sparkleRight"], "offsetY": 0, "durationMs": 320 },
+        { "patches": ["wideEyes"], "offsetY": 0, "durationMs": 500 },
+        { "patches": ["focusEyes"], "offsetY": 1, "durationMs": 900 }
+      ]
+    },
+    {
+      "id": "content",
+      "loops": 3,
+      "weights": { "rest": 5 },
+      "frames": [
+        { "patches": ["happyEyes"], "offsetY": 0, "durationMs": 520 },
+        { "patches": ["happyEyes"], "offsetY": 1, "durationMs": 520 }
+      ]
+    },
+    {
+      "id": "hum",
+      "loops": 2,
+      "weights": { "rest": 4 },
+      "frames": [
+        { "patches": ["happyEyes", "note"], "offsetY": 0, "durationMs": 620 },
+        { "patches": ["happyEyes"], "offsetY": 1, "durationMs": 500 },
+        { "patches": ["happyEyes", "noteFar"], "offsetY": 0, "durationMs": 620 },
+        { "patches": ["happyEyes", "note", "noteFar"], "offsetY": 1, "durationMs": 500 }
+      ]
+    },
+    {
+      "id": "cheer",
+      "loops": 4,
+      "weights": { "celebrate": 1 },
+      "frames": [
+        { "patches": ["happyEyes", "sparkleLeft"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["happyEyes", "sparkleRight"], "offsetY": 2, "durationMs": 170 },
+        { "patches": ["happyEyes", "sparkleLeft", "sparkleRight"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["happyEyes"], "offsetY": 2, "durationMs": 170 }
+      ]
+    },
+    {
+      "id": "snooze",
+      "loops": 3,
+      "weights": { "sleepy": 6 },
+      "frames": [
+        { "patches": ["blink", "zNear"], "offsetY": 0, "durationMs": 850 },
+        { "patches": ["blink", "zNear", "zFar"], "offsetY": 1, "durationMs": 850 }
+      ]
+    },
+    {
+      "id": "deep-sleep",
+      "loops": 2,
+      "weights": { "sleepy": 3 },
+      "frames": [
+        { "patches": ["lookDown", "zNear"], "offsetY": 1, "durationMs": 1300 },
+        { "patches": ["blink", "zNear", "zFar"], "offsetY": 1, "durationMs": 1300 },
+        { "patches": ["lookDown", "zFar"], "offsetY": 0, "durationMs": 1100 }
+      ]
+    }
+  ]
+}

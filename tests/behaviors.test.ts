@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { BEHAVIORS, pickBehavior, type Behavior } from "../src/sprites/behaviors";
-import { DUCK_SIZE, MAX_BOB, MAX_SHIFT, type PetState } from "../src/sprites/duck";
+import { pickBehavior, type Behavior } from "../src/sprites/behaviors";
+import {
+  CHARACTERS,
+  MAX_BOB,
+  MAX_SHIFT,
+  PET_STATES,
+} from "../src/sprites/characters";
 import { getTheme } from "../src/sprites/themes";
 import { TRANSPARENT } from "../src/sprites/types";
-
-const STATES: readonly PetState[] = ["idle", "focus", "rest", "celebrate", "sleepy"];
 
 function behavior(id: string, extra: Partial<Behavior> = {}): Behavior {
   return {
@@ -88,100 +91,56 @@ describe("pickBehavior", () => {
   });
 });
 
-describe("the bundled behaviours", () => {
-  it("give every mood something to do", () => {
-    for (const state of STATES) {
-      expect(pickBehavior(state, undefined, 0.5)).not.toBeNull();
-    }
-  });
-
-  it("give every mood more than one thing to do, so none of them loops", () => {
-    // A mood with a single behaviour is the two-frame loop this phase set
-    // out to get rid of.
-    const thin = STATES.filter((state) => {
-      const offered = BEHAVIORS.filter((entry) => (entry.weights[state] ?? 0) > 0);
-      // Celebrating is a burst of a few seconds, so one is enough there.
-      return offered.length < (state === "celebrate" ? 1 : 2);
-    });
+describe("every bundled character", () => {
+  it("gives each mood more than one thing to do, so none of them loops", () => {
+    // A mood with a single behaviour is the two-frame loop phase 3 set out
+    // to get rid of. Celebrating is a burst of seconds, so one is enough.
+    const thin = CHARACTERS.flatMap((character) =>
+      PET_STATES.filter((state) => {
+        const offered = character.behaviors.filter(
+          (entry) => (entry.weights[state] ?? 0) > 0,
+        );
+        return offered.length < (state === "celebrate" ? 1 : 2);
+      }).map((state) => `${character.id}/${state}`),
+    );
 
     expect(thin).toEqual([]);
   });
 
-  it("have unique ids", () => {
-    const ids = BEHAVIORS.map((entry) => entry.id);
-
-    expect(new Set(ids).size).toBe(ids.length);
-  });
-
-  it("never sit still longer than feels alive", () => {
-    for (const entry of BEHAVIORS) {
-      for (const frame of entry.frames) {
-        expect(frame.durationMs).toBeGreaterThan(0);
-        expect(frame.durationMs).toBeLessThanOrEqual(2_000);
+  it("stays inside the room the canvas reserves", () => {
+    for (const character of CHARACTERS) {
+      for (const entry of character.behaviors) {
+        for (const frame of entry.frames) {
+          expect(Math.abs(frame.offsetX ?? 0)).toBeLessThanOrEqual(MAX_SHIFT);
+          expect(frame.offsetY).toBeGreaterThanOrEqual(0);
+          expect(frame.offsetY).toBeLessThanOrEqual(MAX_BOB);
+        }
       }
     }
   });
 
-  it("stay inside the room the canvas reserves", () => {
-    for (const entry of BEHAVIORS) {
-      for (const frame of entry.frames) {
-        expect(Math.abs(frame.offsetX ?? 0)).toBeLessThanOrEqual(MAX_SHIFT);
-        expect(frame.offsetY).toBeGreaterThanOrEqual(0);
-        expect(frame.offsetY).toBeLessThanOrEqual(MAX_BOB);
-      }
-    }
-  });
-
-  it("always walk back to where they started", () => {
-    // A wander that ends off-centre would drift further every performance.
-    for (const entry of BEHAVIORS) {
-      const last = entry.frames[entry.frames.length - 1];
-      expect({ id: entry.id, x: last?.offsetX ?? 0 }).toEqual({ id: entry.id, x: 0 });
-    }
-  });
-
-  it("run at least one loop", () => {
-    for (const entry of BEHAVIORS) {
-      expect(entry.loops).toBeGreaterThanOrEqual(1);
-      expect(entry.frames.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("only paint with keys the themes can colour", () => {
+  it("only paints with keys every theme can colour", () => {
     const painted = Object.keys(getTheme("tokyo-night").sprite);
+    const unknown: string[] = [];
 
-    for (const entry of BEHAVIORS) {
-      for (const frame of entry.frames) {
-        for (const patch of frame.patches) {
-          const used = [...new Set(patch.rows.join(""))].filter(
-            (key) => key !== TRANSPARENT && key !== " ",
-          );
+    for (const character of CHARACTERS) {
+      for (const entry of character.behaviors) {
+        for (const frame of entry.frames) {
+          for (const patch of frame.patches) {
+            const used = [...new Set(patch.rows.join(""))].filter(
+              (key) => key !== TRANSPARENT && key !== " ",
+            );
 
-          for (const key of used) {
-            expect({ id: entry.id, key, known: painted.includes(key) }).toEqual({
-              id: entry.id,
-              key,
-              known: true,
-            });
+            for (const key of used) {
+              if (!painted.includes(key)) {
+                unknown.push(`${character.id}/${entry.id}: ${key}`);
+              }
+            }
           }
         }
       }
     }
-  });
 
-  it("keep every patch on the sprite", () => {
-    for (const entry of BEHAVIORS) {
-      for (const frame of entry.frames) {
-        for (const patch of frame.patches) {
-          expect(patch.x).toBeGreaterThanOrEqual(0);
-          expect(patch.y).toBeGreaterThanOrEqual(0);
-          expect(patch.y + patch.rows.length).toBeLessThanOrEqual(DUCK_SIZE);
-
-          for (const row of patch.rows) {
-            expect(patch.x + row.length).toBeLessThanOrEqual(DUCK_SIZE);
-          }
-        }
-      }
-    }
+    expect(unknown).toEqual([]);
   });
 });
