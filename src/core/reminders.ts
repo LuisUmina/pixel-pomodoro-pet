@@ -9,14 +9,23 @@
  * make it due the moment a session finally starts. The same rule means nothing
  * accrues while the mascot is silenced, which is also what stops a silenced
  * stretch turning into a backlog that empties itself one line per minute.
+ *
+ * Banking and firing are separate calls on purpose. Time is banked from the
+ * pomodoro ticker, which already measures real elapsed time several times a
+ * second and only runs during a session — a once-a-minute poll would have to
+ * guess which side of a pause or a phase change each interval belonged to.
+ * Firing is a separate decision because the caller sometimes has something
+ * more important to say, and a reminder that is held back has to keep its
+ * bank rather than be quietly spent.
  */
 
 import type { ReminderPack } from "../messages/reminders";
 import type { Phase } from "./types";
 
 /**
- * Longest a single tick may bank. A slept machine hands back an enormous gap,
- * and without a ceiling that one tick would make every pack overdue at once.
+ * Longest a single slice may bank. A slept or suspended machine hands the
+ * ticker back an enormous gap, and without a ceiling that one slice would
+ * make every pack overdue at once.
  */
 export const MAX_TICK_MS = 2 * 60_000;
 
@@ -31,62 +40,79 @@ export interface ReminderState {
 export const INITIAL_REMINDERS: ReminderState = { banked: {}, lastLine: {} };
 
 export interface ReminderCheck {
-  /** Wall time since the previous check. */
-  readonly sinceMs: number;
   readonly phase: Phase;
-  /** Reminders ride on the session, so a stopped timer banks nothing. */
-  readonly running: boolean;
   /** Pack id to whether the user wants it. */
   readonly enabled: Readonly<Record<string, boolean>>;
-  /** False while the mascot is silenced — quiet mode, or no voice at all. */
-  readonly delivering: boolean;
 }
 
-export interface ReminderTick {
+export interface TakenReminder {
   readonly state: ReminderState;
-  /** Null unless a pack came due on this tick. */
-  readonly due: { readonly pack: ReminderPack; readonly line: string } | null;
+  readonly pack: ReminderPack;
+  readonly line: string;
 }
 
-export function advanceReminders(
+/**
+ * Banks a slice of session time against every pack the slice counted for.
+ *
+ * `elapsedMs` comes from the pomodoro ticker, so it is time actually spent in
+ * this phase with the timer running. Nothing is banked while the mascot is
+ * silenced: that is what keeps a quiet spell from becoming a queue.
+ */
+export function accrueReminders(
   state: ReminderState,
-  check: ReminderCheck,
+  elapsedMs: number,
+  check: ReminderCheck & { readonly delivering: boolean },
   packs: readonly ReminderPack[],
-  random: () => number = Math.random,
-): ReminderTick {
-  if (!check.running || !check.delivering) {
-    return { state, due: null };
+): ReminderState {
+  const step = sliceSize(elapsedMs);
+  if (step === 0 || !check.delivering) {
+    return state;
   }
 
   const banked = { ...state.banked };
-  const step = tickSize(check.sinceMs);
-
   for (const pack of eligible(check, packs)) {
     banked[pack.id] = (banked[pack.id] ?? 0) + step;
   }
 
-  const pack = mostOverdue(banked, check, packs);
+  return { banked, lastLine: state.lastLine };
+}
+
+/**
+ * Takes whichever pack has waited longest past its cadence, spending its bank.
+ *
+ * Returns null rather than throwing away time when nothing is due, so a caller
+ * that skips a turn — because a phase just ended and has its own line — simply
+ * finds the same pack waiting on the next tick.
+ */
+export function takeReminder(
+  state: ReminderState,
+  check: ReminderCheck,
+  packs: readonly ReminderPack[],
+  random: () => number = Math.random,
+): TakenReminder | null {
+  const pack = mostOverdue(state.banked, check, packs);
   if (!pack) {
-    return { state: { banked, lastLine: state.lastLine }, due: null };
+    return null;
   }
 
   const index = pickLine(pack, state.lastLine[pack.id], random);
 
   return {
     state: {
-      banked: { ...banked, [pack.id]: 0 },
+      banked: { ...state.banked, [pack.id]: 0 },
       lastLine: { ...state.lastLine, [pack.id]: index },
     },
-    due: { pack, line: pack.lines[index] ?? "" },
+    pack,
+    line: pack.lines[index] ?? "",
   };
 }
 
-function tickSize(sinceMs: number): number {
-  if (!Number.isFinite(sinceMs) || sinceMs <= 0) {
+function sliceSize(elapsedMs: number): number {
+  if (!Number.isFinite(elapsedMs) || elapsedMs <= 0) {
     return 0;
   }
 
-  return Math.min(sinceMs, MAX_TICK_MS);
+  return Math.min(elapsedMs, MAX_TICK_MS);
 }
 
 function eligible(

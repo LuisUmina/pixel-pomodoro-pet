@@ -4,8 +4,9 @@ import { formatQuiet, isQuiet, quietMinutesLeft, quietUntilFrom } from "../src/c
 import {
   INITIAL_REMINDERS,
   MAX_TICK_MS,
-  advanceReminders,
+  accrueReminders,
   defaultEnabled,
+  takeReminder,
   type ReminderCheck,
   type ReminderState,
 } from "../src/core/reminders";
@@ -29,63 +30,60 @@ function pack(id: string, extra: Partial<ReminderPack> = {}): ReminderPack {
 }
 
 function check(extra: Partial<ReminderCheck> = {}): ReminderCheck {
-  return {
-    sinceMs: MINUTE,
-    phase: "focus",
-    running: true,
-    enabled: { a: true },
-    delivering: true,
-    ...extra,
-  };
+  return { phase: "focus", enabled: { a: true }, ...extra };
 }
 
 const first = (): number => 0;
 
-/** Runs `minutes` worth of one-minute ticks and reports what came due. */
+/**
+ * Feeds `minutes` of session time through in quarter-second slices, the way
+ * the ticker does, and reports what came due along the way.
+ */
 function run(
   state: ReminderState,
-  extra: Partial<ReminderCheck>,
+  extra: Partial<ReminderCheck> & { delivering?: boolean },
   packs: readonly ReturnType<typeof pack>[],
   minutes: number,
 ): { state: ReminderState; fired: string[] } {
+  const { delivering = true, ...rest } = extra;
+  const slice = 250;
   const fired: string[] = [];
 
-  for (let minute = 0; minute < minutes; minute += 1) {
-    const tick = advanceReminders(state, check(extra), packs, first);
-    state = tick.state;
-    if (tick.due) {
-      fired.push(tick.due.pack.id);
+  for (let done = 0; done < minutes * MINUTE; done += slice) {
+    state = accrueReminders(state, slice, { ...check(rest), delivering }, packs);
+
+    if (!delivering) {
+      continue;
+    }
+
+    const due = takeReminder(state, check(rest), packs, first);
+    if (due) {
+      state = due.state;
+      fired.push(due.pack.id);
     }
   }
 
   return { state, fired };
 }
 
-describe("advanceReminders", () => {
+describe("accrueReminders", () => {
   const packs = [pack("a")];
 
-  it("fires once a pack has banked its cadence", () => {
+  it("comes due only once the cadence has actually been worked", () => {
     expect(run(INITIAL_REMINDERS, {}, packs, 19).fired).toEqual([]);
     expect(run(INITIAL_REMINDERS, {}, packs, 20).fired).toEqual(["a"]);
   });
 
-  it("keeps to its cadence rather than firing every tick after the first", () => {
+  it("keeps to its cadence rather than firing on every slice after the first", () => {
     expect(run(INITIAL_REMINDERS, {}, packs, 60).fired).toEqual(["a", "a", "a"]);
-  });
-
-  it("banks nothing while the timer is not running", () => {
-    const idle = run(INITIAL_REMINDERS, { running: false }, packs, 40);
-
-    expect(idle.fired).toEqual([]);
-    // The point of the whole model: idle time must not count towards a rule
-    // about how long you have been staring at a screen.
-    expect(run(idle.state, {}, packs, 19).fired).toEqual([]);
   });
 
   it("banks nothing for a phase the pack is not anchored to", () => {
     const away = run(INITIAL_REMINDERS, { phase: "shortBreak" }, packs, 40);
 
     expect(away.fired).toEqual([]);
+    // The point of the whole model: time that was not spent staring at a
+    // screen cannot count towards a rule about staring at a screen.
     expect(run(away.state, {}, packs, 19).fired).toEqual([]);
   });
 
@@ -104,50 +102,74 @@ describe("advanceReminders", () => {
     expect(run(off.state, {}, packs, 1).fired).toEqual([]);
   });
 
-  it("keeps what a pack had banked when it is switched back on", () => {
+  it("keeps what a pack had banked when it becomes eligible again", () => {
     const part = run(INITIAL_REMINDERS, {}, packs, 15);
-    const paused = run(part.state, { running: false }, packs, 120);
+    const away = run(part.state, { phase: "shortBreak" }, packs, 120);
 
-    expect(run(paused.state, {}, packs, 5).fired).toEqual(["a"]);
+    expect(run(away.state, {}, packs, 5).fired).toEqual(["a"]);
   });
 
-  it("refuses to bank an entire slept machine on one tick", () => {
-    const slept = advanceReminders(
+  it("refuses to bank an entire slept machine on one slice", () => {
+    const slept = accrueReminders(
       INITIAL_REMINDERS,
-      check({ sinceMs: 8 * 60 * 60_000 }),
+      8 * 60 * 60_000,
+      { ...check(), delivering: true },
       packs,
-      first,
     );
 
-    expect(slept.due).toBeNull();
-    expect(slept.state.banked["a"]).toBe(MAX_TICK_MS);
+    expect(slept.banked["a"]).toBe(MAX_TICK_MS);
   });
 
-  it("ignores a tick that went backwards", () => {
-    const back = advanceReminders(INITIAL_REMINDERS, check({ sinceMs: -5000 }), packs, first);
+  it("ignores a slice that went backwards", () => {
+    const back = accrueReminders(INITIAL_REMINDERS, -5000, { ...check(), delivering: true }, packs);
 
-    expect(back.state.banked["a"]).toBe(0);
+    expect(back.banked["a"] ?? 0).toBe(0);
   });
 
-  it("only interrupts the phases the pack is anchored to", () => {
-    const breaks = [pack("a", { phases: ["shortBreak", "longBreak"] })];
+  it("adds up short slices the way the ticker delivers them", () => {
+    // Four slices a second for twenty minutes has to land on the cadence.
+    const banked = run(INITIAL_REMINDERS, {}, packs, 20);
 
-    expect(run(INITIAL_REMINDERS, { phase: "shortBreak" }, breaks, 20).fired).toEqual(["a"]);
-    expect(run(INITIAL_REMINDERS, { phase: "focus" }, breaks, 20).fired).toEqual([]);
+    expect(banked.fired).toEqual(["a"]);
+  });
+});
+
+describe("takeReminder", () => {
+  const packs = [pack("a")];
+
+  it("takes nothing when no pack has reached its cadence", () => {
+    expect(takeReminder(INITIAL_REMINDERS, check(), packs, first)).toBeNull();
+  });
+
+  it("leaves the bank alone when the caller skips a turn", () => {
+    // A phase ending has its own line, so the reminder waits rather than
+    // being spent on a bubble nobody sees.
+    const state: ReminderState = { banked: { a: 25 * MINUTE }, lastLine: {} };
+
+    expect(takeReminder(state, check(), packs, first)?.state.banked["a"]).toBe(0);
+    expect(state.banked["a"]).toBe(25 * MINUTE);
+  });
+
+  it("only offers packs anchored to the current phase", () => {
+    const state: ReminderState = { banked: { a: 25 * MINUTE }, lastLine: {} };
+
+    expect(takeReminder(state, check({ phase: "shortBreak" }), packs, first)).toBeNull();
+  });
+
+  it("only offers packs the user switched on", () => {
+    const state: ReminderState = { banked: { a: 25 * MINUTE }, lastLine: {} };
+
+    expect(takeReminder(state, check({ enabled: { a: false } }), packs, first)).toBeNull();
   });
 
   it("prefers whichever pack has banked the most beyond its cadence", () => {
-    // Both are due on this tick, so only the overage can decide the order.
     const two = [pack("a"), pack("b")];
-    const state: ReminderState = {
-      banked: { a: 21 * MINUTE, b: 30 * MINUTE },
-      lastLine: {},
-    };
+    const state: ReminderState = { banked: { a: 21 * MINUTE, b: 30 * MINUTE }, lastLine: {} };
 
-    const tick = advanceReminders(state, check({ enabled: { a: true, b: true } }), two, first);
-    expect(tick.due?.pack.id).toBe("b");
-    // The one that lost keeps what it banked, so it goes next tick.
-    expect(tick.state.banked["a"]).toBeGreaterThan(20 * MINUTE);
+    const taken = takeReminder(state, check({ enabled: { a: true, b: true } }), two, first);
+    expect(taken?.pack.id).toBe("b");
+    // The one that lost keeps its bank, so it goes next.
+    expect(taken?.state.banked["a"]).toBe(21 * MINUTE);
   });
 
   it("lets packs on different cadences take turns instead of starving one", () => {
@@ -161,8 +183,8 @@ describe("advanceReminders", () => {
     const state: ReminderState = { banked: { a: 20 * MINUTE }, lastLine: { a: 0 } };
 
     // The only other line has to come up, whatever the die says.
-    expect(advanceReminders(state, check(), packs, first).due?.line).toBe("a-b");
-    expect(advanceReminders(state, check(), packs, () => 0.999).due?.line).toBe("a-b");
+    expect(takeReminder(state, check(), packs, first)?.line).toBe("a-b");
+    expect(takeReminder(state, check(), packs, () => 0.999)?.line).toBe("a-b");
   });
 
   it("can still reach every line of a longer pack", () => {
@@ -171,14 +193,14 @@ describe("advanceReminders", () => {
     const seen = new Set<string>();
 
     for (const roll of [0, 0.34, 0.67, 0.999]) {
-      seen.add(advanceReminders(state, check(), wide, () => roll).due?.line ?? "");
+      seen.add(takeReminder(state, check(), wide, () => roll)?.line ?? "");
     }
 
     expect(seen).toEqual(new Set(["one", "two", "four"]));
   });
 
   it("is not due the moment the app opens", () => {
-    expect(advanceReminders(INITIAL_REMINDERS, check(), packs, first).due).toBeNull();
+    expect(takeReminder(INITIAL_REMINDERS, check(), packs, first)).toBeNull();
   });
 });
 

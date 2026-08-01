@@ -11,7 +11,7 @@ import {
 import { completionNotice } from "./core/format";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
-import { INITIAL_REMINDERS, advanceReminders } from "./core/reminders";
+import { INITIAL_REMINDERS, accrueReminders, takeReminder } from "./core/reminders";
 import { Ticker } from "./core/ticker";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
@@ -97,9 +97,12 @@ function main(): void {
     rollOverDay();
 
     const wasRunning = state.status === "running";
+    // The phase the elapsed time belongs to, which a completing tick changes.
+    const phaseBefore = state.phase;
     const transition = reduce(state, event, preferences.settings);
     state = transition.state;
 
+    let spoke = true;
     if (transition.completed) {
       announce(transition.completed);
       say(transition.completed === "focus" ? "focusDone" : "breakDone");
@@ -110,6 +113,12 @@ function main(): void {
       say(isBreak(state.phase) ? "breakStart" : "focusStart");
     } else if (wasRunning && state.status === "paused") {
       say("paused");
+    } else {
+      spoke = false;
+    }
+
+    if (event.type === "tick" && wasRunning) {
+      trackReminders(event.elapsedMs, phaseBefore, spoke);
     }
 
     if (state.status === "running") {
@@ -167,6 +176,35 @@ function main(): void {
 
     if (result.line) {
       utter(result.line.text, now);
+    }
+  }
+
+  /**
+   * Banks a slice of session time and delivers whatever it made due.
+   *
+   * Driven by the ticker rather than the once-a-minute loop, because only the
+   * ticker knows how much of an interval was actually spent running and in
+   * which phase. A poll would have to attribute a whole minute to whatever
+   * the state happened to be when it woke up.
+   */
+  function trackReminders(elapsedMs: number, phase: Phase, alreadySpoke: boolean): void {
+    const now = Date.now();
+    const check = { phase, enabled: preferences.reminders };
+    const delivering =
+      preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now);
+
+    reminders = accrueReminders(reminders, elapsedMs, { ...check, delivering }, REMINDER_PACKS);
+
+    // A phase that just ended already has something to say. Skipping leaves
+    // the pack's bank alone, so it comes back a quarter of a second later.
+    if (!delivering || alreadySpoke) {
+      return;
+    }
+
+    const due = takeReminder(reminders, check, REMINDER_PACKS);
+    if (due) {
+      reminders = due.state;
+      utter(due.line, now);
     }
   }
 
@@ -328,6 +366,9 @@ function main(): void {
    * Unprompted chatter, and the only way the widget notices you were gone:
    * a gap far larger than the interval means the machine slept or locked.
    * What to make of that lives in `core/dialogue`; this only supplies facts.
+   *
+   * Reminders are deliberately not here. They are measured off the ticker,
+   * which knows how much of a stretch was really spent working.
    */
   function ambient(lastCheckAt: number): void {
     const now = Date.now();
@@ -341,34 +382,14 @@ function main(): void {
 
     expireQuiet(now);
 
-    const tick = advanceReminders(
-      reminders,
-      {
-        sinceMs: now - lastCheckAt,
-        phase: state.phase,
-        running: state.status === "running",
-        enabled: preferences.reminders,
-        delivering: preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now),
-      },
-      REMINDER_PACKS,
-    );
+    const trigger = ambientTrigger({
+      sinceLastCheckMs: now - lastCheckAt,
+      running: state.status === "running",
+      roll: Math.random(),
+    });
 
-    reminders = tick.state;
-
-    // A reminder is something the user asked for, so it gets first refusal
-    // on the bubble; idle chatter is only what fills the silence otherwise.
-    if (tick.due) {
-      utter(tick.due.line, now);
-    } else {
-      const trigger = ambientTrigger({
-        sinceLastCheckMs: now - lastCheckAt,
-        running: state.status === "running",
-        roll: Math.random(),
-      });
-
-      if (trigger) {
-        say(trigger);
-      }
+    if (trigger) {
+      say(trigger);
     }
 
     setTimeout(() => ambient(now), AMBIENT_CHECK_MS);
