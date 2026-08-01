@@ -18,6 +18,10 @@ coverage/
 .idea/
 *.swp
 
+# agent tooling, not part of the project
+.agents/
+skills-lock.json
+
 # os
 .DS_Store
 Thumbs.db
