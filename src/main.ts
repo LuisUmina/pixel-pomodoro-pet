@@ -1,7 +1,7 @@
 import "./ui/styles.css";
 
 import { playChime } from "./audio/chime";
-import { INITIAL_DIALOGUE, allowAmbient, speak } from "./core/dialogue";
+import { INITIAL_DIALOGUE, allowAmbient, ambientTrigger, speak } from "./core/dialogue";
 import { completionNotice } from "./core/format";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { Ticker } from "./core/ticker";
@@ -23,15 +23,6 @@ const CELEBRATION_MS = 3_200;
 
 /** How often the mascot is offered a chance to say something unprompted. */
 const AMBIENT_CHECK_MS = 60_000;
-
-/**
- * Odds of taking that chance. The selector already enforces a cooldown; this
- * only stops the chatter from landing on a predictable metronome.
- */
-const AMBIENT_CHANCE = 0.4;
-
-/** A wall-clock jump this large means the machine slept or you walked off. */
-const AWAY_MS = 25 * 60_000;
 
 function main(): void {
   let preferences = loadPreferences(browserStore, isoDay(new Date()));
@@ -202,15 +193,20 @@ function main(): void {
     render();
   }
 
-  /** Keeps the daily tally honest when the widget is left running overnight. */
-  function rollOverDay(): void {
+  /**
+   * Keeps the daily tally honest when the widget is left up overnight.
+   * Returns whether the day actually turned, since the caller then owes the
+   * screen a repaint.
+   */
+  function rollOverDay(): boolean {
     const today = isoDay(new Date());
     if (today === preferences.day) {
-      return;
+      return false;
     }
 
     preferences = { ...preferences, day: today, completedToday: 0 };
     state = { ...state, completedToday: 0 };
+    return true;
   }
 
   function petState(): PetState {
@@ -261,16 +257,26 @@ function main(): void {
   /**
    * Unprompted chatter, and the only way the widget notices you were gone:
    * a gap far larger than the interval means the machine slept or locked.
+   * What to make of that lives in `core/dialogue`; this only supplies facts.
    */
   function ambient(lastCheckAt: number): void {
     const now = Date.now();
 
-    if (now - lastCheckAt > AWAY_MS) {
-      say("welcomeBack");
-    } else if (state.status !== "running" && Math.random() < AMBIENT_CHANCE) {
-      // Never during a session: interrupting focus is the whole thing we are
-      // trying not to do.
-      say("idle");
+    // An idle widget dispatches nothing, so without this the tally on screen
+    // — and the tally the mascot talks about — would still be yesterday's.
+    if (rollOverDay()) {
+      save();
+      render();
+    }
+
+    const trigger = ambientTrigger({
+      sinceLastCheckMs: now - lastCheckAt,
+      running: state.status === "running",
+      roll: Math.random(),
+    });
+
+    if (trigger) {
+      say(trigger);
     }
 
     setTimeout(() => ambient(now), AMBIENT_CHECK_MS);

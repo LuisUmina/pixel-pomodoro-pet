@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   AMBIENT_GAP_MS,
+  AWAY_MS,
   INITIAL_DIALOGUE,
   allowAmbient,
+  ambientTrigger,
   speak,
   type DialogueRequest,
   type DialogueState,
@@ -129,6 +131,41 @@ describe("ambient cooldown", () => {
     const state = allowAmbient({ lastSpokeAt: NOW, recent: [] });
 
     expect(speak(state, ambient, catalog, first).line?.id).toBe("chatter");
+  });
+
+  it("is not confused by a clock corrected backwards", () => {
+    // Without this the mascot goes quiet for the correction plus the gap.
+    const state: DialogueState = { lastSpokeAt: NOW + 60 * 60_000, recent: [] };
+
+    expect(speak(state, ambient, catalog, first).line?.id).toBe("chatter");
+  });
+});
+
+describe("ambientTrigger", () => {
+  const check = { sinceLastCheckMs: 60_000, running: false, roll: 0 };
+
+  it("greets you after a gap long enough to mean you were away", () => {
+    expect(ambientTrigger({ ...check, sinceLastCheckMs: AWAY_MS + 1 })).toBe("welcomeBack");
+  });
+
+  it("treats an ordinary interval as ordinary idle chatter", () => {
+    expect(ambientTrigger(check)).toBe("idle");
+  });
+
+  it("skips most idle checks so the chatter is not a metronome", () => {
+    expect(ambientTrigger({ ...check, roll: 0.99 })).toBeNull();
+  });
+
+  it("says nothing at all while a session is running", () => {
+    expect(ambientTrigger({ ...check, running: true })).toBeNull();
+  });
+
+  it("stays quiet even about a long absence if a session is running", () => {
+    // Waking mid-session means the ticker is about to announce a completed
+    // phase; a greeting racing that line would only clobber it.
+    expect(
+      ambientTrigger({ sinceLastCheckMs: AWAY_MS + 1, running: true, roll: 0 }),
+    ).toBeNull();
   });
 });
 

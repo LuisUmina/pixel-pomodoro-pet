@@ -12,6 +12,15 @@ import { AMBIENT_TRIGGERS, type Line, type Trigger, type Voice } from "../messag
  */
 export const AMBIENT_GAP_MS = 9 * 60_000;
 
+/** A wall-clock jump this large means the machine slept or you walked off. */
+export const AWAY_MS = 25 * 60_000;
+
+/**
+ * Odds an idle check actually speaks. The cooldown above already keeps the
+ * rate down; this only stops the chatter landing on a predictable metronome.
+ */
+export const AMBIENT_CHANCE = 0.4;
+
 /** How many recent lines to remember, so the same one is not repeated. */
 const MEMORY = 8;
 
@@ -80,7 +89,38 @@ export function allowAmbient(state: DialogueState): DialogueState {
 }
 
 function cooledDown(state: DialogueState, now: number): boolean {
-  return now - state.lastSpokeAt >= AMBIENT_GAP_MS;
+  const since = now - state.lastSpokeAt;
+  // A clock corrected backwards makes `since` negative, which would gag the
+  // mascot for the correction plus the gap. Treat it as long enough ago.
+  return since < 0 || since >= AMBIENT_GAP_MS;
+}
+
+export interface AmbientCheck {
+  /** Wall-clock elapsed since the previous check, not the interval asked for. */
+  readonly sinceLastCheckMs: number;
+  readonly running: boolean;
+  /** A roll in [0, 1); injected so the decision stays testable. */
+  readonly roll: number;
+}
+
+/**
+ * What a periodic check should try to say, if anything.
+ *
+ * Nothing at all while a session runs: interrupting focus is the one thing
+ * this whole feature has to avoid. That covers the wake-up greeting too —
+ * a machine that slept through a session comes back to a timer about to
+ * announce its own completion, and two lines racing is worse than one.
+ */
+export function ambientTrigger(check: AmbientCheck): Trigger | null {
+  if (check.running) {
+    return null;
+  }
+
+  if (check.sinceLastCheckMs > AWAY_MS) {
+    return "welcomeBack";
+  }
+
+  return check.roll < AMBIENT_CHANCE ? "idle" : null;
 }
 
 function matches(line: Line, request: DialogueRequest): boolean {
