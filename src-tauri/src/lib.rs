@@ -14,11 +14,15 @@ use tauri_plugin_window_state::StateFlags;
 /// Boots the desktop app. `main.rs` stays a thin shim around this.
 pub fn run() {
     tauri::Builder::default()
-        // Only the drag position is worth restoring — the widget has a fixed
-        // size and no decorations, so the other flags would fight the config.
+        // Size is restored alongside position now that the widget has two
+        // very differently sized modes (full card vs. mini): restoring only
+        // position would recreate the window at the config's full size, then
+        // `resize_keep_center` would shrink it around *that* box's centre
+        // instead of the mini frame's last real one, drifting the widget
+        // down-right a little further on every restart spent in mini mode.
         .plugin(
             tauri_plugin_window_state::Builder::default()
-                .with_state_flags(StateFlags::POSITION)
+                .with_state_flags(StateFlags::POSITION | StateFlags::SIZE)
                 .build(),
         )
         .plugin(tauri_plugin_notification::init())
@@ -31,7 +35,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             window::set_click_through,
-            window::set_widget_scale
+            window::set_widget_scale,
+            window::resize_keep_center
         ])
         .run(tauri::generate_context!())
         .expect("failed to start pixel-pomodoro-pet");

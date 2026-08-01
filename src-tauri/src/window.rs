@@ -1,6 +1,6 @@
 //! Behaviour of the single floating widget window.
 
-use tauri::{App, AppHandle, LogicalSize, Manager, Runtime, WebviewWindow};
+use tauri::{App, AppHandle, LogicalPosition, LogicalSize, Manager, Runtime, WebviewWindow};
 
 /// Must match the window label declared in `tauri.conf.json`.
 pub const WIDGET_LABEL: &str = "widget";
@@ -14,6 +14,12 @@ const BASE_HEIGHT: f64 = 396.0;
 /// too small to grab or larger than the screen.
 const MIN_SCALE: f64 = 0.7;
 const MAX_SCALE: f64 = 2.0;
+
+/// Sanity bounds on `resize_keep_center`. Its width and height are always a
+/// fresh measurement of our own DOM, never a stored value, so this is only a
+/// backstop against a layout glitch handing across a 0×0 or absurd size.
+const MIN_DIMENSION: f64 = 40.0;
+const MAX_DIMENSION: f64 = 4000.0;
 
 /// Handle to the widget window, if it still exists.
 ///
@@ -71,5 +77,46 @@ pub fn set_widget_scale(window: WebviewWindow, scale: f64) -> Result<(), String>
 
     window
         .set_size(LogicalSize::new(BASE_WIDTH * scale, BASE_HEIGHT * scale))
+        .map_err(|error| error.to_string())
+}
+
+/// Resizes the widget to an exact size while keeping its on-screen centre
+/// fixed.
+///
+/// A plain resize keeps the window's top-left corner in place, which is the
+/// right anchor for the drag-to-resize grip (growing from the corner you are
+/// actually pulling) but the wrong one here: switching into mini mode shrinks
+/// the window a lot in one jump, and anchoring on the corner would make the
+/// mascot — which sits nowhere near that corner — leap across the screen
+/// instead of just shrinking in place.
+#[tauri::command]
+pub fn resize_keep_center<R: Runtime>(
+    window: WebviewWindow<R>,
+    width: f64,
+    height: f64,
+) -> Result<(), String> {
+    let width = width.clamp(MIN_DIMENSION, MAX_DIMENSION);
+    let height = height.clamp(MIN_DIMENSION, MAX_DIMENSION);
+
+    let scale_factor = window.scale_factor().map_err(|error| error.to_string())?;
+    let old_position = window
+        .outer_position()
+        .map_err(|error| error.to_string())?
+        .to_logical::<f64>(scale_factor);
+    let old_size = window
+        .outer_size()
+        .map_err(|error| error.to_string())?
+        .to_logical::<f64>(scale_factor);
+
+    let new_position = LogicalPosition::new(
+        old_position.x + (old_size.width - width) / 2.0,
+        old_position.y + (old_size.height - height) / 2.0,
+    );
+
+    window
+        .set_size(LogicalSize::new(width, height))
+        .map_err(|error| error.to_string())?;
+    window
+        .set_position(new_position)
         .map_err(|error| error.to_string())
 }

@@ -51,6 +51,15 @@
             <button
               type="button"
               class="iconbtn"
+              data-action="mini"
+              title="Mini mode — press Ctrl+Alt+Z to switch back"
+              aria-pressed="false"
+            >
+              ▫
+            </button>
+            <button
+              type="button"
+              class="iconbtn"
               data-action="hide"
               title="Hide — press Ctrl+Alt+H to bring it back"
             >
@@ -71,7 +80,7 @@
           </div>
         </main>
 
-        <section class="readout">
+        <section class="readout" data-tauri-drag-region>
           <canvas class="clock" id="clock"></canvas>
           <p class="phase" id="phase">focus</p>
         </section>
@@ -160,6 +169,13 @@
             <label class="check">
               <input type="checkbox" id="set-auto-focus" />
               <span>auto-start focus</span>
+            </label>
+            <label
+              class="check"
+              title="Shrink the frame down to just the mascot and the clock"
+            >
+              <input type="checkbox" id="set-mini" />
+              <span>mini mode</span>
             </label>
 
             <div class="field field--chips">

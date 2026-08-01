@@ -15,6 +15,7 @@ export interface SettingsPanelActions {
   /** Minutes of silence from now; 0 turns it back off. */
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
+  changeMiniMode(enabled: boolean): void;
   /** Everything this panel controls, not just the durations. */
   restoreDefaults(): void;
 }
@@ -26,6 +27,7 @@ export interface SettingsModel {
   readonly reminders: Readonly<Record<string, boolean>>;
   readonly quietMinutesLeft: number;
   readonly characterId: string;
+  readonly miniMode: boolean;
 }
 
 const MIN_MINUTES = 1;
@@ -64,6 +66,7 @@ export class SettingsPanel {
   readonly #rounds: HTMLInputElement;
   readonly #autoBreaks: HTMLInputElement;
   readonly #autoFocus: HTMLInputElement;
+  readonly #mini: HTMLInputElement;
   readonly #sizes: HTMLElement;
   readonly #voices: HTMLElement;
   readonly #reminders: HTMLElement;
@@ -87,6 +90,7 @@ export class SettingsPanel {
     this.#rounds = element<HTMLInputElement>("set-rounds");
     this.#autoBreaks = element<HTMLInputElement>("set-auto-breaks");
     this.#autoFocus = element<HTMLInputElement>("set-auto-focus");
+    this.#mini = element<HTMLInputElement>("set-mini");
     this.#sizes = element("set-sizes");
     this.#voices = element("set-voice");
     this.#reminders = element("set-reminders");
@@ -106,6 +110,10 @@ export class SettingsPanel {
     for (const toggle of [this.#autoBreaks, this.#autoFocus]) {
       toggle.addEventListener("change", () => this.#emit());
     }
+
+    this.#mini.addEventListener("change", () =>
+      this.actions.changeMiniMode(this.#mini.checked),
+    );
 
     this.#buildSizeButtons();
     this.#buildVoiceButtons();
@@ -166,6 +174,8 @@ export class SettingsPanel {
     for (const [id, button] of this.#petButtons) {
       button.setAttribute("aria-pressed", String(id === model.characterId));
     }
+
+    this.#mini.checked = model.miniMode;
   }
 
   #numberInputs(): readonly HTMLInputElement[] {

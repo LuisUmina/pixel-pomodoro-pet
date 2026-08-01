@@ -15,3 +15,6 @@ pub const RESET: &str = "widget://reset";
 /// Flip mouse transparency. Reachable from the tray on purpose: once the
 /// widget ignores the cursor, its own button can no longer be clicked.
 pub const GHOST: &str = "widget://ghost";
+
+/// Toggle mini mode — the frame down to just the mascot and the clock.
+pub const MINI: &str = "widget://mini";

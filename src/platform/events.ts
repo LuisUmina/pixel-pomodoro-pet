@@ -7,6 +7,7 @@ export const SHELL_EVENTS = {
   skip: "widget://skip",
   reset: "widget://reset",
   ghost: "widget://ghost",
+  mini: "widget://mini",
 } as const;
 
 export type ShellEvent = (typeof SHELL_EVENTS)[keyof typeof SHELL_EVENTS];

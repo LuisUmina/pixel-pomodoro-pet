@@ -12,6 +12,9 @@ export const DEFAULT_UI_SCALE = 1;
 /** Width of the widget at 100%, used to turn drag distance into scale. */
 export const BASE_WIDGET_WIDTH = 300;
 
+/** Height of the widget at 100%, used to size the window when leaving mini mode. */
+export const BASE_WIDGET_HEIGHT = 396;
+
 /** Offered as one-click presets in the settings panel. */
 export const UI_SCALE_PRESETS = [0.8, 1, 1.25, 1.5] as const;
 

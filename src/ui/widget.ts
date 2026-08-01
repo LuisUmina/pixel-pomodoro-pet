@@ -29,6 +29,7 @@ export interface WidgetActions {
   changeReminder(id: string, enabled: boolean): void;
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
+  changeMiniMode(enabled: boolean): void;
   restoreDefaults(): void;
   /** Fired only when the history panel opens — closing needs no fresh data. */
   viewHistory(): HistoryModel;
@@ -47,6 +48,12 @@ export interface WidgetModel {
   /** 0 when the mascot is not under a vow of silence. */
   readonly quietMinutesLeft: number;
   readonly characterId: string;
+  readonly miniMode: boolean;
+}
+
+export interface FrameSize {
+  readonly width: number;
+  readonly height: number;
 }
 
 const TOGGLE_LABELS: Readonly<Record<TimerStatus, string>> = {
@@ -77,6 +84,7 @@ export class Widget {
   readonly #soundButton: HTMLElement;
   readonly #ghostButton: HTMLElement;
   readonly #settingsButton: HTMLElement;
+  readonly #miniButton: HTMLElement;
   readonly #viewHistory: () => HistoryModel;
 
   #roundsSignature = "";
@@ -111,6 +119,7 @@ export class Widget {
       changeReminder: (id, enabled) => actions.changeReminder(id, enabled),
       changeQuiet: (minutes) => actions.changeQuiet(minutes),
       changeCharacter: (id) => actions.changeCharacter(id),
+      changeMiniMode: (enabled) => actions.changeMiniMode(enabled),
       restoreDefaults: () => actions.restoreDefaults(),
     });
 
@@ -134,6 +143,7 @@ export class Widget {
       settings: () => this.#toggleSettings(),
       defaults: () => this.#settings.restoreDefaults(),
       history: () => this.#toggleHistory(),
+      mini: () => actions.changeMiniMode(!(this.#model?.miniMode ?? false)),
     };
 
     for (const button of document.querySelectorAll<HTMLElement>("[data-action]")) {
@@ -146,6 +156,7 @@ export class Widget {
     this.#soundButton = actionElement("sound");
     this.#ghostButton = actionElement("ghost");
     this.#settingsButton = actionElement("settings");
+    this.#miniButton = actionElement("mini");
 
     this.#task.addEventListener("input", () => actions.setTask(this.#task.value));
     // Enter should hand focus back rather than submit anything.
@@ -196,8 +207,11 @@ export class Widget {
 
     this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
+    this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
     this.frame.dataset["ghost"] = String(model.ghost);
     this.#widget.dataset["ghost"] = String(model.ghost);
+    this.frame.dataset["mini"] = String(model.miniMode);
+    this.#widget.dataset["mini"] = String(model.miniMode);
 
     this.#pet.setCharacter(getCharacter(model.characterId));
     this.#pet.setResolution(model.uiScale);
@@ -243,6 +257,37 @@ export class Widget {
     if (this.#history.isOpen) {
       this.#history.render(this.#viewHistory());
     }
+  }
+
+  /**
+   * Mini mode has no room for a panel and no titlebar button to reach one
+   * from, but a panel opened beforehand can still be sitting open when a
+   * shortcut or the tray flips the mode — so entering mini mode forces both
+   * shut rather than leaving a settings/history panel squashed into the tiny
+   * frame underneath the mini titlebar's higher stacking order.
+   */
+  closePanels(): void {
+    if (this.#settings.isOpen) {
+      this.#settings.close();
+      this.#settingsButton.setAttribute("aria-pressed", "false");
+    }
+
+    if (this.#history.isOpen) {
+      this.#history.close();
+      this.#tally.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  /**
+   * The frame's own rendered footprint, in CSS pixels — which line up with
+   * Tauri's "logical" size units the same way `BASE_WIDGET_WIDTH` already
+   * does elsewhere. Reading it forces a layout pass, so this only ever
+   * returns the size for whatever `render()` last put on screen, never a
+   * stale one left over from before a mode switch.
+   */
+  measureFrame(): FrameSize {
+    const rect = this.frame.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
   }
 
   #renderRounds(done: number, total: number): void {

@@ -759,3 +759,85 @@ body {
   letter-spacing: 0.5px;
   text-align: center;
 }
+
+/* ------------------------------------------------------------------- mini */
+/* The frame shrunk to just the mascot and the clock: no card, no bevel, no
+   titlebar, nothing but the two things "modo mascota" is actually for. The
+   window itself shrinks to match (main.ts measures this and asks the shell
+   to resize), so there is no dead transparent margin left to swallow clicks
+   meant for whatever sits behind it. */
+
+.frame[data-mini="true"] {
+  width: auto;
+  height: auto;
+  padding: 0;
+  background: none;
+  clip-path: none;
+}
+
+.widget[data-mini="true"] {
+  height: auto;
+  background: none;
+  clip-path: none;
+}
+
+.widget[data-mini="true"]::after {
+  content: none;
+}
+
+.widget[data-mini="true"] .stage {
+  background: none;
+}
+
+.widget[data-mini="true"] .progress,
+.widget[data-mini="true"] .task,
+.widget[data-mini="true"] .statusline,
+.widget[data-mini="true"] .phase {
+  display: none;
+}
+
+/* Only the mini toggle stays in the titlebar — the rest of settings is a
+   click away in full view, not worth cramming into this width. */
+.widget[data-mini="true"] .titlebar__lights,
+.widget[data-mini="true"] .titlebar__path,
+.widget[data-mini="true"] .titlebar__actions > [data-action]:not([data-action="mini"]) {
+  display: none;
+}
+
+/* Chrome nobody asked to see permanently on a widget this small: present
+   but invisible until the pointer actually arrives. */
+.widget[data-mini="true"] .titlebar,
+.widget[data-mini="true"] .controls {
+  position: absolute;
+  right: 0;
+  left: 0;
+  z-index: 5;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.widget[data-mini="true"] .titlebar {
+  top: 0;
+  justify-content: flex-end;
+  padding: 2px 3px;
+  background: rgb(0 0 0 / 55%);
+  border-bottom: none;
+}
+
+.widget[data-mini="true"] .controls {
+  bottom: 0;
+  margin: 0;
+  padding: 4px;
+  background: rgb(0 0 0 / 55%);
+}
+
+/* Hover only, deliberately not `:focus-within` too: the one focusable thing
+   inside this overlay is the button that toggles mini mode itself, and a
+   click leaves a button focused, which would keep the overlay pinned open
+   forever after the first click instead of only while the pointer is here. */
+.widget[data-mini="true"]:hover .titlebar,
+.widget[data-mini="true"]:hover .controls {
+  opacity: 1;
+  pointer-events: auto;
+}

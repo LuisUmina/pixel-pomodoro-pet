@@ -14,6 +14,8 @@ export interface DesktopBridge {
   setClickThrough(enabled: boolean): void;
   /** Resizes the native window to match the widget's UI scale. */
   setScale(scale: number): void;
+  /** Resizes the native window to an exact size, keeping its centre fixed. */
+  resizeKeepCenter(width: number, height: number): void;
   notify(title: string, body: string): void;
   hide(): void;
 }
@@ -56,6 +58,10 @@ function createTauriBridge(): DesktopBridge {
       void core.then((api) => api.invoke("set_widget_scale", { scale }));
     },
 
+    resizeKeepCenter(width, height) {
+      void core.then((api) => api.invoke("resize_keep_center", { width, height }));
+    },
+
     notify(title, body) {
       void (async () => {
         if (await canNotify()) {
@@ -76,6 +82,7 @@ function createBrowserBridge(): DesktopBridge {
     on() {},
     setClickThrough() {},
     setScale() {},
+    resizeKeepCenter() {},
     notify(title, body) {
       console.info(`[notification] ${title} — ${body}`);
     },

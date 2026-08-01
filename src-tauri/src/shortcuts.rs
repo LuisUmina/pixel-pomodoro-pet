@@ -15,16 +15,21 @@ enum Action {
 
 /// Each hotkey and the action it triggers.
 ///
-/// The last two exist because their features are otherwise one-way doors: a
-/// click-through or hidden widget cannot be clicked to undo either, and the
-/// tray icon is easy to lose in the notification overflow.
-fn bindings() -> [(Shortcut, Action); 5] {
+/// The last three exist because their features are otherwise one-way doors: a
+/// click-through, mini-mode, or hidden widget cannot be clicked to undo
+/// itself, and the tray icon is easy to lose in the notification overflow.
+fn bindings() -> [(Shortcut, Action); 6] {
     let ctrl_alt = Modifiers::CONTROL | Modifiers::ALT;
     [
         (Shortcut::new(Some(ctrl_alt), Code::Space), Action::Emit(events::TOGGLE)),
         (Shortcut::new(Some(ctrl_alt), Code::KeyN), Action::Emit(events::SKIP)),
         (Shortcut::new(Some(ctrl_alt), Code::KeyR), Action::Emit(events::RESET)),
         (Shortcut::new(Some(ctrl_alt), Code::KeyG), Action::Emit(events::GHOST)),
+        // Not KeyM: `register` below only fails on an *exclusive* OS-level
+        // claim, and Ctrl+Alt+M is a common mute hotkey in other software
+        // that intercepts the keypress a layer below that, with no error
+        // for this app to see — it registered fine and simply never fired.
+        (Shortcut::new(Some(ctrl_alt), Code::KeyZ), Action::Emit(events::MINI)),
         (Shortcut::new(Some(ctrl_alt), Code::KeyH), Action::ToggleVisibility),
     ]
 }

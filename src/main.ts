@@ -20,7 +20,7 @@ import { REMINDER_PACKS } from "./messages/reminders";
 import type { Trigger, Voice } from "./messages/types";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
-import { clampUiScale } from "./scale";
+import { BASE_WIDGET_HEIGHT, BASE_WIDGET_WIDTH, clampUiScale } from "./scale";
 import type { PetState } from "./sprites/characters";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { loadHistory, saveHistory } from "./store/history";
@@ -91,6 +91,7 @@ function main(): void {
       save();
       render();
     },
+    changeMiniMode: (enabled) => applyMiniMode(enabled),
     restoreDefaults: () => restoreDefaults(),
     viewHistory: () => computeHistoryModel(),
   });
@@ -278,6 +279,7 @@ function main(): void {
     state = withSettings(state, shipped.settings);
     reminders = INITIAL_REMINDERS;
     applyScale(shipped.uiScale, true);
+    applyMiniMode(shipped.miniMode);
   }
 
   function applySettings(settings: PomodoroSettings): void {
@@ -291,11 +293,19 @@ function main(): void {
    * Scales the widget. The webview zooms its layout and the shell resizes the
    * window by the same factor, so the two never disagree. A drag in progress
    * passes `persist: false` to keep it out of storage until it settles.
+   *
+   * `resizeWindow: false` is for boot only, when mini mode is about to
+   * resize the window again a moment later anyway: doing it here first would
+   * make that second resize centre itself on this call's full-size box
+   * instead of the mini frame the window was actually left at.
    */
-  function applyScale(scale: number, persist: boolean): void {
+  function applyScale(scale: number, persist: boolean, resizeWindow = true): void {
     uiScale = clampUiScale(scale);
     document.documentElement.style.setProperty("--ui-scale", String(uiScale));
-    desktop.setScale(uiScale);
+
+    if (resizeWindow) {
+      desktop.setScale(uiScale);
+    }
 
     if (persist) {
       preferences = { ...preferences, uiScale };
@@ -309,6 +319,43 @@ function main(): void {
     ghost = enabled;
     desktop.setClickThrough(enabled);
     render();
+  }
+
+  /**
+   * Shrinks the frame down to just the mascot and the clock, or brings the
+   * full card back — both through `resizeKeepCenter`, so the mascot's
+   * on-screen position never jumps in either direction. `desktop.setScale`
+   * was tried for leaving and rejected: it only resizes from the window's
+   * top-left, so growing back out from a small mini frame drags the whole
+   * widget down-right by roughly half the size difference every time.
+   *
+   * The two directions still are not symmetric in how they get their target
+   * size. Entering measures the DOM after the mode switch has reflowed it,
+   * because the mini layout's footprint depends on the current character's
+   * sprite size and the clock's rendered text width — neither of which this
+   * file has any business computing by formula. Leaving uses
+   * `BASE_WIDGET_WIDTH`/`HEIGHT` times `uiScale` instead of measuring: right
+   * after the switch the OS window is still the small one until the resize
+   * call this function is about to make actually lands, so a measurement
+   * taken now would read that still-small viewport and lock the window at
+   * whatever full mode could be squeezed into rather than its real size.
+   */
+  function applyMiniMode(enabled: boolean): void {
+    preferences = { ...preferences, miniMode: enabled };
+    save();
+    render();
+
+    if (enabled) {
+      // A shortcut or the tray can flip this while settings/history is
+      // still open from before; mini mode has nowhere to put either panel,
+      // and its hover-revealed titlebar sits above them anyway.
+      widget.closePanels();
+
+      const size = widget.measureFrame();
+      desktop.resizeKeepCenter(size.width, size.height);
+    } else {
+      desktop.resizeKeepCenter(BASE_WIDGET_WIDTH * uiScale, BASE_WIDGET_HEIGHT * uiScale);
+    }
   }
 
   /**
@@ -390,6 +437,7 @@ function main(): void {
       reminders: preferences.reminders,
       quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
       characterId: preferences.characterId,
+      miniMode: preferences.miniMode,
     });
   }
 
@@ -452,13 +500,23 @@ function main(): void {
   desktop.on(SHELL_EVENTS.skip, () => dispatch({ type: "skip" }));
   desktop.on(SHELL_EVENTS.reset, () => dispatch({ type: "reset" }));
   desktop.on(SHELL_EVENTS.ghost, () => setGhost(!ghost));
+  desktop.on(SHELL_EVENTS.mini, () => applyMiniMode(!preferences.miniMode));
 
   // A widget with no chrome has nothing useful behind a right click.
   document.addEventListener("contextmenu", (event) => event.preventDefault());
 
   widget.start();
-  // Restores the size the widget was left at, window included.
-  applyScale(uiScale, false);
+  // Restores the size the widget was left at, window included -- unless
+  // mini mode is about to override it right below. The native window
+  // already restored its own last position *and size* on its own (see
+  // `lib.rs`), so when mini mode was saved on, skipping the resize here
+  // leaves that correct starting box alone for `applyMiniMode` to centre
+  // around, instead of overwriting it with the full-size box first.
+  applyScale(uiScale, false, !preferences.miniMode);
+
+  if (preferences.miniMode) {
+    applyMiniMode(true);
+  }
 
   // Taken now rather than inside the callback: read a minute from now it
   // would be the same instant the tick reports, so the first tick would

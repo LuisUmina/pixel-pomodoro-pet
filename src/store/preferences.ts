@@ -30,6 +30,8 @@ export interface Preferences {
   readonly quietUntil: number;
   /** Widget size multiplier; the native window is resized to match. */
   readonly uiScale: number;
+  /** Frame shrunk to just the mascot and the clock. */
+  readonly miniMode: boolean;
   /** ISO day that `completedToday` belongs to; a new day resets the count. */
   readonly day: string;
   readonly completedToday: number;
@@ -46,6 +48,7 @@ export function defaultPreferences(day: string): Preferences {
     reminders: defaultEnabled(REMINDER_PACKS),
     quietUntil: 0,
     uiScale: DEFAULT_UI_SCALE,
+    miniMode: false,
     day,
     completedToday: 0,
   };
@@ -76,6 +79,7 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     quietUntil: readQuietUntil(raw["quietUntil"]),
     uiScale:
       typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,
+    miniMode: typeof raw["miniMode"] === "boolean" ? raw["miniMode"] : false,
     day: today,
     // Yesterday's tally is not today's.
     completedToday: sameDay ? readCount(raw["completedToday"]) : 0,

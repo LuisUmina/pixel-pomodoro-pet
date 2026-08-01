@@ -17,6 +17,7 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
         true,
         Some("Ctrl+Alt+G"),
     )?;
+    let mini = MenuItem::with_id(app, "mini", "Toggle mini mode", true, Some("Ctrl+Alt+Z"))?;
     let show = MenuItem::with_id(app, "show", "Show widget", true, Some("Ctrl+Alt+H"))?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
 
@@ -28,6 +29,7 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
             &reset,
             &PredefinedMenuItem::separator(app)?,
             &ghost,
+            &mini,
             &show,
             &PredefinedMenuItem::separator(app)?,
             &quit,
@@ -48,6 +50,7 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
             "skip" => emit(app, events::SKIP),
             "reset" => emit(app, events::RESET),
             "ghost" => emit(app, events::GHOST),
+            "mini" => emit(app, events::MINI),
             "show" => reveal(app),
             "quit" => app.exit(0),
             _ => {}
