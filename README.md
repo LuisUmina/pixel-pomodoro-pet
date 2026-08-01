@@ -35,7 +35,9 @@ Cambiar de tema repinta también al pato:
   estiramiento y respiración. Lo que importa no es la lista sino *cuándo*
   caen: los de levantarse llegan en el descanso, cuando de verdad te podés
   parar; los de vista durante el focus, que es cuando llevas veinte minutos
-  sin parpadear. Agua y vista vienen encendidos; el resto los prendés vos.
+  sin parpadear. Cuentan **tiempo de sesión, no tiempo de reloj** — dejar el
+  widget abierto sin usarlo no acerca ningún recordatorio. Agua y vista vienen
+  encendidos; el resto los prendés vos.
 - **Modo silencio** de 30 min, 1 h o 2 h para llamadas y presentaciones. Se
   anuncia en la barra de título con lo que le queda y se apaga solo.
 - **Ajustes editables** detrás del engrane: duraciones de focus, descanso corto

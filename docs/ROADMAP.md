@@ -136,6 +136,12 @@ el modo silencio. Tres cosas que el plan no decía:
 - **`RESTORE DEFAULTS` pasó a resetear todo el panel.** Antes solo tocaba las
   duraciones, lo cual ya era discutible y se volvió falso cuando voz,
   recordatorios y silencio se mudaron encima del botón.
+- **Los packs cuentan tiempo de sesión, no tiempo de reloj**, y lo acumulan
+  desde el ticker en vez de desde un sondeo. La regla 20-20-20 mide veinte
+  minutos mirando una pantalla: veinte minutos con el widget abierto sin
+  usarlo no pueden contar. Y un sondeo de una vez por minuto tendría que
+  adivinar de qué lado de una pausa cae cada intervalo — el ticker ya mide
+  eso exacto, cuatro veces por segundo y solo mientras corre.
 
 Los recordatorios propios del usuario (texto libre + cadencia) siguen fuera:
 son los que necesitan una pantalla de edición completa. Queda como **2b**, a
