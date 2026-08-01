@@ -128,8 +128,9 @@ es un no-op en vez de un crash.
 
 ## Roadmap
 
-**v0.2** — modo mini/zen, heatmap de focus estilo contribuciones de GitHub,
-rachas y sound packs.
+La dirección es convertirlo en una **mascota virtual que además lleva tu
+pomodoro**: que se mueva por su cuenta, que hable, que sirva de recordatorio,
+que puedas cambiarle el personaje y que lleve la cuenta de tus rachas.
 
-**v0.3** — integración con git (branch en el widget, borrador de mensaje de
-commit al cerrar la sesión), evolución de la mascota y logros.
+Está desglosado en nueve fases ordenadas de menos a más costosa, cada una
+lanzable por separado, en **[docs/ROADMAP.md](docs/ROADMAP.md)**.
