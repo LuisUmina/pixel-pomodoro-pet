@@ -79,6 +79,16 @@ export function recordSession(state: HistoryState, day: string): HistoryState {
  * broken streak, just a day still in progress — it neither extends the
  * streak nor spends the week's grace on a day that has not happened yet.
  *
+ * A gap only spends grace while it is actually protecting a run — that is,
+ * while `streak` is already above zero. A gap encountered before the streak
+ * has started (leading empty days from the window, or empty days right
+ * after an earlier break) has nothing to protect, and letting it spend the
+ * week's one grace day anyway would leave nothing left over for a real gap
+ * later in the same week: work Tuesday and Thursday with Wednesday off, and
+ * without this the empty Monday before either of them would burn the
+ * week's only grace day for nothing.
+ *
+
  * Bounded to `RETENTION_DAYS` because that is all `days` ever retains, so a
  * streak — current or best — cannot be reported past that ceiling. In
  * practice that is a year of near-daily use before it would ever show, and
@@ -111,7 +121,7 @@ export function currentStreak(
     } else if (cursor === today) {
       // Still in progress; leave the streak exactly as the rest of the walk
       // found it rather than spending a grace day on it.
-    } else if (graceUsed < restDaysPerWeek) {
+    } else if (streak > 0 && graceUsed < restDaysPerWeek) {
       graceUsed += 1;
     } else {
       streak = 0;

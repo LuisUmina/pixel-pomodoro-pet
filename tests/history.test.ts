@@ -156,6 +156,15 @@ describe("currentStreak", () => {
     expect(currentStreak(state.days, FRI1)).toBe(0);
   });
 
+  it("does not spend a week's grace on an empty day before any streak has started", () => {
+    // Worked Tuesday and Thursday only, skipping both Monday and Wednesday.
+    // Monday has no streak to protect -- it should cost nothing, leaving
+    // the week's one grace day free for Wednesday, which does.
+    const state = record([TUE1, THU1]);
+
+    expect(currentStreak(state.days, THU1)).toBe(2);
+  });
+
   it("resets to the days since the break, not to zero forever", () => {
     // Two-day gap breaks the streak, then three fresh days follow.
     const state = record([MON1, "2026-06-10", "2026-06-11", "2026-06-12"]);
@@ -263,6 +272,15 @@ describe("store/history", () => {
     const loaded = loadHistory(store);
     expect(loaded.days).toEqual({});
     expect(loaded.bestDay).toBe("");
+  });
+
+  it("accepts a real date whose year needs padding to four digits", () => {
+    // A round-trip validator is only as good as the formatter it round-trips
+    // through; this pins down that isoDay's own year-padding keeps it honest.
+    const store = memoryStore();
+    store.set("pixel-pomodoro-pet:history", { days: { "0500-06-15": 2 } });
+
+    expect(loadHistory(store).days).toEqual({ "0500-06-15": 2 });
   });
 
   it("drops a fractional count instead of keeping it as a floored zero", () => {

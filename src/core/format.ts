@@ -18,9 +18,18 @@ function pad(value: number): string {
  * resets or accumulates by day — today's tally, reminder packs, history.
  * Local time on purpose: a day should turn when the user's day does, not
  * when UTC's does.
+ *
+ * The year is padded to 4 digits too, not just month and day: `getFullYear`
+ * returns `500` as `"500"`, and `store/history.ts` validates a stored day by
+ * round-tripping it back through this function, so an unpadded year would
+ * never match its own 4-digit input and would reject an otherwise valid day.
  */
 export function isoDay(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  return `${padYear(date.getFullYear())}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function padYear(value: number): string {
+  return value.toString().padStart(4, "0");
 }
 
 const PHASE_LABELS: Readonly<Record<Phase, string>> = {
