@@ -35,14 +35,6 @@ export interface Preferences {
   readonly completedToday: number;
 }
 
-export function isoDay(date: Date): string {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function pad(value: number): string {
-  return value.toString().padStart(2, "0");
-}
-
 export function defaultPreferences(day: string): Preferences {
   return {
     themeId: DEFAULT_THEME_ID,

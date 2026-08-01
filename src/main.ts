@@ -8,7 +8,7 @@ import {
   noteSpoken,
   speak,
 } from "./core/dialogue";
-import { completionNotice } from "./core/format";
+import { completionNotice, isoDay } from "./core/format";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
 import { INITIAL_REMINDERS, accrueReminders, takeReminder } from "./core/reminders";
@@ -23,12 +23,7 @@ import { clampUiScale } from "./scale";
 import type { PetState } from "./sprites/characters";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { browserStore } from "./store/persistence";
-import {
-  defaultPreferences,
-  isoDay,
-  loadPreferences,
-  savePreferences,
-} from "./store/preferences";
+import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
 import { AutoDim } from "./ui/auto-dim";
 import { Widget } from "./ui/widget";
 

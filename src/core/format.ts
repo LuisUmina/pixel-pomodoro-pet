@@ -13,6 +13,16 @@ function pad(value: number): string {
   return value.toString().padStart(2, "0");
 }
 
+/**
+ * Local calendar day as `YYYY-MM-DD`. Used as the key for anything that
+ * resets or accumulates by day — today's tally, reminder packs, history.
+ * Local time on purpose: a day should turn when the user's day does, not
+ * when UTC's does.
+ */
+export function isoDay(date: Date): string {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
 const PHASE_LABELS: Readonly<Record<Phase, string>> = {
   focus: "focus",
   shortBreak: "break",
