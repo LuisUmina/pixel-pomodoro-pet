@@ -24,11 +24,17 @@ Cambiar de tema repinta también al pato:
 - **Timer pomodoro completo**: 25 / 5 / 15 configurables, rondas por ciclo y
   descanso largo. Los descansos arrancan solos; el siguiente focus no, para que
   volver sea una decisión consciente.
-- **Mascota con vida propia**: catorce conductas repartidas en cinco estados de
-  ánimo. No repite un bucle — al terminar cada actuación saca otra con pesos,
-  así que casi siempre respira, a veces mira de reojo, de vez en cuando algo
-  le llama la atención arriba y cada tanto se pasea un par de píxeles sin
-  motivo. Se concentra en focus, tararea en el descanso y se duerme en pausa.
+- **Mascota con vida propia**: conductas repartidas en cinco estados de ánimo.
+  No repite un bucle — al terminar cada actuación saca otra con pesos, así que
+  casi siempre respira, a veces mira de reojo, de vez en cuando algo le llama
+  la atención arriba y cada tanto se pasea un par de píxeles sin motivo. Se
+  concentra en focus, tararea en el descanso y se duerme en pausa.
+- **Cuatro personajes intercambiables** desde ajustes: el pato, un ninja, una
+  terminal CRT y una chispa. Los dos últimos son otra familia — un logo no
+  puede parpadear ni caminar sin verse mal, así que animan *efectos*: la
+  terminal parpadea su cursor, se tipea sola y entra en standby; la chispa
+  pulsa el núcleo, pasea un brillo por sus rayos y queda en brasa al pausar.
+  Cambiar de tema repinta a los cuatro.
 - **El pato habla**: comenta al arrancar, al cerrar una sesión, al entrar al
   descanso y de vez en cuando por su cuenta. Cuatro voces —`DEV` con humor
   seco, `HYPE` motivacional, `PLAIN` solo lo funcional y `OFF` para callarlo—
@@ -124,13 +130,16 @@ tiempo real transcurrido en vez de confiar en que el `setInterval` disparó
 puntual, de modo que una webview throttleada o un portátil suspendido no
 desfasan la cuenta.
 
-**Los sprites son datos, no imágenes.** `duck.json` es una grilla de caracteres
-donde cada uno indexa una paleta. Eso hace que el arte sea diffeable en git,
-pese bytes, y —lo importante— que un tema pueda repintar al pato cambiando la
-paleta. Las expresiones son *parches* de unos pocos píxeles sobre la base, no
-una grilla completa por estado. Con ojos de dos píxeles de lado, mirar de reojo
-es mover el brillo al otro lado y mirar abajo es que la fila de arriba tome el
-color del cuerpo: más barato y más legible que redibujar una cara.
+**Los sprites son datos, no imágenes.** Cada personaje es un JSON en
+`sprites/characters/` con su grilla, sus parches y sus conductas — el motor no
+sabe qué es un pato, y agregar un personaje es soltar un archivo. La grilla es
+de caracteres que indexan una paleta compartida por temas, así el arte es
+diffeable en git, pesa bytes y cambiar de tema repinta a todos los personajes.
+Las expresiones son *parches* de unos pocos píxeles sobre la base: con ojos de
+dos píxeles de lado, mirar de reojo es mover el brillo al otro lado y mirar
+abajo es que la fila de arriba tome el color del cuerpo — más barato y más
+legible que redibujar una cara. Un registro estricto valida todo al cargar:
+un personaje malformado rompe un test, no la pantalla.
 
 **Las reglas de "no ser molesto" son código puro y testeado.** Lo que decide
 si el pato habla —`speak(estado, petición, catálogo, random)`— y lo que decide

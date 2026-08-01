@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1, 2 y 3 terminadas.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1–4 terminadas.** El resto sin empezar.
 
 ---
 
@@ -18,16 +18,17 @@ dependencias sí se respetan.
 | 1 | [Burbujas de diálogo](#fase-1--burbujas-de-diálogo) ✅ | S | — |
 | 2 | [Recordatorios](#fase-2--recordatorios) ✅ | S/M | 1 |
 | 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) ✅ | M | — |
-| 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) | M | — |
+| 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) ✅ | M | — |
 | 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) | M/L | — |
 | 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) | L | — |
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
 
-**Siguiente recomendada:** la **4**, que ahora es casi gratis de motor: el
-planificador de conductas ya existe, así que un personaje nuevo es un JSON
-con sus parches. La **6** es la alternativa si prefieres datos antes que arte.
+**Siguiente recomendada:** la **6** (historial, rachas y heatmap), que es la
+única grande sin dependencias que queda y la que alimenta a la **7**. La
+alternativa es la **5** (modo mascota sin marco), más vistosa pero con el
+problema técnico del click-through por resolver.
 
 ---
 
@@ -240,7 +241,33 @@ un segundo empujón.
 
 ---
 
-## Fase 4 — Personajes intercambiables
+## Fase 4 — Personajes intercambiables ✅
+
+**Terminada · Costo: M**
+
+Cuatro personajes — pato, ninja, terminal y chispa — elegibles desde ajustes,
+persistentes, y repintados por los tres temas. Cómo quedó frente al plan:
+
+- **Las dos familias existen, pero solo como concepto de autoría.** El motor
+  no distingue criaturas de emblemas: cada personaje es un JSON autocontenido
+  con grilla, parches *y conductas*, así que un emblema simplemente trae
+  conductas de efectos (cursor, glow, standby) en vez de parpadeos y pasos.
+  Eso dejó el motor más chico de lo planeado, no más grande.
+- **El contrato de estados se valida al cargar**, no por convención: un
+  personaje sin nada que hacer en algún ánimo no parsea. El parser también
+  rechaza parches fuera de grilla, referencias colgantes, duraciones
+  congeladas y paseos que no vuelven al centro.
+- **Sin vista previa animada en el panel.** La selección aplica al instante y
+  el personaje mismo es la vista previa al cerrar. Una preview en miniatura
+  habría duplicado instancias del canvas por un beneficio menor.
+- **Sin logos reales, como estaba decidido**: la terminal y la chispa son las
+  versiones "inspiradas en". La decisión abierta sobre personajes del usuario
+  (cargar JSON desde una carpeta) sigue abierta — el formato ya lo permite.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: M · Sin dependencias**
 
@@ -278,6 +305,8 @@ añade por su cuenta gracias a que los personajes son archivos sueltos.
 **Toca:** `src/sprites/characters/` (nuevo), `duck.ts` → `characters.ts`,
 `themes.ts` (las paletas pasan a ser por personaje), `settings-panel.ts`,
 `scripts/generate-icon.mjs`.
+
+</details>
 
 ---
 
