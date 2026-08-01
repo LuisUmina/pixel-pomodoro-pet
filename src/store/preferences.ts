@@ -1,5 +1,8 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
+import { MAX_QUIET_MS } from "../core/quiet";
+import { defaultEnabled } from "../core/reminders";
 import type { PomodoroSettings } from "../core/types";
+import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
 import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
 import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
@@ -18,6 +21,10 @@ export interface Preferences {
   readonly soundEnabled: boolean;
   /** Personality the mascot speaks in, or `off` for silence. */
   readonly voice: Voice;
+  /** Reminder pack id to whether the user wants it. */
+  readonly reminders: Readonly<Record<string, boolean>>;
+  /** When a temporary vow of silence expires; 0 when there is none. */
+  readonly quietUntil: number;
   /** Widget size multiplier; the native window is resized to match. */
   readonly uiScale: number;
   /** ISO day that `completedToday` belongs to; a new day resets the count. */
@@ -40,6 +47,8 @@ export function defaultPreferences(day: string): Preferences {
     task: "",
     soundEnabled: true,
     voice: DEFAULT_VOICE,
+    reminders: defaultEnabled(REMINDER_PACKS),
+    quietUntil: 0,
     uiScale: DEFAULT_UI_SCALE,
     day,
     completedToday: 0,
@@ -66,6 +75,8 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     task: typeof raw["task"] === "string" ? raw["task"].slice(0, TASK_MAX_LENGTH) : "",
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
     voice: isVoice(raw["voice"]) ? raw["voice"] : defaults.voice,
+    reminders: readReminders(raw["reminders"]),
+    quietUntil: readQuietUntil(raw["quietUntil"]),
     uiScale:
       typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,
     day: today,
@@ -108,6 +119,36 @@ function readSettings(value: unknown): PomodoroSettings {
         ? value["autoStartFocus"]
         : DEFAULT_SETTINGS.autoStartFocus,
   };
+}
+
+/**
+ * Only packs this build ships are kept, and only when the stored value is
+ * actually a boolean. A pack retired in a later release drops out on its own,
+ * and one added later arrives at its shipped default rather than off.
+ */
+function readReminders(value: unknown): Record<string, boolean> {
+  const stored = isRecord(value) ? value : {};
+  const enabled: Record<string, boolean> = {};
+
+  for (const pack of REMINDER_PACKS) {
+    const choice = stored[pack.id];
+    enabled[pack.id] = typeof choice === "boolean" ? choice : pack.enabledByDefault;
+  }
+
+  return enabled;
+}
+
+/**
+ * A quiet spell is an expiry, so the only thing a bad value can do is silence
+ * the mascot for at most one sitting. Anything further out than the cap came
+ * from a clock, not a person.
+ */
+function readQuietUntil(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return 0;
+  }
+
+  return value - Date.now() > MAX_QUIET_MS ? 0 : Math.floor(value);
 }
 
 function readMinutes(value: unknown, fallback: number): number {

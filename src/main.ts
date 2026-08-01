@@ -1,12 +1,21 @@
 import "./ui/styles.css";
 
 import { playChime } from "./audio/chime";
-import { INITIAL_DIALOGUE, allowAmbient, ambientTrigger, speak } from "./core/dialogue";
+import {
+  INITIAL_DIALOGUE,
+  allowAmbient,
+  ambientTrigger,
+  noteSpoken,
+  speak,
+} from "./core/dialogue";
 import { completionNotice } from "./core/format";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
+import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
+import { dueReminder, startReminders } from "./core/reminders";
 import { Ticker } from "./core/ticker";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
+import { REMINDER_PACKS } from "./messages/reminders";
 import type { Trigger, Voice } from "./messages/types";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
@@ -14,7 +23,12 @@ import { clampUiScale } from "./scale";
 import type { PetState } from "./sprites/duck";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { browserStore } from "./store/persistence";
-import { isoDay, loadPreferences, savePreferences } from "./store/preferences";
+import {
+  defaultPreferences,
+  isoDay,
+  loadPreferences,
+  savePreferences,
+} from "./store/preferences";
 import { AutoDim } from "./ui/auto-dim";
 import { Widget } from "./ui/widget";
 
@@ -38,6 +52,7 @@ function main(): void {
   let celebrating = false;
   let celebrationTimer: ReturnType<typeof setTimeout> | null = null;
   let dialogue = INITIAL_DIALOGUE;
+  let reminders = startReminders(REMINDER_PACKS, Date.now());
 
   applyThemeCss(theme, document.documentElement);
 
@@ -66,6 +81,13 @@ function main(): void {
     changeSettings: (settings) => applySettings(settings),
     changeScale: (scale, persist) => applyScale(scale, persist),
     changeVoice: (voice) => applyVoice(voice),
+    changeReminder: (id, enabled) => {
+      preferences = { ...preferences, reminders: { ...preferences.reminders, [id]: enabled } };
+      save();
+      render();
+    },
+    changeQuiet: (minutes) => applyQuiet(minutes),
+    restoreDefaults: () => restoreDefaults(),
   });
 
   const ticker = new Ticker((elapsedMs) => dispatch({ type: "tick", elapsedMs }));
@@ -125,6 +147,10 @@ function main(): void {
    */
   function say(trigger: Trigger): void {
     const now = Date.now();
+    if (isQuiet(preferences.quietUntil, now)) {
+      return;
+    }
+
     const result = speak(
       dialogue,
       {
@@ -140,10 +166,28 @@ function main(): void {
     dialogue = result.state;
 
     if (result.line) {
-      widget.say(result.line.text);
-      // No point talking to a widget faded down to 42%.
-      autoDim.wake();
+      utter(result.line.text, now);
     }
+  }
+
+  /** The one way anything reaches the bubble, whoever chose the words. */
+  function utter(message: string, now: number): void {
+    widget.say(message);
+    dialogue = noteSpoken(dialogue, now);
+    // No point talking to a widget faded down to 42%.
+    autoDim.wake();
+  }
+
+  function applyQuiet(minutes: number): void {
+    const now = Date.now();
+    preferences = { ...preferences, quietUntil: quietUntilFrom(minutes, now) };
+    save();
+
+    if (minutes > 0) {
+      widget.hush();
+    }
+
+    render();
   }
 
   function applyVoice(voice: Voice): void {
@@ -160,6 +204,30 @@ function main(): void {
     // like; clearing the cooldown is what makes the sample land right away.
     dialogue = allowAmbient(dialogue);
     say("idle");
+  }
+
+  /**
+   * Puts everything the settings panel controls back to shipped values.
+   *
+   * The button lives at the bottom of a panel that now covers durations, size,
+   * voice, reminders and quiet, so resetting only the durations would make the
+   * label a lie. The theme and the day's tally are not in that panel, and are
+   * deliberately left alone.
+   */
+  function restoreDefaults(): void {
+    const shipped = defaultPreferences(preferences.day);
+
+    preferences = {
+      ...preferences,
+      settings: shipped.settings,
+      voice: shipped.voice,
+      reminders: shipped.reminders,
+      quietUntil: shipped.quietUntil,
+    };
+
+    state = withSettings(state, shipped.settings);
+    reminders = startReminders(REMINDER_PACKS, Date.now());
+    applyScale(shipped.uiScale, true);
   }
 
   function applySettings(settings: PomodoroSettings): void {
@@ -251,6 +319,8 @@ function main(): void {
       ghost,
       uiScale,
       voice: preferences.voice,
+      reminders: preferences.reminders,
+      quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
     });
   }
 
@@ -269,17 +339,52 @@ function main(): void {
       render();
     }
 
-    const trigger = ambientTrigger({
-      sinceLastCheckMs: now - lastCheckAt,
-      running: state.status === "running",
-      roll: Math.random(),
-    });
+    // A reminder is something the user asked for, so it gets first refusal
+    // on the bubble; idle chatter is only what fills the silence otherwise.
+    if (!speakReminder(now)) {
+      const trigger = ambientTrigger({
+        sinceLastCheckMs: now - lastCheckAt,
+        running: state.status === "running",
+        roll: Math.random(),
+      });
 
-    if (trigger) {
-      say(trigger);
+      if (trigger) {
+        say(trigger);
+      }
+    }
+
+    // The quiet countdown is only ever on screen in the title bar and the
+    // settings chip, so a minute passing is a repaint.
+    if (preferences.quietUntil > 0) {
+      render();
     }
 
     setTimeout(() => ambient(now), AMBIENT_CHECK_MS);
+  }
+
+  function speakReminder(now: number): boolean {
+    if (preferences.voice === "off" || isQuiet(preferences.quietUntil, now)) {
+      return false;
+    }
+
+    const due = dueReminder(
+      reminders,
+      {
+        now,
+        phase: state.phase,
+        running: state.status === "running",
+        enabled: preferences.reminders,
+      },
+      REMINDER_PACKS,
+    );
+
+    if (!due) {
+      return false;
+    }
+
+    reminders = due.state;
+    utter(due.line, now);
+    return true;
   }
 
   desktop.on(SHELL_EVENTS.toggle, () => dispatch({ type: "toggle" }));

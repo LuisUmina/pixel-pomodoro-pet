@@ -1,5 +1,7 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
-import type { PomodoroSettings } from "../core/types";
+import { QUIET_PRESETS, formatQuiet } from "../core/quiet";
+import type { Phase, PomodoroSettings } from "../core/types";
+import { REMINDER_PACKS } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
 import { element } from "./dom";
@@ -8,6 +10,19 @@ export interface SettingsPanelActions {
   changeSettings(settings: PomodoroSettings): void;
   changeScale(scale: number): void;
   changeVoice(voice: Voice): void;
+  changeReminder(id: string, enabled: boolean): void;
+  /** Minutes of silence from now; 0 turns it back off. */
+  changeQuiet(minutes: number): void;
+  /** Everything this panel controls, not just the durations. */
+  restoreDefaults(): void;
+}
+
+export interface SettingsModel {
+  readonly settings: PomodoroSettings;
+  readonly uiScale: number;
+  readonly voice: Voice;
+  readonly reminders: Readonly<Record<string, boolean>>;
+  readonly quietMinutesLeft: number;
 }
 
 const MIN_MINUTES = 1;
@@ -26,7 +41,15 @@ const VOICE_HINTS: Readonly<Record<Voice, string>> = {
   dev: "Dry developer humour",
   hype: "Encouraging",
   plain: "Just the facts",
-  off: "The mascot says nothing",
+  // Reminders ride on the same bubble, so OFF has to take them with it —
+  // anything else makes the label a lie. PLAIN is the useful-but-quiet one.
+  off: "Nothing at all, reminders included",
+};
+
+const PHASE_WORDS: Readonly<Record<Phase, string>> = {
+  focus: "focus",
+  shortBreak: "breaks",
+  longBreak: "breaks",
 };
 
 /** The durations and widget size, behind the gear button. */
@@ -40,9 +63,13 @@ export class SettingsPanel {
   readonly #autoFocus: HTMLInputElement;
   readonly #sizes: HTMLElement;
   readonly #voices: HTMLElement;
+  readonly #reminders: HTMLElement;
+  readonly #quiet: HTMLElement;
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
+  readonly #reminderBoxes = new Map<string, HTMLInputElement>();
+  readonly #quietButtons = new Map<number, HTMLButtonElement>();
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
@@ -57,6 +84,8 @@ export class SettingsPanel {
     this.#autoFocus = element<HTMLInputElement>("set-auto-focus");
     this.#sizes = element("set-sizes");
     this.#voices = element("set-voice");
+    this.#reminders = element("set-reminders");
+    this.#quiet = element("set-quiet");
 
     for (const input of this.#numberInputs()) {
       // `input` reacts as you type but leaves the field alone; `change` fires
@@ -74,6 +103,8 @@ export class SettingsPanel {
 
     this.#buildSizeButtons();
     this.#buildVoiceButtons();
+    this.#buildReminderRows();
+    this.#buildQuietButtons();
   }
 
   get isOpen(): boolean {
@@ -97,20 +128,32 @@ export class SettingsPanel {
   }
 
   restoreDefaults(): void {
-    this.actions.changeSettings(DEFAULT_SETTINGS);
+    this.actions.restoreDefaults();
   }
 
-  render(settings: PomodoroSettings, scale: number, voice: Voice): void {
-    this.#settings = settings;
-    this.#scale = scale;
+  render(model: SettingsModel): void {
+    this.#settings = model.settings;
+    this.#scale = model.uiScale;
     this.#writeSettings();
 
     for (const [preset, button] of this.#sizeButtons) {
-      button.setAttribute("aria-pressed", String(Math.abs(preset - scale) < 0.005));
+      button.setAttribute("aria-pressed", String(Math.abs(preset - model.uiScale) < 0.005));
     }
 
     for (const [candidate, button] of this.#voiceButtons) {
-      button.setAttribute("aria-pressed", String(candidate === voice));
+      button.setAttribute("aria-pressed", String(candidate === model.voice));
+    }
+
+    for (const [id, box] of this.#reminderBoxes) {
+      box.checked = model.reminders[id] === true;
+      // Reminders arrive by the same bubble, so a silenced mascot delivers
+      // none of them; saying so beats letting the switches look live.
+      box.disabled = model.voice === "off";
+    }
+
+    const active = activeQuietPreset(model.quietMinutesLeft);
+    for (const [preset, button] of this.#quietButtons) {
+      button.setAttribute("aria-pressed", String(preset === active));
     }
   }
 
@@ -173,6 +216,62 @@ export class SettingsPanel {
       this.#voices.append(button);
     }
   }
+
+  #buildReminderRows(): void {
+    for (const pack of REMINDER_PACKS) {
+      const row = document.createElement("label");
+      row.className = "reminder";
+      row.title = pack.hint;
+
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.addEventListener("change", () =>
+        this.actions.changeReminder(pack.id, box.checked),
+      );
+
+      const label = document.createElement("span");
+      label.className = "reminder__label";
+      label.textContent = pack.label;
+
+      const when = document.createElement("span");
+      when.className = "reminder__when";
+      when.textContent = `${pack.everyMinutes}m · ${phaseWord(pack.phases)}`;
+
+      row.append(box, label, when);
+      this.#reminderBoxes.set(pack.id, box);
+      this.#reminders.append(row);
+    }
+  }
+
+  #buildQuietButtons(): void {
+    for (const preset of QUIET_PRESETS) {
+      const label = preset === 0 ? "OFF" : formatQuiet(preset);
+      const button = chip(label, () => this.actions.changeQuiet(preset));
+
+      this.#quietButtons.set(preset, button);
+      this.#quiet.append(button);
+    }
+  }
+}
+
+/** Packs anchored to both breaks read as one word, not two. */
+function phaseWord(phases: readonly Phase[]): string {
+  return [...new Set(phases.map((phase) => PHASE_WORDS[phase]))].join(" + ");
+}
+
+/**
+ * Which chip a running countdown belongs to: the shortest preset that could
+ * still be holding it. The chosen length is not stored, and it does not need
+ * to be — the remaining time is on the title bar, and the chips stay a stable
+ * set of choices rather than a clock that rewrites itself.
+ */
+function activeQuietPreset(minutesLeft: number): number {
+  if (minutesLeft <= 0) {
+    return 0;
+  }
+
+  const longest = QUIET_PRESETS[QUIET_PRESETS.length - 1] ?? 0;
+  return QUIET_PRESETS.find((preset) => preset > 0 && preset >= minutesLeft) ?? longest;
 }
 
 function chip(label: string, onClick: () => void): HTMLButtonElement {

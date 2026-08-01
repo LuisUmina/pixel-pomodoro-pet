@@ -607,6 +607,53 @@ body {
   color: var(--surface-deep);
 }
 
+.settings__heading {
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0.75;
+  text-transform: uppercase;
+}
+
+.reminders {
+  display: grid;
+  gap: 5px;
+}
+
+/* Cadence and phase sit on the right, so the switches stay a scannable column
+   and you can still tell what each one costs you before turning it on. */
+.reminder {
+  display: flex;
+  align-items: center;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 10px;
+  gap: 7px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.reminder input {
+  width: 12px;
+  height: 12px;
+  accent-color: var(--phase);
+  cursor: pointer;
+  flex: none;
+}
+
+.reminder__label {
+  flex: 1;
+}
+
+.reminder__when {
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0;
+  opacity: 0.6;
+  text-transform: none;
+}
+
 .settings__body .btn {
   height: 28px;
   margin-top: auto;

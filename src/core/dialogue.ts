@@ -88,6 +88,16 @@ export function allowAmbient(state: DialogueState): DialogueState {
   return { ...state, lastSpokeAt: 0 };
 }
 
+/**
+ * Starts the cooldown for a line that did not come from this catalogue.
+ *
+ * Reminders share the bubble, so without this the mascot could deliver one
+ * and then follow it a moment later with idle chatter.
+ */
+export function noteSpoken(state: DialogueState, now: number): DialogueState {
+  return { ...state, lastSpokeAt: now };
+}
+
 function cooledDown(state: DialogueState, now: number): boolean {
   const since = now - state.lastSpokeAt;
   // A clock corrected backwards makes `since` negative, which would gag the

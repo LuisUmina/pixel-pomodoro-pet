@@ -1,5 +1,6 @@
 import { formatClock, phaseLabel } from "../core/format";
 import { progress } from "../core/pomodoro";
+import { formatQuiet } from "../core/quiet";
 import type { PomodoroSettings, PomodoroState, TimerStatus } from "../core/types";
 import type { Voice } from "../messages/types";
 import type { PetState } from "../sprites/duck";
@@ -24,6 +25,9 @@ export interface WidgetActions {
   /** `persist` is false while a resize drag is still in flight. */
   changeScale(scale: number, persist: boolean): void;
   changeVoice(voice: Voice): void;
+  changeReminder(id: string, enabled: boolean): void;
+  changeQuiet(minutes: number): void;
+  restoreDefaults(): void;
 }
 
 export interface WidgetModel {
@@ -35,6 +39,9 @@ export interface WidgetModel {
   readonly ghost: boolean;
   readonly uiScale: number;
   readonly voice: Voice;
+  readonly reminders: Readonly<Record<string, boolean>>;
+  /** 0 when the mascot is not under a vow of silence. */
+  readonly quietMinutesLeft: number;
 }
 
 const TOGGLE_LABELS: Readonly<Record<TimerStatus, string>> = {
@@ -94,6 +101,9 @@ export class Widget {
       changeSettings: (settings) => actions.changeSettings(settings),
       changeScale: (scale) => actions.changeScale(scale, true),
       changeVoice: (voice) => actions.changeVoice(voice),
+      changeReminder: (id, enabled) => actions.changeReminder(id, enabled),
+      changeQuiet: (minutes) => actions.changeQuiet(minutes),
+      restoreDefaults: () => actions.restoreDefaults(),
     });
 
     this.#grip = new ResizeGrip(
@@ -154,10 +164,9 @@ export class Widget {
 
     this.#widget.dataset["phase"] = state.phase;
     this.#widget.dataset["status"] = state.status;
-    // Click-through leaves no other trace on screen, and the widget cannot be
-    // clicked to ask, so the title bar has to say it outright.
-    const path = `~/${phaseLabel(state.phase).replace(" ", "-")}`;
-    this.#path.textContent = model.ghost ? `${path} [ghost]` : path;
+    // Click-through and a vow of silence leave no other trace on screen, and
+    // a ghosted widget cannot be clicked to ask, so the title bar says both.
+    this.#path.textContent = titlePath(state, model);
 
     this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
@@ -187,7 +196,7 @@ export class Widget {
     // Only while visible: the panel writes into its inputs, and there is no
     // reason to do that four times a second behind a closed panel.
     if (this.#settings.isOpen) {
-      this.#settings.render(settings, model.uiScale, model.voice);
+      this.#settings.render(model);
     }
   }
 
@@ -197,7 +206,7 @@ export class Widget {
 
     // An idle timer produces no renders, so seed the fields on open.
     if (this.#settings.isOpen && this.#model) {
-      this.#settings.render(this.#model.settings, this.#model.uiScale, this.#model.voice);
+      this.#settings.render(this.#model);
     }
   }
 
@@ -216,6 +225,16 @@ export class Widget {
       }),
     );
   }
+}
+
+function titlePath(state: PomodoroState, model: WidgetModel): string {
+  const markers = [
+    model.ghost ? "ghost" : "",
+    model.quietMinutesLeft > 0 ? `quiet ${formatQuiet(model.quietMinutesLeft)}` : "",
+  ].filter(Boolean);
+
+  const path = `~/${phaseLabel(state.phase).replace(" ", "-")}`;
+  return markers.length > 0 ? `${path} [${markers.join(" · ")}]` : path;
 }
 
 function phaseColor(theme: Theme, state: PomodoroState): string {
