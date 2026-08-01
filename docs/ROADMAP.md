@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–4 y 6 terminadas.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1–6 terminadas.** El resto sin empezar.
 
 ---
 
@@ -19,7 +19,7 @@ dependencias sí se respetan.
 | 2 | [Recordatorios](#fase-2--recordatorios) ✅ | S/M | 1 |
 | 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) ✅ | M | — |
 | 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) ✅ | M | — |
-| 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) | M/L | — |
+| 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) ✅ | M/L | — |
 | 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) ✅ | L | — |
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
@@ -27,8 +27,9 @@ dependencias sí se respetan.
 
 **Siguiente recomendada:** la **7** (ánimo de la mascota), que ya tiene todo
 lo que le hacía falta — diálogo, conductas e historial — listo para leer. La
-alternativa es la **5** (modo mascota sin marco), más vistosa pero con el
-problema técnico del click-through por resolver.
+alternativa es la **8** (deambular por el escritorio), que con la 5 ya
+entregada tiene sus dos dependencias resueltas, aunque sigue siendo la más
+riesgosa de la lista.
 
 ---
 
@@ -40,10 +41,10 @@ Reglas que salieron de construir v0.1 y que aplican a todo lo que sigue.
 teclado y las teclas que escribías en tu editor terminaban en el widget.
 Ninguna burbuja, panel o ventana nueva puede volver a hacerlo.
 
-**Toda puerta tiene salida por teclado.** Click-through y ocultar fueron
-puertas de una sola dirección hasta que les pusimos `Ctrl+Alt+G` y
-`Ctrl+Alt+H`. Cualquier modo nuevo que pueda dejar el widget inalcanzable
-nace con su atajo.
+**Toda puerta tiene salida por teclado.** Click-through, ocultar y el modo
+mascota fueron puertas de una sola dirección hasta que les pusimos
+`Ctrl+Alt+G`, `Ctrl+Alt+H` y `Ctrl+Alt+Z`. Cualquier modo nuevo que pueda
+dejar el widget inalcanzable nace con su atajo.
 
 **El arte y el contenido son datos.** Sprites, temas y fuente ya son JSON.
 Los mensajes, los personajes y los recordatorios también. Añadir un personaje
@@ -310,7 +311,56 @@ añade por su cuenta gracias a que los personajes son archivos sueltos.
 
 ---
 
-## Fase 5 — Modo mascota (sin marco)
+## Fase 5 — Modo mascota (sin marco) ✅
+
+**Terminada · Costo: M/L**
+
+Vista alterna sin marco, sin barra de título y sin botonera: solo el
+personaje y el reloj, con el resto revelado al pasar el mouse. Alternable con
+`Ctrl+Alt+Z`, desde la bandeja o desde ajustes. Cómo quedó frente al plan:
+
+- **El reloj quedó sin placa.** La silueta bare sobre transparente ya se leía
+  bien en la práctica; una placa translúcida solo habría sido una caja extra
+  que tapar cada vez que el fondo detrás fuera oscuro.
+- **El problema del click-through se resolvió con la salida simple, como
+  decía el plan:** encoger la ventana hasta abrazar el sprite
+  (`resize_keep_center` en `window.rs`), sin tocar hit-testing por píxel. Ese
+  comando además recalcula la posición para que el centro geométrico del
+  widget no se mueva al encoger ni al volver — sin eso, el pato "saltaría" de
+  lugar cada vez que se cambia de modo.
+- **Entrar y salir del modo no son simétricos.** Entrar mide el DOM ya
+  redibujado (el tamaño mini depende del personaje activo y del ancho del
+  reloj, no hay fórmula mejor que el layout mismo); salir reusa la escala
+  guardada en vez de medir, porque justo después del cambio la ventana del SO
+  todavía es la chica, y medir en ese instante leería un viewport que aún no
+  llegó a su tamaño real — y encerraría la ventana en lo que el modo completo
+  alcanzó a exprimirse ahí adentro, no en su tamaño real.
+- **Un atajo de teclado puede registrarse sin sonar nunca.** El plan original
+  para `Ctrl+Alt+M` no falló al registrarse — Tauri solo reporta error ante un
+  reclamo *exclusivo* a nivel de sistema — pero jamás disparó: algo más en la
+  máquina (probablemente un hook de teclado de un software de gestión/acceso
+  remoto instalado) lo interceptaba una capa por debajo, sin dejar rastro. La
+  salida pragmática fue cambiar a `Ctrl+Alt+Z`, no perseguir al culpable
+  exacto — la app ya está diseñada para que un atajo no disponible no le
+  impida arrancar.
+- **El overlay de hover no puede usar `:focus-within`.** El único elemento
+  enfocable dentro de la zona revelada es el propio botón que la revela, así
+  que un clic lo deja enfocado y `:focus-within` la mantiene abierta para
+  siempre después del primer clic. Solo `:hover`.
+- **Un panel abierto y el modo mascota no conviven solos.** Si ajustes o
+  historial quedan abiertos y el modo mascota se activa por atajo o bandeja
+  (no por el propio botón del panel, que queda oculto), el panel se encoge
+  junto con la ventana y el overlay de hover —con más `z-index` para quedar
+  por encima del pato— termina tapándolo y robándole los clics. La entrada al
+  modo mascota ahora cierra cualquier panel abierto de entrada.
+
+El deambular libre y el hit-testing por píxel siguen en la fase 8, tal como
+estaba previsto.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: M/L · Sin dependencias**
 
@@ -345,6 +395,8 @@ botones visibles necesita cómo volver.
 
 **Toca:** `styles.css`, `widget.ts`, `src-tauri/src/window.rs`,
 `platform/desktop.ts`.
+
+</details>
 
 ---
 
@@ -522,8 +574,6 @@ Cosas que hay que resolver antes de tocar la fase correspondiente.
 - **Fase 4** — ¿Los personajes se distribuyen con la app o se pueden añadir
   desde una carpeta del usuario? Lo segundo es más bonito y no cuesta mucho
   más, pero abre la puerta a JSON malformado que hay que validar.
-- **Fase 5** — ¿El modo mascota es un modo aparte o el modo por defecto con
-  el marco como opción? Cambia dónde vive el estado.
 - **Fase 6** — Meta semanal o comodines. Hay que elegir una, no ambas.
 - **Fase 9** — ¿Las tareas viven solo aquí, o algún día se sincronizan con
   algo externo? Si es lo segundo, el modelo de datos nace distinto.

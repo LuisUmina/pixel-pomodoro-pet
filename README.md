@@ -73,6 +73,9 @@ El contador de abajo abre tu historial: racha, récords y un heatmap del
   todo se vuelve insoportable en una hora.
 - **Modo click-through**: el widget deja de capturar el mouse por completo y
   flota de verdad sobre el IDE.
+- **Modo mascota**: encoge la ventana a solo el personaje y el reloj, sin
+  título ni controles — el resto vuelve al pasar el mouse por encima. Pensado
+  para dejarlo flotando en una esquina sin que ocupe más lugar que el pato.
 - **Bandeja del sistema y hotkeys globales**, para manejar el timer sin salir
   del editor.
 - **No roba el foco**: aparece sin robarle el teclado a lo que estés haciendo,
@@ -88,14 +91,16 @@ El contador de abajo abre tu historial: racha, récords y un heatmap del
 | `Ctrl+Alt+N` | Saltar fase |
 | `Ctrl+Alt+R` | Reiniciar fase |
 | `Ctrl+Alt+G` | Click-through on / off |
+| `Ctrl+Alt+Z` | Modo mascota on / off |
 | `Ctrl+Alt+H` | Ocultar / mostrar el widget |
 
-Los dos últimos existen porque sus botones son **puertas de una sola dirección**:
-un widget que ignora el cursor o que está oculto no se puede clickear para
-deshacerlo. La bandeja también sirve, pero su icono se pierde con facilidad en
-los iconos ocultos de Windows, así que el teclado es la salida garantizada.
-Cerrar y volver a abrir la app también limpia el click-through: ese estado no
-se persiste, a propósito.
+Los tres últimos existen porque sus botones son **puertas de una sola dirección**:
+un widget que ignora el cursor, que quedó reducido al pato o que está oculto no
+se puede clickear para deshacerlo — el botón para deshacerlo puede no estar
+visible, o el mouse puede no llegarle. La bandeja también sirve, pero su icono
+se pierde con facilidad en los iconos ocultos de Windows, así que el teclado es
+la salida garantizada. Cerrar y volver a abrir la app también limpia el
+click-through: ese estado no se persiste, a propósito.
 
 Mientras el click-through está activo, la barra de título lo dice —
 `~/focus [ghost]`— porque si no, el modo sería invisible.
@@ -130,7 +135,7 @@ src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
 tests/         Vitest sobre core/, store/, sprites/ y messages/.
 ```
 
-Siete decisiones que vale la pena explicar:
+Ocho decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -179,6 +184,20 @@ dos rondas de revisión encontrar el bug y una más confirmar que ya no estaba.
 `duck.json` y escribe el PNG que `tauri icon` reparte a todos los tamaños, con
 un encoder PNG de 40 líneas para no arrastrar una librería de canvas. El icono
 de la barra de tareas y el pato en pantalla no pueden divergir.
+
+**El modo mascota encoge la ventana en vez de recortar clics por píxel.**
+Para que un widget transparente no siga capturando el mouse sobre su propio
+margen vacío, la alternativa de fuerza bruta es hit-testing por píxel en cada
+evento — pero si la ventana simplemente encoge hasta abrazar el sprite, el
+problema desaparece solo: fuera de la ventana ya no hay nada que capturar.
+`resize_keep_center` en `window.rs` hace ese encogido sin que el pato salte de
+lugar, recalculando la posición para que el centro geométrico no se mueva.
+Entrar y salir no son simétricos a propósito: entrar mide el DOM ya
+redibujado, porque el tamaño final depende del personaje y del ancho del
+reloj, algo que este archivo no tiene por qué calcular por fórmula; salir en
+cambio reusa la escala guardada en vez de medir, porque justo después del
+cambio de modo la ventana del SO todavía es la chica, y medir en ese instante
+exacto leería un viewport que todavía no llegó a su tamaño real.
 
 **Tauri solo hace lo que la web no puede.** Ventana sin bordes, transparencia,
 bandeja y hotkeys viven en Rust; todo el dominio vive en la webview. La capa
