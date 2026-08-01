@@ -17,17 +17,28 @@ describe("character sprites", () => {
     }
   });
 
-  it("only use keys every theme can paint", () => {
-    // A key missing from one theme would make pixels vanish on switch.
+  it("only use keys every theme can paint, in the base grid and every patch", () => {
+    // A key missing from one theme would make pixels vanish on switch. The
+    // renderer skips a colour it cannot find rather than erroring, so this is
+    // the one thing a stray patch character breaks silently rather than loudly.
     for (const id of THEME_IDS) {
       const painted = Object.keys(getTheme(id).sprite);
 
       for (const character of CHARACTERS) {
-        const used = [...new Set(character.base.join(""))].filter(
+        const baseKeys = [...new Set(character.base.join(""))].filter(
           (key) => key !== TRANSPARENT,
         );
+        const patchKeys = character.behaviors.flatMap((behavior) =>
+          behavior.frames.flatMap((frame) =>
+            frame.patches.flatMap((patch) =>
+              [...new Set(patch.rows.join(""))].filter(
+                (key) => key !== TRANSPARENT && key !== " ",
+              ),
+            ),
+          ),
+        );
 
-        for (const key of used) {
+        for (const key of new Set([...baseKeys, ...patchKeys])) {
           expect({ theme: id, character: character.id, key, known: painted.includes(key) })
             .toEqual({ theme: id, character: character.id, key, known: true });
         }

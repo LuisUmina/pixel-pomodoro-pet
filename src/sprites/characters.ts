@@ -50,9 +50,30 @@ export interface Character {
   readonly behaviors: readonly Behavior[];
 }
 
-export const CHARACTERS: readonly Character[] = [duck, ninja, terminal, spark].map(
-  (raw) => parseCharacter(raw),
-);
+export const CHARACTERS: readonly Character[] = parseRegistry([duck, ninja, terminal, spark]);
+
+export function parseRegistry(raw: readonly unknown[]): readonly Character[] {
+  const characters = raw.map((entry) => parseCharacter(entry));
+  const seenIds = new Set<string>();
+  const seenLabels = new Set<string>();
+
+  for (const character of characters) {
+    // A repeated id makes `getCharacter` always return the first match and
+    // silently strands the later one; a repeated label leaves two settings
+    // chips that look identical and only one of them clickable.
+    if (seenIds.has(character.id)) {
+      throw new Error(`duplicate character id "${character.id}"`);
+    }
+    if (seenLabels.has(character.label)) {
+      throw new Error(`duplicate character label "${character.label}"`);
+    }
+
+    seenIds.add(character.id);
+    seenLabels.add(character.label);
+  }
+
+  return characters;
+}
 
 export const CHARACTER_IDS = CHARACTERS.map((character) => character.id);
 

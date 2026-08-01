@@ -6,6 +6,7 @@ import {
   getCharacter,
   isCharacterId,
   parseCharacter,
+  parseRegistry,
 } from "../src/sprites/characters";
 
 /** A minimal valid character the rejection tests can break one field at a time. */
@@ -47,6 +48,32 @@ describe("the registry", () => {
     expect(isCharacterId("dragon")).toBe(false);
     expect(isCharacterId(42)).toBe(false);
     expect(() => getCharacter("dragon")).toThrow(/unknown character/);
+  });
+});
+
+describe("parseRegistry", () => {
+  it("rejects a duplicate id", () => {
+    // Otherwise getCharacter always returns the first and the second is
+    // stranded -- unselectable, but present in settings looking clickable.
+    const a = valid();
+    const b = { ...valid(), label: "Y" };
+
+    expect(() => parseRegistry([a, b])).toThrow(/duplicate character id/);
+  });
+
+  it("rejects a duplicate label", () => {
+    // Two settings chips reading the same text, only one of them live.
+    const a = valid();
+    const b = { ...valid(), id: "y" };
+
+    expect(() => parseRegistry([a, b])).toThrow(/duplicate character label/);
+  });
+
+  it("accepts distinct characters", () => {
+    const a = valid();
+    const b = { ...valid(), id: "y", label: "Y" };
+
+    expect(parseRegistry([a, b]).map((c) => c.id)).toEqual(["x", "y"]);
   });
 });
 
