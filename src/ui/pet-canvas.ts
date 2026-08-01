@@ -1,10 +1,5 @@
-import {
-  DUCK_BASE,
-  DUCK_SIZE,
-  MAX_BOB,
-  PET_ANIMATIONS,
-  type PetState,
-} from "../sprites/duck";
+import { pickBehavior, type Behavior } from "../sprites/behaviors";
+import { DUCK_BASE, DUCK_SIZE, MAX_BOB, MAX_SHIFT, type PetState } from "../sprites/duck";
 import { applyPatches, drawSprite } from "../sprites/renderer";
 import type { SpritePalette } from "../sprites/types";
 
@@ -18,8 +13,10 @@ export class PetCanvas {
 
   #palette: SpritePalette = {};
   #state: PetState = "idle";
+  #behavior: Behavior | null = null;
   #frameIndex = 0;
   #frameElapsed = 0;
+  #loopsDone = 0;
   #lastTimestamp = 0;
   #pixel = SCALE;
   #resolution = 1;
@@ -34,6 +31,7 @@ export class PetCanvas {
 
     this.#canvas = canvas;
     this.#ctx = ctx;
+    this.#nextBehavior();
     this.#resize();
   }
 
@@ -67,9 +65,21 @@ export class PetCanvas {
     }
 
     this.#state = state;
+    // A mood change interrupts whatever it was doing rather than waiting for
+    // the current performance to finish — the duck reacts to you, not later.
+    this.#nextBehavior();
+    this.#dirty = true;
+  }
+
+  #nextBehavior(): void {
+    const next = pickBehavior(this.#state, this.#behavior?.id, Math.random());
+    if (next) {
+      this.#behavior = next;
+    }
+
     this.#frameIndex = 0;
     this.#frameElapsed = 0;
-    this.#dirty = true;
+    this.#loopsDone = 0;
   }
 
   start(): void {
@@ -93,8 +103,8 @@ export class PetCanvas {
     // would leave the blocks with soft, uneven edges.
     this.#pixel = Math.max(1, Math.round(SCALE * layout));
 
-    // Extra rows so the bob never clips the duck's feet.
-    const width = DUCK_SIZE * this.#pixel;
+    // Room for the bob below and for a wander either side, so neither clips.
+    const width = (DUCK_SIZE + MAX_SHIFT * 2) * this.#pixel;
     const height = (DUCK_SIZE + MAX_BOB) * this.#pixel;
 
     this.#canvas.width = width;
@@ -108,7 +118,7 @@ export class PetCanvas {
   }
 
   readonly #step = (timestamp: number): void => {
-    const frames = PET_ANIMATIONS[this.#state];
+    const frames = this.#behavior?.frames ?? [];
     const elapsed = this.#lastTimestamp === 0 ? 0 : timestamp - this.#lastTimestamp;
     this.#lastTimestamp = timestamp;
     this.#frameElapsed += elapsed;
@@ -116,8 +126,18 @@ export class PetCanvas {
     const current = frames[this.#frameIndex];
     if (current && this.#frameElapsed >= current.durationMs) {
       this.#frameElapsed = 0;
-      this.#frameIndex = (this.#frameIndex + 1) % frames.length;
+      this.#frameIndex += 1;
       this.#dirty = true;
+
+      if (this.#frameIndex >= frames.length) {
+        this.#frameIndex = 0;
+        this.#loopsDone += 1;
+
+        // Performance over: draw again rather than repeating on a loop.
+        if (this.#loopsDone >= (this.#behavior?.loops ?? 1)) {
+          this.#nextBehavior();
+        }
+      }
     }
 
     // Repainting only on a frame change keeps this near-free between blinks.
@@ -130,7 +150,7 @@ export class PetCanvas {
   };
 
   #draw(): void {
-    const frames = PET_ANIMATIONS[this.#state];
+    const frames = this.#behavior?.frames ?? [];
     const frame = frames[this.#frameIndex] ?? frames[0];
     if (!frame) {
       return;
@@ -139,7 +159,8 @@ export class PetCanvas {
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
     drawSprite(this.#ctx, applyPatches(DUCK_BASE, frame.patches), this.#palette, {
       scale: this.#pixel,
-      x: 0,
+      // The duck sits in the middle of its reserved strip and walks from there.
+      x: (MAX_SHIFT + (frame.offsetX ?? 0)) * this.#pixel,
       y: frame.offsetY * this.#pixel,
     });
   }

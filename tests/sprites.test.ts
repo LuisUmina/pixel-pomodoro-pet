@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { DUCK_BASE, DUCK_SIZE, PET_ANIMATIONS } from "../src/sprites/duck";
+import { BEHAVIORS } from "../src/sprites/behaviors";
+import { DUCK_BASE, DUCK_SIZE } from "../src/sprites/duck";
 import { applyPatches } from "../src/sprites/renderer";
 import { THEME_IDS, getTheme } from "../src/sprites/themes";
 import { TRANSPARENT } from "../src/sprites/types";
@@ -59,8 +60,8 @@ describe("applyPatches", () => {
   });
 
   it("never changes the grid dimensions", () => {
-    for (const frames of Object.values(PET_ANIMATIONS)) {
-      for (const frame of frames) {
+    for (const behavior of BEHAVIORS) {
+      for (const frame of behavior.frames) {
         const grid = applyPatches(DUCK_BASE, frame.patches);
 
         expect(grid).toHaveLength(DUCK_SIZE);

@@ -69,6 +69,46 @@
       "x": 26,
       "y": 4,
       "rows": [".a.", "aAa", ".a."]
+    },
+    "glanceRight": {
+      "x": 12,
+      "y": 8,
+      "rows": ["ew....ew"]
+    },
+    "lookDown": {
+      "x": 12,
+      "y": 8,
+      "rows": ["BB....bb"]
+    },
+    "wideEyes": {
+      "x": 12,
+      "y": 7,
+      "rows": ["ee....ee"]
+    },
+    "note": {
+      "x": 25,
+      "y": 5,
+      "rows": [".aa", ".a.", ".a.", "aa."]
+    },
+    "noteFar": {
+      "x": 4,
+      "y": 3,
+      "rows": [".aa", ".a.", ".a.", "aa."]
+    },
+    "curious": {
+      "x": 22,
+      "y": 1,
+      "rows": ["aa.", "..a", ".a.", "...", ".a."]
+    },
+    "stepLeft": {
+      "x": 9,
+      "y": 30,
+      "rows": ["      "]
+    },
+    "stepRight": {
+      "x": 17,
+      "y": 30,
+      "rows": ["      "]
     }
   }
 }
