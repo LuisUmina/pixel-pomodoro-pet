@@ -144,11 +144,15 @@ function readReminders(value: unknown): Record<string, boolean> {
  * from a clock, not a person.
  */
 function readQuietUntil(value: unknown): number {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
     return 0;
   }
 
-  return value - Date.now() > MAX_QUIET_MS ? 0 : Math.floor(value);
+  // Anything already spent is dropped rather than carried around: a stale
+  // expiry is one backwards clock correction away from silencing the mascot
+  // for a spell nobody asked for. Anything past the cap came from a clock too.
+  const remaining = value - Date.now();
+  return remaining > 0 && remaining <= MAX_QUIET_MS ? Math.floor(value) : 0;
 }
 
 function readMinutes(value: unknown, fallback: number): number {

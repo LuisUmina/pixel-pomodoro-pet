@@ -11,7 +11,7 @@ import {
 import { completionNotice } from "./core/format";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
-import { dueReminder, startReminders } from "./core/reminders";
+import { INITIAL_REMINDERS, advanceReminders } from "./core/reminders";
 import { Ticker } from "./core/ticker";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
@@ -52,7 +52,7 @@ function main(): void {
   let celebrating = false;
   let celebrationTimer: ReturnType<typeof setTimeout> | null = null;
   let dialogue = INITIAL_DIALOGUE;
-  let reminders = startReminders(REMINDER_PACKS, Date.now());
+  let reminders = INITIAL_REMINDERS;
 
   applyThemeCss(theme, document.documentElement);
 
@@ -226,7 +226,7 @@ function main(): void {
     };
 
     state = withSettings(state, shipped.settings);
-    reminders = startReminders(REMINDER_PACKS, Date.now());
+    reminders = INITIAL_REMINDERS;
     applyScale(shipped.uiScale, true);
   }
 
@@ -339,9 +339,27 @@ function main(): void {
       render();
     }
 
+    expireQuiet(now);
+
+    const tick = advanceReminders(
+      reminders,
+      {
+        sinceMs: now - lastCheckAt,
+        phase: state.phase,
+        running: state.status === "running",
+        enabled: preferences.reminders,
+        delivering: preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now),
+      },
+      REMINDER_PACKS,
+    );
+
+    reminders = tick.state;
+
     // A reminder is something the user asked for, so it gets first refusal
     // on the bubble; idle chatter is only what fills the silence otherwise.
-    if (!speakReminder(now)) {
+    if (tick.due) {
+      utter(tick.due.line, now);
+    } else {
       const trigger = ambientTrigger({
         sinceLastCheckMs: now - lastCheckAt,
         running: state.status === "running",
@@ -353,38 +371,29 @@ function main(): void {
       }
     }
 
-    // The quiet countdown is only ever on screen in the title bar and the
-    // settings chip, so a minute passing is a repaint.
-    if (preferences.quietUntil > 0) {
-      render();
-    }
-
     setTimeout(() => ambient(now), AMBIENT_CHECK_MS);
   }
 
-  function speakReminder(now: number): boolean {
-    if (preferences.voice === "off" || isQuiet(preferences.quietUntil, now)) {
-      return false;
+  /**
+   * Keeps the quiet countdown moving, and clears it once it runs out.
+   *
+   * Leaving a spent timestamp behind would repaint the widget every minute
+   * for the rest of the session, and a clock later corrected backwards would
+   * walk straight back into a vow of silence nobody took.
+   */
+  function expireQuiet(now: number): void {
+    if (preferences.quietUntil === 0) {
+      return;
     }
 
-    const due = dueReminder(
-      reminders,
-      {
-        now,
-        phase: state.phase,
-        running: state.status === "running",
-        enabled: preferences.reminders,
-      },
-      REMINDER_PACKS,
-    );
-
-    if (!due) {
-      return false;
+    if (isQuiet(preferences.quietUntil, now)) {
+      render();
+      return;
     }
 
-    reminders = due.state;
-    utter(due.line, now);
-    return true;
+    preferences = { ...preferences, quietUntil: 0 };
+    save();
+    render();
   }
 
   desktop.on(SHELL_EVENTS.toggle, () => dispatch({ type: "toggle" }));
