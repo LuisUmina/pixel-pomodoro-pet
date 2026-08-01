@@ -60,6 +60,22 @@ describe("pickBehavior", () => {
     }
   });
 
+  it("gives the top of the range to the last behaviour", () => {
+    const pool = [behavior("a"), behavior("b")];
+
+    expect(pickBehavior("idle", undefined, 1, pool)?.id).toBe("b");
+  });
+
+  it("can still reach a behaviour weighted a millionth of the total", () => {
+    // Shaving the roll to avoid the endpoint would swallow this one whole.
+    const pool = [
+      behavior("common", { weights: { idle: 1_000_000 } }),
+      behavior("needle", { weights: { idle: 1 } }),
+    ];
+
+    expect(pickBehavior("idle", undefined, 0.9999999, pool)?.id).toBe("needle");
+  });
+
   it("reaches every behaviour a mood offers", () => {
     const pool = [behavior("a"), behavior("b"), behavior("c")];
     const seen = new Set<string>();

@@ -235,14 +235,13 @@ export function pickBehavior(
     }
   }
 
+  // A roll of exactly 1 spends the whole ticket without ever going negative,
+  // and lands here. Shaving the roll instead would make any behaviour weighted
+  // below the shaved amount unreachable.
   return pool[pool.length - 1] ?? null;
 }
 
+/** Garbage in means the first bucket, which at least is deterministic. */
 function clamp(roll: number): number {
-  if (!Number.isFinite(roll) || roll < 0) {
-    return 0;
-  }
-
-  // A roll of exactly 1 would fall off the end of the weights.
-  return Math.min(roll, 0.999999);
+  return Number.isFinite(roll) && roll > 0 ? Math.min(roll, 1) : 0;
 }

@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1 y 2 terminadas.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1, 2 y 3 terminadas.** El resto sin empezar.
 
 ---
 
@@ -17,7 +17,7 @@ dependencias sí se respetan.
 | --- | --- | --- | --- |
 | 1 | [Burbujas de diálogo](#fase-1--burbujas-de-diálogo) ✅ | S | — |
 | 2 | [Recordatorios](#fase-2--recordatorios) ✅ | S/M | 1 |
-| 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) | M | — |
+| 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) ✅ | M | — |
 | 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) | M | — |
 | 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) | M/L | — |
 | 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) | L | — |
@@ -25,9 +25,9 @@ dependencias sí se respetan.
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
 
-**Siguiente recomendada:** la **3**, que es la que más cambia lo que ves en
-pantalla. Su costo es dibujar, no programar. La **4** es la alternativa si
-prefieres variedad antes que movimiento.
+**Siguiente recomendada:** la **4**, que ahora es casi gratis de motor: el
+planificador de conductas ya existe, así que un personaje nuevo es un JSON
+con sus parches. La **6** es la alternativa si prefieres datos antes que arte.
 
 ---
 
@@ -181,7 +181,35 @@ que van primero y esto queda como 2b.
 
 ---
 
-## Fase 3 — Vida propia del pato
+## Fase 3 — Vida propia del pato ✅
+
+**Terminada · Costo: M**
+
+Catorce conductas en los cinco estados, construidas con ocho parches nuevos,
+y un planificador con pesos que saca una distinta al final de cada actuación.
+El paseo corto entró completo: el pato camina hasta tres píxeles a un lado,
+mira alrededor y vuelve.
+
+Lo que el plan no anticipaba:
+
+- **El arte salió más barato de lo previsto** porque los ojos miden dos
+  píxeles de lado. Mirar de reojo es mover el brillo al otro lado; mirar
+  abajo es que la fila superior tome el color del cuerpo; caminar es que
+  una pata pierda su fila de contorno. Nada de eso requiere redibujar nada.
+- **Las duraciones desparejas importan más que la cantidad de cuadros.**
+  Cuadros de igual largo laten como metrónomo, y ese es el detalle que
+  delata un bucle corto por más variedad que tenga.
+- **Los tests apuntan a lo que de verdad falla**: que cada ánimo tenga más
+  de una opción, que nada se repita al hilo, que toda conducta sea
+  alcanzable y que un paseo siempre vuelva al centro — si no, el pato
+  derivaría un poco más en cada actuación hasta salirse.
+
+El deambular libre por el escritorio sigue siendo la fase 8, aparte.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: M · Sin dependencias**
 
@@ -207,6 +235,8 @@ un segundo empujón.
 
 **Toca:** `src/sprites/duck.json` (arte nuevo), `src/sprites/behaviors.ts`
 (nuevo), `pet-canvas.ts`.
+
+</details>
 
 ---
 
