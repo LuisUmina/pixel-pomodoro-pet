@@ -80,6 +80,18 @@ describe("recordSession", () => {
     expect(streak5.bestStreak).toBe(5);
     expect(broken.bestStreak).toBe(5);
   });
+
+  it("does not delete already-recorded later days when an earlier one arrives out of order", () => {
+    // A clock corrected backwards is the realistic way this happens: the
+    // session after the correction names an earlier day than one already on
+    // record. Pruning must not mistake that earlier day for "the newest
+    // thing we know about" and cut away everything that came after it.
+    const state = record([TUE1, MON1]);
+
+    expect(state.days[TUE1]).toBe(1);
+    expect(state.days[MON1]).toBe(1);
+    expect(state.totalSessions).toBe(2);
+  });
 });
 
 describe("currentStreak", () => {
@@ -119,10 +131,29 @@ describe("currentStreak", () => {
   it("gives each week its own fresh rest day", () => {
     // Skip Wed of week 1 (forgiven) and skip Mon of week 2 (a new week, a
     // new grace day) but otherwise work every day.
-    const worked = [TUE1, THU1, FRI1, SAT1, SUN1, TUE2];
+    const worked = [MON1, TUE1, THU1, FRI1, SAT1, SUN1, TUE2];
     const state = record(worked);
 
-    expect(currentStreak(state.days, TUE2)).toBe(6);
+    expect(currentStreak(state.days, TUE2)).toBe(7);
+  });
+
+  it("spends a week's grace on the first gap it sees, not the one nearest today", () => {
+    // Worked Mon/Wed/Fri, gaps Tue and Thu, all in the same week. Tuesday
+    // comes first chronologically and is the one forgiven; Thursday is the
+    // week's second gap and is the one that actually breaks the run, so only
+    // Friday survives. A backward walk from Friday would find Thursday's gap
+    // first instead and forgive that one, misreporting 2.
+    const state = record([MON1, WED1, FRI1]);
+
+    expect(currentStreak(state.days, FRI1)).toBe(1);
+  });
+
+  it("does not resurrect a streak a same-week gap already broke, just because today is untouched", () => {
+    // Same shape as above but asked about Friday before Friday's own session
+    // — Thursday's gap already broke it, so there is nothing left to report.
+    const state = record([MON1, WED1]);
+
+    expect(currentStreak(state.days, FRI1)).toBe(0);
   });
 
   it("resets to the days since the break, not to zero forever", () => {
@@ -218,6 +249,29 @@ describe("store/history", () => {
     store.set("pixel-pomodoro-pet:history", { bestDay: "not-a-day" });
 
     expect(loadHistory(store).bestDay).toBe("");
+  });
+
+  it("rejects a day that has the right shape but is not a real calendar date", () => {
+    // `new Date(2026, 1, 31)` quietly rolls over to March rather than
+    // throwing, so shape-only validation would have let this through.
+    const store = memoryStore();
+    store.set("pixel-pomodoro-pet:history", {
+      days: { "2026-02-31": 2 },
+      bestDay: "2026-02-31",
+    });
+
+    const loaded = loadHistory(store);
+    expect(loaded.days).toEqual({});
+    expect(loaded.bestDay).toBe("");
+  });
+
+  it("drops a fractional count instead of keeping it as a floored zero", () => {
+    // A day present in `days` is supposed to mean at least one real session;
+    // flooring 0.5 to 0 first and keeping the entry would violate that.
+    const store = memoryStore();
+    store.set("pixel-pomodoro-pet:history", { days: { [MON1]: 0.5 } });
+
+    expect(loadHistory(store).days).toEqual({});
   });
 
   it("floors and clamps negative or fractional counters", () => {

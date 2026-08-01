@@ -48,7 +48,7 @@ export interface HeatmapCell {
 
 /** Records one completed focus session against `day`. */
 export function recordSession(state: HistoryState, day: string): HistoryState {
-  const days = prune({ ...state.days, [day]: (state.days[day] ?? 0) + 1 }, day);
+  const days = prune({ ...state.days, [day]: (state.days[day] ?? 0) + 1 });
   const dayCount = days[day] ?? 0;
   const weekCount = rollingWeekSum(days, day);
   const streak = currentStreak(days, day);
@@ -66,24 +66,38 @@ export function recordSession(state: HistoryState, day: string): HistoryState {
 }
 
 /**
- * The streak as of `today`, walking backward.
+ * The streak as of `today`.
+ *
+ * Walked forward — oldest day to `today` — because which gap "spends" a
+ * week's grace day is a chronological question: the first gap a week sees is
+ * the one forgiven, and a second gap the same week is the one that breaks the
+ * run. A backward walk from today gets this the wrong way round, forgiving
+ * whichever gap happens to be nearest to today instead of nearest to the
+ * start of its week, which can forgive the wrong day entirely.
  *
  * `today` gets special treatment: a day with nothing logged yet is not a
- * broken streak, just a day still in progress. Every day before that follows
- * the gap rule — one forgiven per Monday-anchored week — so the number stays
- * honest whether this runs right after a session or just to paint a screen.
+ * broken streak, just a day still in progress — it neither extends the
+ * streak nor spends the week's grace on a day that has not happened yet.
+ *
+ * Bounded to `RETENTION_DAYS` because that is all `days` ever retains, so a
+ * streak — current or best — cannot be reported past that ceiling. In
+ * practice that is a year of near-daily use before it would ever show, and
+ * the number it settles on is still the true one for everything that
+ * remains in the log, just not further back than the log goes.
  */
 export function currentStreak(
   days: Readonly<Record<string, number>>,
   today: string,
   restDaysPerWeek: number = REST_DAYS_PER_WEEK,
 ): number {
+  const start = shiftIsoDay(today, -(RETENTION_DAYS - 1));
+
   let streak = 0;
   let graceUsed = 0;
-  let weekKey = mondayWeekIndex(today);
-  let cursor = today;
+  let weekKey = mondayWeekIndex(start);
+  let cursor = start;
 
-  for (let i = 0; i < RETENTION_DAYS; i += 1) {
+  while (cursor <= today) {
     const week = mondayWeekIndex(cursor);
     if (week !== weekKey) {
       weekKey = week;
@@ -94,15 +108,16 @@ export function currentStreak(
 
     if (count > 0) {
       streak += 1;
-    } else if (i === 0) {
-      // Today, untouched so far — check yesterday instead of breaking here.
+    } else if (cursor === today) {
+      // Still in progress; leave the streak exactly as the rest of the walk
+      // found it rather than spending a grace day on it.
     } else if (graceUsed < restDaysPerWeek) {
       graceUsed += 1;
     } else {
-      break;
+      streak = 0;
     }
 
-    cursor = shiftIsoDay(cursor, -1);
+    cursor = shiftIsoDay(cursor, 1);
   }
 
   return streak;
@@ -150,18 +165,29 @@ function rollingWeekSum(days: Readonly<Record<string, number>>, endDay: string):
   return sum;
 }
 
-/** Drops anything older than the retention window, keyed off `today`. */
-function prune(
-  days: Readonly<Record<string, number>>,
-  today: string,
-): Record<string, number> {
-  const cutoff = shiftIsoDay(today, -(RETENTION_DAYS - 1));
+/**
+ * Drops anything older than the retention window.
+ *
+ * Anchored to the latest day actually present in `days`, not to the day of
+ * whatever call triggered this prune. `recordSession` always names the day
+ * of the event it just recorded, which is normally the latest day there is —
+ * but a clock corrected backwards can hand it an earlier one, and anchoring
+ * on that day specifically would prune away every entry already recorded
+ * after it, deleting real history instead of just aging it out.
+ */
+function prune(days: Readonly<Record<string, number>>): Record<string, number> {
+  const latest = Object.keys(days).reduce((max, day) => (day > max ? day : max), "");
+  if (latest === "") {
+    return {};
+  }
+
+  const cutoff = shiftIsoDay(latest, -(RETENTION_DAYS - 1));
   const pruned: Record<string, number> = {};
 
   // ISO day strings sort exactly like the dates they name, so this is a
   // plain string comparison — no parsing, no timezone to get wrong.
   for (const [day, count] of Object.entries(days)) {
-    if (day >= cutoff && day <= today) {
+    if (day >= cutoff) {
       pruned[day] = count;
     }
   }
