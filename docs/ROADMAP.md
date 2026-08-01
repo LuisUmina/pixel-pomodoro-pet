@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–4 terminadas.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1–4 y 6 terminadas.** El resto sin empezar.
 
 ---
 
@@ -20,13 +20,13 @@ dependencias sí se respetan.
 | 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) ✅ | M | — |
 | 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) ✅ | M | — |
 | 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) | M/L | — |
-| 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) | L | — |
+| 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) ✅ | L | — |
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
 
-**Siguiente recomendada:** la **6** (historial, rachas y heatmap), que es la
-única grande sin dependencias que queda y la que alimenta a la **7**. La
+**Siguiente recomendada:** la **7** (ánimo de la mascota), que ya tiene todo
+lo que le hacía falta — diálogo, conductas e historial — listo para leer. La
 alternativa es la **5** (modo mascota sin marco), más vistosa pero con el
 problema técnico del click-through por resolver.
 
@@ -348,7 +348,64 @@ botones visibles necesita cómo volver.
 
 ---
 
-## Fase 6 — Historial, rachas y heatmap
+## Fase 6 — Historial, rachas y heatmap ✅
+
+**Terminada · Costo: L**
+
+Un almacén de historial nuevo (`store/history.ts`), rachas con un día de
+descanso perdonado por semana, y un heatmap de 53 semanas estilo GitHub
+detrás del contador "N today", que ahora es un botón.
+
+La decisión pendiente del plan se resolvió por **comodines**: no una meta
+semanal, sino que la racha en sí perdona un día vacío por semana
+lunes-domingo. Se mantiene el concepto familiar de "racha" — no hacía falta
+enseñarle al usuario un concepto nuevo — solo se le quitó el filo.
+
+**Lo que costó más de lo esperado fue el algoritmo, no los datos.** Un
+recorrido *hacia atrás* desde hoy parece la forma obvia de calcular "la racha
+actual", pero perdonar un hueco es una pregunta de orden cronológico: el
+primer hueco que ve una semana es el que se perdona, y un segundo hueco esa
+misma semana es el que rompe la racha. Caminar hacia atrás encuentra los
+huecos en el orden contrario y puede perdonar el equivocado. Dos rondas de
+revisión con Codex lo confirmaron con casos concretos antes de que quedara
+bien: primero el cambio a un recorrido hacia adelante, después una condición
+más — un hueco solo gasta el día de gracia de la semana si de verdad está
+protegiendo una racha activa, no si cae antes de que empezara cualquier cosa.
+
+Otras decisiones:
+
+- **`totalSessions`, `bestDayCount`, `bestWeekCount` y `bestStreak` son
+  contadores que nunca se podan**, separados de `days` (la ventana acotada a
+  ~53 semanas que alimenta el heatmap). Así los récords de toda la vida no se
+  erosionan cuando el registro día a día envejece y sale de la ventana —
+  aunque la propia racha, actual o récord, sí queda acotada a esa ventana por
+  construcción: no hay forma de reportar una racha más larga que los datos
+  que efectivamente se conservan. Documentado como límite aceptado, no
+  arreglado con un contador incremental paralelo: exigiría duplicar toda la
+  lógica de la gracia semanal por una racha de más de un año casi sin fallar
+  un día, un caso límite que este proyecto no necesita perseguir.
+- **`isoDay` (antes en `store/preferences.ts`) se movió a `core/format.ts`**
+  y ahora rellena el año a 4 dígitos, no solo mes y día — `store/history.ts`
+  valida una fecha guardada haciéndola ida y vuelta por esa misma función, y
+  un año sin rellenar nunca calzaría con su propia entrada de 4 dígitos.
+- **`settings` e `history` comparten un shell de overlay genérico**
+  (`.panel`/`.panel__bar`/`.panel__title`/`.panel__body`) en vez de que cada
+  panel tenga su propia copia del mismo chrome — dos overlays idénticos ya es
+  el punto en el que vale la pena sacarlo en común, y un tercero (tareas, más
+  adelante) ya está en el roadmap.
+- **El heatmap se calcula solo al abrir el panel**, no en cada render del
+  widget (que corre 4 veces por segundo mientras el timer corre): 371 celdas
+  más un recorrido de racha no tienen por qué recalcularse detrás de un panel
+  cerrado.
+
+Lo que quedó fuera, tal como decía el plan original: el personaje
+reaccionando al historial. Eso alimenta las burbujas de diálogo, así que
+pertenece a la fase 7, que ahora ya tiene de dónde leer.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: L · Sin dependencias**
 
@@ -378,6 +435,8 @@ que un pomodoro debería enseñar.
 
 **Toca:** `src/store/history.ts` (nuevo), `src/core/streaks.ts` (nuevo,
 puro), panel nuevo en `ui/`.
+
+</details>
 
 ---
 

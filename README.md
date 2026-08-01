@@ -19,6 +19,11 @@ Cambiar de tema repinta también al pato:
 | --- | --- | --- |
 | ![](docs/theme-tokyo-night.png) | ![](docs/theme-dracula.png) | ![](docs/theme-gruvbox.png) |
 
+El contador de abajo abre tu historial: racha, récords y un heatmap del
+último año.
+
+![Panel de historial con racha, récords y heatmap](docs/widget-history.png)
+
 ## Qué tiene
 
 - **Timer pomodoro completo**: 25 / 5 / 15 configurables, rondas por ciclo y
@@ -49,6 +54,10 @@ Cambiar de tema repinta también al pato:
   encendidos; el resto los prendés vos.
 - **Modo silencio** de 30 min, 1 h o 2 h para llamadas y presentaciones. Se
   anuncia en la barra de título con lo que le queda y se apaga solo.
+- **Historial, rachas y heatmap** detrás del contador "N today": racha
+  actual, mejor racha, total y mejor semana, más un heatmap de 53 semanas
+  estilo GitHub. La racha perdona un día vacío por semana — descansar un
+  sábado no te hace perder meses de constancia.
 - **Ajustes editables** detrás del engrane: duraciones de focus, descanso corto
   y largo, rondas por ciclo y auto-arranque. Cambiar una duración con el timer
   corriendo respeta el tiempo que ya llevas.
@@ -110,18 +119,18 @@ Build Tools de MSVC y WebView2 (ya viene con Windows 10/11).
 
 ```
 src/
-  core/        Timer, fases, elección de frase y recordatorios. Puro.
+  core/        Timer, fases, frases, recordatorios e historial. Puro.
   sprites/     Datos de pixel art (JSON) + renderer a canvas + temas.
   messages/    Catálogo de frases y packs de recordatorios (JSON) + validación.
-  ui/          DOM, canvas de la mascota y del reloj, burbuja, auto-fade.
+  ui/          DOM, canvas de la mascota y del reloj, burbuja, paneles.
   platform/    Única frontera con Tauri, detrás de una interfaz.
-  store/       Preferencias, con lectura defensiva.
+  store/       Preferencias e historial, con lectura defensiva.
   audio/       Blips chiptune sintetizados con WebAudio.
 src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
-tests/         Vitest sobre core/, sprites/ y messages/.
+tests/         Vitest sobre core/, store/, sprites/ y messages/.
 ```
 
-Seis decisiones que vale la pena explicar:
+Siete decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -156,6 +165,15 @@ enfriamiento. Sin eso el pato podría soltarte un recordatorio y encadenarle una
 broma treinta segundos después. Y el modo silencio se aplica en ese mismo
 cuello de botella, así que no hay forma de agregar un canal nuevo que se lo
 salte por descuido.
+
+**Una racha se recorre hacia adelante, no hacia atrás.** Perdonar el día de
+descanso semanal parece un cálculo que se puede hacer mirando hacia atrás
+desde hoy, pero es una pregunta de orden cronológico: el primer hueco que ve
+una semana es el que se perdona, un segundo hueco esa misma semana es el que
+rompe la racha. Caminar hacia atrás encuentra los huecos en el orden
+contrario y puede perdonar el equivocado — `currentStreak` en
+`core/history.ts` recorre de lo más viejo a hoy exactamente por esto. Costó
+dos rondas de revisión encontrar el bug y una más confirmar que ya no estaba.
 
 **El icono se genera del mismo JSON.** `scripts/generate-icon.mjs` lee
 `duck.json` y escribe el PNG que `tauri icon` reparte a todos los tamaños, con
