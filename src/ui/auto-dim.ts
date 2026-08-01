@@ -12,7 +12,7 @@ export class AutoDim {
     private readonly element: HTMLElement,
     private readonly delayMs = 6_000,
   ) {
-    const wake = (): void => this.#wake();
+    const wake = (): void => this.wake();
 
     this.element.addEventListener("pointerenter", wake);
     this.element.addEventListener("pointermove", wake);
@@ -27,10 +27,16 @@ export class AutoDim {
     }
 
     this.#enabled = enabled;
-    this.#wake();
+    this.wake();
   }
 
-  #wake(): void {
+  /**
+   * Brings the widget back to full opacity and restarts the countdown.
+   *
+   * Public because the mascot speaking is exactly the moment you want to be
+   * able to read it, dimmed or not.
+   */
+  wake(): void {
     this.element.classList.remove("is-dimmed");
     this.#clear();
 

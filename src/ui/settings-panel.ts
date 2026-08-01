@@ -1,17 +1,33 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import type { PomodoroSettings } from "../core/types";
+import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
 import { element } from "./dom";
 
 export interface SettingsPanelActions {
   changeSettings(settings: PomodoroSettings): void;
   changeScale(scale: number): void;
+  changeVoice(voice: Voice): void;
 }
 
 const MIN_MINUTES = 1;
 const MAX_MINUTES = 180;
 const MIN_ROUNDS = 1;
 const MAX_ROUNDS = 12;
+
+const VOICE_LABELS: Readonly<Record<Voice, string>> = {
+  dev: "DEV",
+  hype: "HYPE",
+  plain: "PLAIN",
+  off: "OFF",
+};
+
+const VOICE_HINTS: Readonly<Record<Voice, string>> = {
+  dev: "Dry developer humour",
+  hype: "Encouraging",
+  plain: "Just the facts",
+  off: "The mascot says nothing",
+};
 
 /** The durations and widget size, behind the gear button. */
 export class SettingsPanel {
@@ -23,8 +39,10 @@ export class SettingsPanel {
   readonly #autoBreaks: HTMLInputElement;
   readonly #autoFocus: HTMLInputElement;
   readonly #sizes: HTMLElement;
+  readonly #voices: HTMLElement;
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
+  readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
@@ -38,6 +56,7 @@ export class SettingsPanel {
     this.#autoBreaks = element<HTMLInputElement>("set-auto-breaks");
     this.#autoFocus = element<HTMLInputElement>("set-auto-focus");
     this.#sizes = element("set-sizes");
+    this.#voices = element("set-voice");
 
     for (const input of this.#numberInputs()) {
       // `input` reacts as you type but leaves the field alone; `change` fires
@@ -54,6 +73,7 @@ export class SettingsPanel {
     }
 
     this.#buildSizeButtons();
+    this.#buildVoiceButtons();
   }
 
   get isOpen(): boolean {
@@ -80,13 +100,17 @@ export class SettingsPanel {
     this.actions.changeSettings(DEFAULT_SETTINGS);
   }
 
-  render(settings: PomodoroSettings, scale: number): void {
+  render(settings: PomodoroSettings, scale: number, voice: Voice): void {
     this.#settings = settings;
     this.#scale = scale;
     this.#writeSettings();
 
     for (const [preset, button] of this.#sizeButtons) {
       button.setAttribute("aria-pressed", String(Math.abs(preset - scale) < 0.005));
+    }
+
+    for (const [candidate, button] of this.#voiceButtons) {
+      button.setAttribute("aria-pressed", String(candidate === voice));
     }
   }
 
@@ -132,17 +156,34 @@ export class SettingsPanel {
 
   #buildSizeButtons(): void {
     for (const preset of UI_SCALE_PRESETS) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "size-btn";
-      button.textContent = formatScale(preset);
+      const button = chip(formatScale(preset), () => this.actions.changeScale(preset));
       button.setAttribute("aria-pressed", String(preset === this.#scale));
-      button.addEventListener("click", () => this.actions.changeScale(preset));
 
       this.#sizeButtons.set(preset, button);
       this.#sizes.append(button);
     }
   }
+
+  #buildVoiceButtons(): void {
+    for (const voice of VOICES) {
+      const button = chip(VOICE_LABELS[voice], () => this.actions.changeVoice(voice));
+      button.title = VOICE_HINTS[voice];
+
+      this.#voiceButtons.set(voice, button);
+      this.#voices.append(button);
+    }
+  }
+}
+
+function chip(label: string, onClick: () => void): HTMLButtonElement {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "chip";
+  button.textContent = label;
+  button.setAttribute("aria-pressed", "false");
+  button.addEventListener("click", onClick);
+
+  return button;
 }
 
 /**

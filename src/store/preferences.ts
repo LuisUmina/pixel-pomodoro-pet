@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import type { PomodoroSettings } from "../core/types";
+import { isVoice, type Voice } from "../messages/types";
 import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
 import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
 import type { JsonStore } from "./persistence";
@@ -8,11 +9,15 @@ const STORAGE_KEY = "pixel-pomodoro-pet:preferences";
 
 export const TASK_MAX_LENGTH = 48;
 
+export const DEFAULT_VOICE: Voice = "dev";
+
 export interface Preferences {
   readonly themeId: ThemeId;
   readonly settings: PomodoroSettings;
   readonly task: string;
   readonly soundEnabled: boolean;
+  /** Personality the mascot speaks in, or `off` for silence. */
+  readonly voice: Voice;
   /** Widget size multiplier; the native window is resized to match. */
   readonly uiScale: number;
   /** ISO day that `completedToday` belongs to; a new day resets the count. */
@@ -34,6 +39,7 @@ export function defaultPreferences(day: string): Preferences {
     settings: DEFAULT_SETTINGS,
     task: "",
     soundEnabled: true,
+    voice: DEFAULT_VOICE,
     uiScale: DEFAULT_UI_SCALE,
     day,
     completedToday: 0,
@@ -59,6 +65,7 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     settings: readSettings(raw["settings"]),
     task: typeof raw["task"] === "string" ? raw["task"].slice(0, TASK_MAX_LENGTH) : "",
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
+    voice: isVoice(raw["voice"]) ? raw["voice"] : defaults.voice,
     uiScale:
       typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,
     day: today,

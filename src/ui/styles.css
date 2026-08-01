@@ -192,6 +192,7 @@ body {
 /* ------------------------------------------------------------------- stage */
 
 .stage {
+  position: relative;
   display: grid;
   min-height: 0;
   flex: 1;
@@ -202,6 +203,85 @@ body {
 .pet {
   display: block;
   image-rendering: pixelated;
+  transition: transform 220ms ease;
+}
+
+/* Ducks down so the bubble is not sitting on its head. */
+.stage[data-speaking="true"] .pet {
+  transform: translateY(12px);
+}
+
+/* ------------------------------------------------------------------ bubble */
+
+.bubble {
+  position: absolute;
+  z-index: 2;
+  top: 4px;
+  right: 10px;
+  left: 10px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.bubble[hidden] {
+  display: none;
+}
+
+.bubble[data-shown="true"] {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+/* Same trick as the window frame: two clipped boxes rather than a CSS border,
+   because a border sliced by the bevel leaves a ragged corner.
+
+   There is no speech tail. The stage is barely taller than the mascot, so
+   anything pointing down from here lands on its head and is never seen —
+   and a box above the duck reads as speech well enough on its own. */
+.bubble__box {
+  padding: 2px;
+  background: var(--border);
+  clip-path: polygon(
+    5px 0,
+    calc(100% - 5px) 0,
+    100% 5px,
+    100% calc(100% - 5px),
+    calc(100% - 5px) 100%,
+    5px 100%,
+    0 calc(100% - 5px),
+    0 5px
+  );
+}
+
+.bubble__text {
+  /* Two lines at the catalogue's maximum length, held open so a reveal in
+     progress never resizes the box — which is also why a one-line message
+     has to be centred rather than left sitting against the top. */
+  display: flex;
+  min-height: 30px;
+  align-items: center;
+  padding: 5px 7px;
+  background: var(--surface-deep);
+  color: var(--text);
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  line-height: 15px;
+  clip-path: polygon(
+    4px 0,
+    calc(100% - 4px) 0,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0 calc(100% - 4px),
+    0 4px
+  );
 }
 
 /* ----------------------------------------------------------------- readout */
@@ -497,16 +577,16 @@ body {
   cursor: pointer;
 }
 
-.field--sizes {
+.field--chips {
   margin-top: 3px;
 }
 
-.sizes {
+.chips {
   display: flex;
   gap: 4px;
 }
 
-.size-btn {
+.chip {
   padding: 4px 6px;
   border: 2px solid var(--surface-deep);
   background: var(--surface-alt);
@@ -517,11 +597,11 @@ body {
   letter-spacing: 0.5px;
 }
 
-.size-btn:hover {
+.chip:hover {
   color: var(--text);
 }
 
-.size-btn[aria-pressed="true"] {
+.chip[aria-pressed="true"] {
   border-color: var(--phase);
   background: var(--phase);
   color: var(--surface-deep);

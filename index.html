@@ -59,8 +59,16 @@
           </span>
         </header>
 
-        <main class="stage" data-tauri-drag-region>
+        <main class="stage" id="stage" data-tauri-drag-region>
           <canvas class="pet" id="pet" data-tauri-drag-region></canvas>
+
+          <!-- Overlays the stage rather than sitting in the flow, so a line
+               arriving never changes the size of anything. -->
+          <div class="bubble" id="bubble" title="Click to dismiss" hidden>
+            <div class="bubble__box">
+              <p class="bubble__text" id="bubble-text" aria-live="polite"></p>
+            </div>
+          </div>
         </main>
 
         <section class="readout">
@@ -146,9 +154,14 @@
               <span>auto-start focus</span>
             </label>
 
-            <div class="field field--sizes">
+            <div class="field field--chips">
               <span class="field__label">size</span>
-              <span class="sizes" id="set-sizes"></span>
+              <span class="chips" id="set-sizes"></span>
+            </div>
+
+            <div class="field field--chips">
+              <span class="field__label">voice</span>
+              <span class="chips" id="set-voice"></span>
             </div>
 
             <button type="button" class="btn" data-action="defaults">

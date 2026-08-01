@@ -1,10 +1,13 @@
 import "./ui/styles.css";
 
 import { playChime } from "./audio/chime";
+import { INITIAL_DIALOGUE, allowAmbient, speak } from "./core/dialogue";
 import { completionNotice } from "./core/format";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { Ticker } from "./core/ticker";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
+import { CATALOG } from "./messages/catalog";
+import type { Trigger, Voice } from "./messages/types";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
 import { clampUiScale } from "./scale";
@@ -17,6 +20,18 @@ import { Widget } from "./ui/widget";
 
 /** How long the duck keeps celebrating after a phase completes. */
 const CELEBRATION_MS = 3_200;
+
+/** How often the mascot is offered a chance to say something unprompted. */
+const AMBIENT_CHECK_MS = 60_000;
+
+/**
+ * Odds of taking that chance. The selector already enforces a cooldown; this
+ * only stops the chatter from landing on a predictable metronome.
+ */
+const AMBIENT_CHANCE = 0.4;
+
+/** A wall-clock jump this large means the machine slept or you walked off. */
+const AWAY_MS = 25 * 60_000;
 
 function main(): void {
   let preferences = loadPreferences(browserStore, isoDay(new Date()));
@@ -31,6 +46,7 @@ function main(): void {
   let ghost = false;
   let celebrating = false;
   let celebrationTimer: ReturnType<typeof setTimeout> | null = null;
+  let dialogue = INITIAL_DIALOGUE;
 
   applyThemeCss(theme, document.documentElement);
 
@@ -58,6 +74,7 @@ function main(): void {
     hide: () => desktop.hide(),
     changeSettings: (settings) => applySettings(settings),
     changeScale: (scale, persist) => applyScale(scale, persist),
+    changeVoice: (voice) => applyVoice(voice),
   });
 
   const ticker = new Ticker((elapsedMs) => dispatch({ type: "tick", elapsedMs }));
@@ -72,8 +89,14 @@ function main(): void {
 
     if (transition.completed) {
       announce(transition.completed);
-    } else if (!wasRunning && state.status === "running" && preferences.soundEnabled) {
-      playChime("start");
+      say(transition.completed === "focus" ? "focusDone" : "breakDone");
+    } else if (!wasRunning && state.status === "running") {
+      if (preferences.soundEnabled) {
+        playChime("start");
+      }
+      say(isBreak(state.phase) ? "breakStart" : "focusStart");
+    } else if (wasRunning && state.status === "paused") {
+      say("paused");
     }
 
     if (state.status === "running") {
@@ -103,6 +126,49 @@ function main(): void {
       celebrating = false;
       render();
     }, CELEBRATION_MS);
+  }
+
+  /**
+   * Offers the mascot a chance to speak. It may well decline — the cooldown
+   * and the chosen voice both live in the selector, not here.
+   */
+  function say(trigger: Trigger): void {
+    const now = Date.now();
+    const result = speak(
+      dialogue,
+      {
+        trigger,
+        voice: preferences.voice,
+        now,
+        completedToday: state.completedToday,
+        hour: new Date(now).getHours(),
+      },
+      CATALOG,
+    );
+
+    dialogue = result.state;
+
+    if (result.line) {
+      widget.say(result.line.text);
+      // No point talking to a widget faded down to 42%.
+      autoDim.wake();
+    }
+  }
+
+  function applyVoice(voice: Voice): void {
+    preferences = { ...preferences, voice };
+    save();
+    render();
+
+    if (voice === "off") {
+      widget.hush();
+      return;
+    }
+
+    // Demonstrate the choice instead of leaving them to guess what it sounds
+    // like; clearing the cooldown is what makes the sample land right away.
+    dialogue = allowAmbient(dialogue);
+    say("idle");
   }
 
   function applySettings(settings: PomodoroSettings): void {
@@ -188,7 +254,26 @@ function main(): void {
       soundEnabled: preferences.soundEnabled,
       ghost,
       uiScale,
+      voice: preferences.voice,
     });
+  }
+
+  /**
+   * Unprompted chatter, and the only way the widget notices you were gone:
+   * a gap far larger than the interval means the machine slept or locked.
+   */
+  function ambient(lastCheckAt: number): void {
+    const now = Date.now();
+
+    if (now - lastCheckAt > AWAY_MS) {
+      say("welcomeBack");
+    } else if (state.status !== "running" && Math.random() < AMBIENT_CHANCE) {
+      // Never during a session: interrupting focus is the whole thing we are
+      // trying not to do.
+      say("idle");
+    }
+
+    setTimeout(() => ambient(now), AMBIENT_CHECK_MS);
   }
 
   desktop.on(SHELL_EVENTS.toggle, () => dispatch({ type: "toggle" }));
@@ -202,6 +287,7 @@ function main(): void {
   widget.start();
   // Restores the size the widget was left at, window included.
   applyScale(uiScale, false);
+  setTimeout(() => ambient(Date.now()), AMBIENT_CHECK_MS);
 }
 
 main();

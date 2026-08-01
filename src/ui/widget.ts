@@ -1,8 +1,10 @@
 import { formatClock, phaseLabel } from "../core/format";
 import { progress } from "../core/pomodoro";
 import type { PomodoroSettings, PomodoroState, TimerStatus } from "../core/types";
+import type { Voice } from "../messages/types";
 import type { PetState } from "../sprites/duck";
 import type { Theme } from "../sprites/themes";
+import { Bubble } from "./bubble";
 import { ClockCanvas } from "./clock-canvas";
 import { actionElement, element } from "./dom";
 import { PetCanvas } from "./pet-canvas";
@@ -21,6 +23,7 @@ export interface WidgetActions {
   changeSettings(settings: PomodoroSettings): void;
   /** `persist` is false while a resize drag is still in flight. */
   changeScale(scale: number, persist: boolean): void;
+  changeVoice(voice: Voice): void;
 }
 
 export interface WidgetModel {
@@ -31,6 +34,7 @@ export interface WidgetModel {
   readonly soundEnabled: boolean;
   readonly ghost: boolean;
   readonly uiScale: number;
+  readonly voice: Voice;
 }
 
 const TOGGLE_LABELS: Readonly<Record<TimerStatus, string>> = {
@@ -44,8 +48,10 @@ export class Widget {
   readonly frame: HTMLElement;
 
   readonly #widget: HTMLElement;
+  readonly #stage: HTMLElement;
   readonly #pet: PetCanvas;
   readonly #clock: ClockCanvas;
+  readonly #bubble: Bubble;
   readonly #settings: SettingsPanel;
   readonly #grip: ResizeGrip;
   readonly #path: HTMLElement;
@@ -66,6 +72,7 @@ export class Widget {
   constructor(actions: WidgetActions) {
     this.frame = element("frame");
     this.#widget = element("widget");
+    this.#stage = element("stage");
     this.#pet = new PetCanvas(element<HTMLCanvasElement>("pet"));
     this.#clock = new ClockCanvas(element<HTMLCanvasElement>("clock"));
     this.#path = element("path");
@@ -76,9 +83,17 @@ export class Widget {
     this.#rounds = element("rounds");
     this.#tally = element("tally");
 
+    this.#bubble = new Bubble(element("bubble"), element("bubble-text"), {
+      // The mascot steps aside for its own speech instead of wearing it.
+      onChange: (visible) => {
+        this.#stage.dataset["speaking"] = String(visible);
+      },
+    });
+
     this.#settings = new SettingsPanel({
       changeSettings: (settings) => actions.changeSettings(settings),
       changeScale: (scale) => actions.changeScale(scale, true),
+      changeVoice: (voice) => actions.changeVoice(voice),
     });
 
     this.#grip = new ResizeGrip(
@@ -123,6 +138,15 @@ export class Widget {
     this.#pet.start();
   }
 
+  /** Puts a line in the mascot's mouth. Choosing it is the caller's job. */
+  say(message: string): void {
+    this.#bubble.say(message);
+  }
+
+  hush(): void {
+    this.#bubble.dismiss();
+  }
+
   render(model: WidgetModel): void {
     const { state, settings, theme } = model;
     const accent = phaseColor(theme, state);
@@ -163,7 +187,7 @@ export class Widget {
     // Only while visible: the panel writes into its inputs, and there is no
     // reason to do that four times a second behind a closed panel.
     if (this.#settings.isOpen) {
-      this.#settings.render(settings, model.uiScale);
+      this.#settings.render(settings, model.uiScale, model.voice);
     }
   }
 
@@ -173,7 +197,7 @@ export class Widget {
 
     // An idle timer produces no renders, so seed the fields on open.
     if (this.#settings.isOpen && this.#model) {
-      this.#settings.render(this.#model.settings, this.#model.uiScale);
+      this.#settings.render(this.#model.settings, this.#model.uiScale, this.#model.voice);
     }
   }
 
