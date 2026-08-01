@@ -9,6 +9,7 @@ import {
   speak,
 } from "./core/dialogue";
 import { completionNotice, isoDay } from "./core/format";
+import { currentStreak, heatmap, recordSession } from "./core/history";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
 import { INITIAL_REMINDERS, accrueReminders, takeReminder } from "./core/reminders";
@@ -22,9 +23,11 @@ import { SHELL_EVENTS } from "./platform/events";
 import { clampUiScale } from "./scale";
 import type { PetState } from "./sprites/characters";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
+import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
 import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
 import { AutoDim } from "./ui/auto-dim";
+import type { HistoryModel } from "./ui/history-panel";
 import { Widget } from "./ui/widget";
 
 /** How long the duck keeps celebrating after a phase completes. */
@@ -48,6 +51,7 @@ function main(): void {
   let celebrationTimer: ReturnType<typeof setTimeout> | null = null;
   let dialogue = INITIAL_DIALOGUE;
   let reminders = INITIAL_REMINDERS;
+  let history = loadHistory(browserStore);
 
   applyThemeCss(theme, document.documentElement);
 
@@ -88,6 +92,7 @@ function main(): void {
       render();
     },
     restoreDefaults: () => restoreDefaults(),
+    viewHistory: () => computeHistoryModel(),
   });
 
   const ticker = new Ticker((elapsedMs) => dispatch({ type: "tick", elapsedMs }));
@@ -106,6 +111,12 @@ function main(): void {
     if (transition.completed) {
       announce(transition.completed);
       say(transition.completed === "focus" ? "focusDone" : "breakDone");
+
+      if (transition.completed === "focus") {
+        history = recordSession(history, isoDay(new Date()));
+        saveHistory(browserStore, history);
+        widget.refreshHistory();
+      }
     } else if (!wasRunning && state.status === "running") {
       if (preferences.soundEnabled) {
         playChime("start");
@@ -328,6 +339,24 @@ function main(): void {
     }
 
     return "idle";
+  }
+
+  /**
+   * A snapshot for the history panel. Computed on demand rather than kept in
+   * `WidgetModel` — the heatmap is 371 cells and a streak walk, and nothing
+   * needs that behind a closed panel four times a second.
+   */
+  function computeHistoryModel(): HistoryModel {
+    const today = isoDay(new Date());
+
+    return {
+      streak: currentStreak(history.days, today),
+      bestStreak: history.bestStreak,
+      totalSessions: history.totalSessions,
+      bestDayCount: history.bestDayCount,
+      bestWeekCount: history.bestWeekCount,
+      cells: heatmap(history.days, today),
+    };
   }
 
   function save(): void {

@@ -8,6 +8,7 @@ import type { Theme } from "../sprites/themes";
 import { Bubble } from "./bubble";
 import { ClockCanvas } from "./clock-canvas";
 import { actionElement, element } from "./dom";
+import { HistoryPanel, type HistoryModel } from "./history-panel";
 import { PetCanvas } from "./pet-canvas";
 import { ResizeGrip } from "./resize-grip";
 import { SettingsPanel } from "./settings-panel";
@@ -29,6 +30,8 @@ export interface WidgetActions {
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
   restoreDefaults(): void;
+  /** Fired only when the history panel opens — closing needs no fresh data. */
+  viewHistory(): HistoryModel;
 }
 
 export interface WidgetModel {
@@ -62,6 +65,7 @@ export class Widget {
   readonly #clock: ClockCanvas;
   readonly #bubble: Bubble;
   readonly #settings: SettingsPanel;
+  readonly #history: HistoryPanel;
   readonly #grip: ResizeGrip;
   readonly #path: HTMLElement;
   readonly #phase: HTMLElement;
@@ -73,6 +77,7 @@ export class Widget {
   readonly #soundButton: HTMLElement;
   readonly #ghostButton: HTMLElement;
   readonly #settingsButton: HTMLElement;
+  readonly #viewHistory: () => HistoryModel;
 
   #roundsSignature = "";
   /** Last rendered model, so opening the panel can fill it in immediately. */
@@ -109,6 +114,9 @@ export class Widget {
       restoreDefaults: () => actions.restoreDefaults(),
     });
 
+    this.#history = new HistoryPanel();
+    this.#viewHistory = actions.viewHistory;
+
     this.#grip = new ResizeGrip(
       element("grip"),
       (scale) => actions.changeScale(scale, false),
@@ -125,6 +133,7 @@ export class Widget {
       hide: actions.hide,
       settings: () => this.#toggleSettings(),
       defaults: () => this.#settings.restoreDefaults(),
+      history: () => this.#toggleHistory(),
     };
 
     for (const button of document.querySelectorAll<HTMLElement>("[data-action]")) {
@@ -211,6 +220,28 @@ export class Widget {
     // An idle timer produces no renders, so seed the fields on open.
     if (this.#settings.isOpen && this.#model) {
       this.#settings.render(this.#model);
+    }
+  }
+
+  /**
+   * The heatmap has no place else it needs to live, so it is computed here
+   * on open rather than kept current in every {@link WidgetModel} — the
+   * same reasoning as settings, just pushed one step further since nothing
+   * about history is otherwise needed on the four-times-a-second render path.
+   */
+  #toggleHistory(): void {
+    this.#history.toggle();
+    this.#tally.setAttribute("aria-pressed", String(this.#history.isOpen));
+
+    if (this.#history.isOpen) {
+      this.#history.render(this.#viewHistory());
+    }
+  }
+
+  /** Keeps an already-open history panel current when a session lands. */
+  refreshHistory(): void {
+    if (this.#history.isOpen) {
+      this.#history.render(this.#viewHistory());
     }
   }
 

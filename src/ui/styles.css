@@ -449,6 +449,21 @@ body {
   gap: 7px;
 }
 
+.tally {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+.tally:hover {
+  color: var(--text);
+}
+
 /* Stair-stepped corner handle: a frameless window has no OS resize border. */
 .grip {
   width: 8px;
@@ -479,9 +494,13 @@ body {
   );
 }
 
-/* ---------------------------------------------------------------- settings */
+/* ------------------------------------------------------------------ panel */
+/* Shared shell for every full-card overlay: settings, history, and whatever
+   comes next. Each panel keeps its own body content styled under its own
+   id, but the chrome around it — the bar, the title, the scroll area — is
+   the same card every time, so it is defined once here. */
 
-.settings {
+.panel {
   position: absolute;
   z-index: 4;
   inset: 0;
@@ -490,11 +509,11 @@ body {
   background: var(--surface);
 }
 
-.settings[hidden] {
+.panel[hidden] {
   display: none;
 }
 
-.settings__bar {
+.panel__bar {
   display: flex;
   height: 26px;
   align-items: center;
@@ -505,20 +524,29 @@ body {
   flex: none;
 }
 
-.settings__title {
+.panel__title {
   color: var(--text-dim);
   font-size: 10px;
   letter-spacing: 2px;
   text-transform: uppercase;
 }
 
-.settings__body {
+.panel__body {
   display: flex;
   overflow-y: auto;
   flex: 1;
   flex-direction: column;
   padding: 10px 14px 12px;
   gap: 7px;
+}
+
+.panel__heading {
+  margin-top: 5px;
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 2px;
+  opacity: 0.75;
+  text-transform: uppercase;
 }
 
 .field {
@@ -607,15 +635,6 @@ body {
   color: var(--surface-deep);
 }
 
-.settings__heading {
-  margin-top: 5px;
-  color: var(--text-dim);
-  font-size: 9px;
-  letter-spacing: 2px;
-  opacity: 0.75;
-  text-transform: uppercase;
-}
-
 .reminders {
   display: grid;
   gap: 5px;
@@ -654,8 +673,89 @@ body {
   text-transform: none;
 }
 
-.settings__body .btn {
+.panel__body .btn {
   height: 28px;
   margin-top: auto;
   flex: none;
+}
+
+/* ----------------------------------------------------------------- history */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 2px;
+  border: 2px solid var(--surface-alt);
+  background: var(--surface-deep);
+  gap: 2px;
+}
+
+.stat__value {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.stat__label {
+  color: var(--text-dim);
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* 53 columns of 7 (a year, roughly) at 4px + 1px gap fits the widget's
+   authored 300px width with room to spare; `zoom` on `.frame` scales the
+   whole thing with everything else, so this never needs to react to
+   `--ui-scale` itself. */
+.heatmap {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(7, 4px);
+  gap: 1px;
+  justify-content: center;
+}
+
+.heatmap__cell {
+  width: 4px;
+  height: 4px;
+  background: var(--surface-deep);
+}
+
+/* Every recorded day was a focus session, so the shade is always the focus
+   colour — deliberately not `--phase`, which would otherwise flip to the
+   rest colour while a break happens to be running. */
+.heatmap__cell[data-level="1"] {
+  background: var(--phase-focus);
+  opacity: 0.35;
+}
+
+.heatmap__cell[data-level="2"] {
+  background: var(--phase-focus);
+  opacity: 0.58;
+}
+
+.heatmap__cell[data-level="3"] {
+  background: var(--phase-focus);
+  opacity: 0.8;
+}
+
+.heatmap__cell[data-level="4"] {
+  background: var(--phase-focus);
+  opacity: 1;
+}
+
+.history__caption {
+  margin-top: 6px;
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-align: center;
 }

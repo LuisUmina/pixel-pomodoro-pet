@@ -108,22 +108,30 @@
         <footer class="statusline">
           <span class="rounds" id="rounds"></span>
           <span class="statusline__right">
-            <span class="tally" id="tally">0 today</span>
+            <button
+              type="button"
+              class="tally"
+              id="tally"
+              data-action="history"
+              title="View history"
+            >
+              0 today
+            </button>
             <span class="grip" id="grip" title="Drag to resize"></span>
           </span>
         </footer>
 
         <!-- Overlays the card rather than growing it, so the window size is
              never a function of whether settings happen to be open. -->
-        <section class="settings" id="settings" hidden>
-          <header class="settings__bar">
-            <span class="settings__title">settings</span>
+        <section class="panel" id="settings" hidden>
+          <header class="panel__bar">
+            <span class="panel__title">settings</span>
             <button type="button" class="iconbtn" data-action="settings" title="Close">
               ✕
             </button>
           </header>
 
-          <div class="settings__body">
+          <div class="panel__body">
             <label class="field">
               <span class="field__label">focus</span>
               <input type="number" id="set-focus" min="1" max="180" step="1" />
@@ -169,7 +177,7 @@
               <span class="chips" id="set-voice"></span>
             </div>
 
-            <p class="settings__heading">reminders</p>
+            <p class="panel__heading">reminders</p>
             <div class="reminders" id="set-reminders"></div>
 
             <div class="field field--chips">
@@ -182,6 +190,46 @@
             <button type="button" class="btn" data-action="defaults">
               RESTORE DEFAULTS
             </button>
+          </div>
+        </section>
+
+        <!-- Same overlay shell as settings; computed only when opened, since
+             the heatmap has no reason to be recalculated four times a
+             second while it stays hidden behind a closed panel. -->
+        <section class="panel" id="history" hidden>
+          <header class="panel__bar">
+            <span class="panel__title">history</span>
+            <button type="button" class="iconbtn" data-action="history" title="Close">
+              ✕
+            </button>
+          </header>
+
+          <div class="panel__body">
+            <div class="stats">
+              <div
+                class="stat"
+                title="Days in a row with a session. One missed day a week does not break it."
+              >
+                <span class="stat__value" id="hist-streak">0</span>
+                <span class="stat__label">streak</span>
+              </div>
+              <div class="stat" title="Longest streak ever">
+                <span class="stat__value" id="hist-best-streak">0</span>
+                <span class="stat__label">best streak</span>
+              </div>
+              <div class="stat" title="Focus sessions completed, all time">
+                <span class="stat__value" id="hist-total">0</span>
+                <span class="stat__label">total</span>
+              </div>
+              <div class="stat" title="Best 7-day total ever">
+                <span class="stat__value" id="hist-best-week">0</span>
+                <span class="stat__label">best week</span>
+              </div>
+            </div>
+
+            <p class="panel__heading">last year</p>
+            <div class="heatmap" id="hist-heatmap"></div>
+            <p class="history__caption" id="hist-caption"></p>
           </div>
         </section>
       </div>
