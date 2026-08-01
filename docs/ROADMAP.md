@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fase 1 terminada.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1 y 2 terminadas.** El resto sin empezar.
 
 ---
 
@@ -16,7 +16,7 @@ dependencias sí se respetan.
 | # | Fase | Costo | Depende de |
 | --- | --- | --- | --- |
 | 1 | [Burbujas de diálogo](#fase-1--burbujas-de-diálogo) ✅ | S | — |
-| 2 | [Recordatorios](#fase-2--recordatorios) | S/M | 1 |
+| 2 | [Recordatorios](#fase-2--recordatorios) ✅ | S/M | 1 |
 | 3 | [Vida propia del pato](#fase-3--vida-propia-del-pato) | M | — |
 | 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) | M | — |
 | 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) | M/L | — |
@@ -25,9 +25,9 @@ dependencias sí se respetan.
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
 
-**Siguiente recomendada:** la **2**, que ya solo consiste en escribir textos y
-un par de switches encima del canal que abrió la fase 1. Si prefieres impacto
-visual antes que utilidad, la **3**.
+**Siguiente recomendada:** la **3**, que es la que más cambia lo que ves en
+pantalla. Su costo es dibujar, no programar. La **4** es la alternativa si
+prefieres variedad antes que movimiento.
 
 ---
 
@@ -119,7 +119,32 @@ de casi todo lo demás: los recordatorios, las reacciones al historial y el
 
 ---
 
-## Fase 2 — Recordatorios
+## Fase 2 — Recordatorios ✅
+
+**Terminada · Costo: S/M**
+
+Los cinco packs entregados con switches y cadencia, anclados a la fase, más
+el modo silencio. Tres cosas que el plan no decía:
+
+- **`OFF` de voz se lleva los recordatorios.** Llegan por la misma burbuja,
+  así que cualquier otra cosa haría del label una mentira. Los switches se
+  ven deshabilitados mientras la voz está en `OFF`, y `PLAIN` quedó como la
+  opción "útil pero sin bromas".
+- **Todo lo que interrumpe entra por un solo `utter()`**, que arranca el
+  enfriamiento y aplica el silencio. Sin ese cuello de botella un canal nuevo
+  se saltaría las reglas por descuido.
+- **`RESTORE DEFAULTS` pasó a resetear todo el panel.** Antes solo tocaba las
+  duraciones, lo cual ya era discutible y se volvió falso cuando voz,
+  recordatorios y silencio se mudaron encima del botón.
+
+Los recordatorios propios del usuario (texto libre + cadencia) siguen fuera:
+son los que necesitan una pantalla de edición completa. Queda como **2b**, a
+retomar solo si los packs se quedan cortos con el uso real.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: S/M · Depende de la fase 1**
 
@@ -145,6 +170,8 @@ que van primero y esto queda como 2b.
 
 **Toca:** `src/core/reminders.ts` (nuevo, puro), `settings-panel.ts`,
 `store/preferences.ts`.
+
+</details>
 
 ---
 

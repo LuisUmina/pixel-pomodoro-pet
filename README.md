@@ -31,6 +31,13 @@ Cambiar de tema repinta también al pato:
   seco, `HYPE` motivacional, `PLAIN` solo lo funcional y `OFF` para callarlo—
   y frases que saben en qué fase estás, cuántos pomodoros llevas y qué hora
   es. Clic para descartar.
+- **Recordatorios anclados a la fase**: agua, vista (regla 20-20-20), postura,
+  estiramiento y respiración. Lo que importa no es la lista sino *cuándo*
+  caen: los de levantarse llegan en el descanso, cuando de verdad te podés
+  parar; los de vista durante el focus, que es cuando llevas veinte minutos
+  sin parpadear. Agua y vista vienen encendidos; el resto los prendés vos.
+- **Modo silencio** de 30 min, 1 h o 2 h para llamadas y presentaciones. Se
+  anuncia en la barra de título con lo que le queda y se apaga solo.
 - **Ajustes editables** detrás del engrane: duraciones de focus, descanso corto
   y largo, rondas por ciclo y auto-arranque. Cambiar una duración con el timer
   corriendo respeta el tiempo que ya llevas.
@@ -92,9 +99,9 @@ Build Tools de MSVC y WebView2 (ya viene con Windows 10/11).
 
 ```
 src/
-  core/        Timer, rotación de fases y elección de frase. Funciones puras.
+  core/        Timer, fases, elección de frase y recordatorios. Puro.
   sprites/     Datos de pixel art (JSON) + renderer a canvas + temas.
-  messages/    Catálogo de frases (JSON) y su validación.
+  messages/    Catálogo de frases y packs de recordatorios (JSON) + validación.
   ui/          DOM, canvas de la mascota y del reloj, burbuja, auto-fade.
   platform/    Única frontera con Tauri, detrás de una interfaz.
   store/       Preferencias, con lectura defensiva.
@@ -103,7 +110,7 @@ src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
 tests/         Vitest sobre core/, sprites/ y messages/.
 ```
 
-Cinco decisiones que vale la pena explicar:
+Seis decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -119,11 +126,20 @@ paleta. Las expresiones son *parches* de unos pocos píxeles sobre la base, no
 una grilla completa por estado.
 
 **Las reglas de "no ser molesto" son código puro y testeado.** Lo que decide
-si el pato habla —`speak(estado, petición, catálogo, random)`— recibe el reloj
-y el azar como argumentos, así que el enfriamiento entre frases ambientales, el
-no repetir lo último dicho y las condiciones por hora o por pomodoros del día
-se prueban sin levantar la app. Ahí está el verdadero riesgo de esta función:
-una mascota que habla de más se desinstala, y eso no se verifica mirándola.
+si el pato habla —`speak(estado, petición, catálogo, random)`— y lo que decide
+si un recordatorio toca —`dueReminder(estado, chequeo, packs, random)`— reciben
+el reloj y el azar como argumentos. Así el enfriamiento entre frases, el no
+repetir lo último dicho, las condiciones por hora o por pomodoros del día y la
+cadencia de cada pack se prueban sin levantar la app. Ahí está el verdadero
+riesgo de estas funciones: una mascota que habla de más se desinstala, y eso no
+se verifica mirándola un rato.
+
+**Todo lo que interrumpe pasa por un solo lugar.** Frases, recordatorios y
+futuras reacciones entran a la burbuja por `utter()`, que además arranca el
+enfriamiento. Sin eso el pato podría soltarte un recordatorio y encadenarle una
+broma treinta segundos después. Y el modo silencio se aplica en ese mismo
+cuello de botella, así que no hay forma de agregar un canal nuevo que se lo
+salte por descuido.
 
 **El icono se genera del mismo JSON.** `scripts/generate-icon.mjs` lee
 `duck.json` y escribe el PNG que `tauri icon` reparte a todos los tamaños, con
