@@ -1,5 +1,7 @@
 # pixel-pomodoro-pet
 
+*Read this in [English](README.en.md).*
+
 Pomodoro de escritorio siempre visible con una mascota pixel-art developer.
 
 Una ventana sin bordes, transparente y **always-on-top** que flota sobre el
@@ -19,10 +21,28 @@ Cambiar de tema repinta también al pato:
 | --- | --- | --- |
 | ![](docs/theme-tokyo-night.png) | ![](docs/theme-dracula.png) | ![](docs/theme-gruvbox.png) |
 
+Un checklist real detrás del mismo campo de siempre: una tarea activa, el
+resto en cola, y cada pomodoro suma solo a la que está activa sin que hagas
+nada.
+
+![Panel de tareas con una activa, una en cola con estimación y una hecha](docs/widget-tasks.png)
+
 El contador de abajo abre tu historial: racha, récords y un heatmap del
 último año.
 
 ![Panel de historial con racha, récords y heatmap](docs/widget-history.png)
+
+Duraciones, tamaño, opacidad al desatender, personaje, voz y objetivo diario,
+todo detrás del engrane:
+
+![Panel de ajustes con tamaño, opacidad, personaje, voz y objetivo diario](docs/widget-settings.png)
+
+Y si querés que ocupe lo mínimo posible, el modo mascota lo reduce a la
+silueta y el reloj — el resto vuelve al pasar el mouse:
+
+| Modo mascota | Al pasar el mouse |
+| --- | --- |
+| ![](docs/widget-mini.png) | ![](docs/widget-mini-hover.png) |
 
 ## Qué tiene
 
