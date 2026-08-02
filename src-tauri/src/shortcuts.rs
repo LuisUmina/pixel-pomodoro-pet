@@ -130,16 +130,30 @@ pub fn plugin<R: Runtime>() -> TauriPlugin<R> {
 }
 
 pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
-    app.manage(ShortcutState::default());
+    let manager = app.global_shortcut();
+    let mut initial_bindings = HashMap::new();
 
-    let mut defaults_map = HashMap::new();
-    for (action, shortcut) in default_bindings() {
-        defaults_map.insert(action.to_string(), shortcut.to_string());
+    // Register each default hotkey independently at boot time so that an OS-level claim
+    // failure on one hotkey (e.g. mute shortcut conflict) degrades gracefully without
+    // killing the rest of the default hotkeys.
+    for (action_key, shortcut_str) in default_bindings() {
+        let Some(action) = parse_action(action_key) else {
+            continue;
+        };
+        let Ok(shortcut) = Shortcut::from_str(shortcut_str) else {
+            continue;
+        };
+
+        if let Err(error) = manager.register(shortcut) {
+            eprintln!("could not bind a global shortcut '{shortcut_str}' for {action_key}: {error}");
+        } else {
+            initial_bindings.insert(shortcut, action);
+        }
     }
 
-    let handle = app.handle();
-    let state = handle.state::<ShortcutState>();
-    let _ = update_shortcuts(handle.clone(), state, defaults_map);
+    app.manage(ShortcutState {
+        bindings: Mutex::new(initial_bindings),
+    });
 
     Ok(())
 }

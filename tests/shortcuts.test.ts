@@ -3,6 +3,7 @@ import {
   DEFAULT_SHORTCUTS,
   SHORTCUT_DEFINITIONS,
   findShortcutConflicts,
+  hasPrimaryKey,
   isShortcutAction,
   normalizeShortcut,
   readShortcuts,
@@ -26,6 +27,14 @@ describe("shortcuts domain", () => {
     expect(normalizeShortcut("ctrl+alt+space")).toBe("Ctrl+Alt+Space");
     expect(normalizeShortcut("alt+ctrl+h")).toBe("Ctrl+Alt+H");
     expect(normalizeShortcut("shift+ctrl+alt+n")).toBe("Ctrl+Alt+Shift+N");
+  });
+
+  it("checks whether a shortcut string has a primary non-modifier key", () => {
+    expect(hasPrimaryKey("Ctrl+Alt+G")).toBe(true);
+    expect(hasPrimaryKey("Space")).toBe(true);
+    expect(hasPrimaryKey("Ctrl+Alt")).toBe(false);
+    expect(hasPrimaryKey("Ctrl")).toBe(false);
+    expect(hasPrimaryKey("")).toBe(false);
   });
 
   it("detects shortcut conflicts between actions", () => {

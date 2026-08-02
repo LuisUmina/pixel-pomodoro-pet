@@ -72,6 +72,20 @@ export function normalizeShortcut(str: string): string {
 }
 
 /**
+ * Returns true if the shortcut string contains at least one primary (non-modifier) key.
+ * (e.g. "Ctrl+Alt+G" -> true, "Ctrl+Alt" -> false).
+ */
+export function hasPrimaryKey(str: string): boolean {
+  if (!str) return false;
+  const parts = str
+    .split("+")
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const MODIFIERS = ["ctrl", "control", "alt", "option", "shift", "meta", "super", "cmd", "win"];
+  return parts.some((part) => !MODIFIERS.includes(part.toLowerCase()));
+}
+
+/**
  * Checks for conflicts between actions in a shortcut map.
  * Returns a map from action ID to conflicting action ID (or null if no conflict).
  */

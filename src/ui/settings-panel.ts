@@ -10,6 +10,7 @@ import { CHARACTERS } from "../sprites/characters";
 import {
   SHORTCUT_DEFINITIONS,
   findShortcutConflicts,
+  hasPrimaryKey,
   normalizeShortcut,
   type ShortcutAction,
   type ShortcutMap,
@@ -105,6 +106,7 @@ export class SettingsPanel {
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
+  #lastShortcuts: ShortcutMap | null = null;
 
   constructor(private readonly actions: SettingsPanelActions) {
     this.#root = element("settings");
@@ -180,6 +182,7 @@ export class SettingsPanel {
   render(model: SettingsModel): void {
     this.#settings = model.settings;
     this.#scale = model.uiScale;
+    this.#lastShortcuts = model.shortcuts;
     this.#writeSettings();
 
     for (const [preset, button] of this.#sizeButtons) {
@@ -356,15 +359,31 @@ export class SettingsPanel {
 
         const combined = [...modifiers, key].filter(Boolean).join("+");
         if (combined) {
-          input.value = normalizeShortcut(combined);
-          void this.#applyShortcutChanges();
+          if (key !== "") {
+            input.value = normalizeShortcut(combined);
+            void this.#applyShortcutChanges();
+          } else {
+            // Partial combination (modifiers only, e.g. "Ctrl+Alt") — show in input field
+            // but do NOT trigger IPC to Rust until a non-modifier key is pressed.
+            input.value = combined;
+          }
         }
       });
 
-      input.addEventListener("change", () => {
-        input.value = normalizeShortcut(input.value);
-        void this.#applyShortcutChanges();
-      });
+      const normalizeOrRevert = () => {
+        if (hasPrimaryKey(input.value)) {
+          input.value = normalizeShortcut(input.value);
+          void this.#applyShortcutChanges();
+        } else {
+          // Revert to stored value if left incomplete or invalid on blur/change
+          const fallback = this.#lastShortcuts?.[def.id] ?? def.defaultShortcut;
+          input.value = fallback;
+          input.classList.remove("shortcut__input--error");
+        }
+      };
+
+      input.addEventListener("change", normalizeOrRevert);
+      input.addEventListener("blur", normalizeOrRevert);
 
       row.append(label, input);
       this.#shortcutInputs.set(def.id, input);

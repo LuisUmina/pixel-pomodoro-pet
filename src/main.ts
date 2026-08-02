@@ -25,7 +25,7 @@ import {
   type TasksState,
 } from "./core/tasks";
 import { Ticker } from "./core/ticker";
-import { type ShortcutMap } from "./core/shortcuts";
+import { DEFAULT_SHORTCUTS, type ShortcutMap } from "./core/shortcuts";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
 import { REMINDER_PACKS } from "./messages/reminders";
@@ -657,7 +657,9 @@ function main(): void {
   document.addEventListener("contextmenu", (event) => event.preventDefault());
 
   widget.start();
-  void desktop.updateShortcuts(preferences.shortcuts);
+  if (JSON.stringify(preferences.shortcuts) !== JSON.stringify(DEFAULT_SHORTCUTS)) {
+    void desktop.updateShortcuts(preferences.shortcuts);
+  }
   // Restores the size the widget was left at, window included -- unless
   // mini mode is about to override it right below. The native window
   // already restored its own last position *and size* on its own (see
