@@ -106,6 +106,17 @@
       ]
     },
     {
+      "id": "focus-flicker",
+      "loops": 2,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["coreA", "rayN"], "offsetY": 0, "durationMs": 260 },
+        { "patches": ["coreB", "rayS"], "offsetY": 0, "durationMs": 260 },
+        { "patches": ["coreA", "coreB"], "offsetY": 0, "durationMs": 400 },
+        { "patches": [], "offsetY": 0, "durationMs": 300 }
+      ]
+    },
+    {
       "id": "soft",
       "loops": 2,
       "weights": { "rest": 5 },
@@ -123,6 +134,17 @@
         { "patches": ["fade"], "offsetY": 0, "durationMs": 800 },
         { "patches": ["rayE"], "offsetY": 0, "durationMs": 450 },
         { "patches": [], "offsetY": 1, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "drift-glow",
+      "loops": 1,
+      "weights": { "rest": 3 },
+      "frames": [
+        { "patches": ["rayN"], "offsetY": 1, "durationMs": 500 },
+        { "patches": ["fade"], "offsetY": 0, "durationMs": 700 },
+        { "patches": ["rayS"], "offsetY": 1, "durationMs": 500 },
+        { "patches": [], "offsetY": 0, "durationMs": 600 }
       ]
     },
     {
@@ -152,6 +174,16 @@
       "frames": [
         { "patches": ["fade"], "offsetY": 1, "durationMs": 1900 },
         { "patches": ["fade", "dimTop"], "offsetY": 1, "durationMs": 1300 }
+      ]
+    },
+    {
+      "id": "dim-flicker",
+      "loops": 1,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["dimTop"], "offsetY": 1, "durationMs": 1200 },
+        { "patches": ["fade", "dimTop"], "offsetY": 1, "durationMs": 900 },
+        { "patches": [], "offsetY": 1, "durationMs": 1400 }
       ]
     }
   ]

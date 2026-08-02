@@ -106,6 +106,17 @@
       ]
     },
     {
+      "id": "double-shot",
+      "loops": 2,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["strongSteam"], "offsetY": 0, "durationMs": 300 },
+        { "patches": ["steamBoth"], "offsetY": 1, "durationMs": 260 },
+        { "patches": ["strongSteam"], "offsetY": 0, "durationMs": 300 },
+        { "patches": [], "offsetY": 0, "durationMs": 500 }
+      ]
+    },
+    {
       "id": "fresh-pour",
       "loops": 2,
       "weights": { "rest": 7 },
@@ -124,6 +135,16 @@
         { "patches": ["steamLeft"], "offsetY": 1, "durationMs": 850 },
         { "patches": ["steamBoth", "rimGlow"], "offsetY": 0, "durationMs": 530 },
         { "patches": ["steamRight"], "offsetY": 1, "durationMs": 740 }
+      ]
+    },
+    {
+      "id": "warm-glow",
+      "loops": 2,
+      "weights": { "rest": 3 },
+      "frames": [
+        { "patches": ["rimGlow", "steamLeft"], "offsetY": 0, "durationMs": 700 },
+        { "patches": ["steamRight"], "offsetY": 1, "durationMs": 800 },
+        { "patches": [], "offsetY": 0, "durationMs": 600 }
       ]
     },
     {
@@ -153,6 +174,15 @@
       "frames": [
         { "patches": ["dimCup", "clearSteam"], "offsetY": 2, "durationMs": 1900 },
         { "patches": ["dimCup", "steamLeft"], "offsetY": 1, "durationMs": 920 },
+        { "patches": ["dimCup", "clearSteam"], "offsetY": 2, "durationMs": 1600 }
+      ]
+    },
+    {
+      "id": "last-sip",
+      "loops": 1,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["dimCup", "handleFlash"], "offsetY": 1, "durationMs": 1300 },
         { "patches": ["dimCup", "clearSteam"], "offsetY": 2, "durationMs": 1600 }
       ]
     }

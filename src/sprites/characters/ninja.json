@@ -85,7 +85,7 @@
       "frames": [
         { "patches": ["wideEyes"], "offsetY": 0, "durationMs": 500 },
         { "patches": ["wideEyes", "curious"], "offsetY": 0, "durationMs": 1400 },
-        { "patches": ["curious"], "offsetY": 1, "durationMs": 700 },
+        { "patches": ["curious"], "offsetY": 2, "durationMs": 700 },
         { "patches": ["blink"], "offsetY": 1, "durationMs": 150 }
       ]
     },
@@ -210,6 +210,17 @@
         { "patches": ["lookDown", "zNear"], "offsetY": 1, "durationMs": 1300 },
         { "patches": ["blink", "zNear", "zFar"], "offsetY": 1, "durationMs": 1300 },
         { "patches": ["lookDown", "zFar"], "offsetY": 0, "durationMs": 1100 }
+      ]
+    },
+    {
+      "id": "long-stretch",
+      "loops": 1,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["wideEyes"], "offsetY": 0, "durationMs": 500 },
+        { "patches": ["wideEyes"], "offsetY": 2, "durationMs": 900 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 200 },
+        { "patches": ["lookDown", "zNear"], "offsetY": 1, "durationMs": 1200 }
       ]
     }
   ]

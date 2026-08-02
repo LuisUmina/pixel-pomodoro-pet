@@ -129,6 +129,18 @@
       ]
     },
     {
+      "id": "tentacle-tap",
+      "loops": 1,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["focusEyes"], "offsetY": 0, "durationMs": 600 },
+        { "patches": ["focusEyes", "tentacleRight"], "offsetY": 1, "durationMs": 260 },
+        { "patches": ["focusEyes"], "offsetY": 0, "durationMs": 300 },
+        { "patches": ["focusEyes", "tentacleLeft"], "offsetY": 1, "durationMs": 260 },
+        { "patches": ["blink"], "offsetY": 0, "durationMs": 130 }
+      ]
+    },
+    {
       "id": "contented",
       "loops": 2,
       "weights": { "rest": 5 },
@@ -176,6 +188,16 @@
         { "patches": ["lookDown", "tentacleLeft", "zNear"], "offsetY": 1, "durationMs": 1700 },
         { "patches": ["blink", "tentacleRight", "zFar"], "offsetY": 2, "durationMs": 1300 },
         { "patches": ["lookDown"], "offsetY": 1, "durationMs": 1100 }
+      ]
+    },
+    {
+      "id": "curl-up",
+      "loops": 1,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["lookDown", "tentacleRight"], "offsetY": 1, "durationMs": 1300 },
+        { "patches": ["blink", "tentacleLeft", "zNear"], "offsetY": 2, "durationMs": 1400 },
+        { "patches": ["lookDown"], "offsetY": 1, "durationMs": 1000 }
       ]
     }
   ]

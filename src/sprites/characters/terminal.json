@@ -104,6 +104,18 @@
       ]
     },
     {
+      "id": "type-burst",
+      "loops": 1,
+      "weights": { "focus": 4 },
+      "frames": [
+        { "patches": ["typed"], "offsetY": 0, "durationMs": 260 },
+        { "patches": [], "offsetY": 0, "durationMs": 200 },
+        { "patches": ["typed"], "offsetY": 0, "durationMs": 260 },
+        { "patches": ["cursorOff"], "offsetY": 0, "durationMs": 300 },
+        { "patches": [], "offsetY": 0, "durationMs": 600 }
+      ]
+    },
+    {
       "id": "screensaver",
       "loops": 2,
       "weights": { "rest": 5 },
@@ -120,6 +132,17 @@
         { "patches": [], "offsetY": 0, "durationMs": 900 },
         { "patches": ["flash1"], "offsetY": 0, "durationMs": 500 },
         { "patches": [], "offsetY": 0, "durationMs": 700 }
+      ]
+    },
+    {
+      "id": "afterglow",
+      "loops": 1,
+      "weights": { "rest": 3 },
+      "frames": [
+        { "patches": ["flash1"], "offsetY": 0, "durationMs": 500 },
+        { "patches": [], "offsetY": 0, "durationMs": 700 },
+        { "patches": ["dimText1"], "offsetY": 0, "durationMs": 900 },
+        { "patches": [], "offsetY": 0, "durationMs": 500 }
       ]
     },
     {
@@ -149,6 +172,16 @@
       "frames": [
         { "patches": ["dimText1", "dimPrompt", "cursorOff"], "offsetY": 0, "durationMs": 1900 },
         { "patches": ["dimText1", "cursorOff"], "offsetY": 0, "durationMs": 1300 }
+      ]
+    },
+    {
+      "id": "flicker-off",
+      "loops": 1,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["dimText1", "dimPrompt"], "offsetY": 0, "durationMs": 1200 },
+        { "patches": ["flash1"], "offsetY": 0, "durationMs": 120 },
+        { "patches": ["dimText1", "dimPrompt", "cursorOff"], "offsetY": 0, "durationMs": 1400 }
       ]
     }
   ]

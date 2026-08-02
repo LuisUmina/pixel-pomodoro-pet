@@ -116,6 +116,17 @@
       ]
     },
     {
+      "id": "precision-scan",
+      "loops": 2,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["focusEyes", "antennaLeft"], "offsetY": 0, "durationMs": 500 },
+        { "patches": ["focusEyes", "antennaRight"], "offsetY": 1, "durationMs": 500 },
+        { "patches": ["focusEyes", "tinyTool"], "offsetY": 0, "durationMs": 700 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 130 }
+      ]
+    },
+    {
       "id": "wing-stretch",
       "loops": 2,
       "weights": { "rest": 6 },
@@ -164,6 +175,16 @@
         { "patches": ["blink", "antennaLeft"], "offsetY": 2, "durationMs": 1700 },
         { "patches": ["blink", "antennaRight", "zNear"], "offsetY": 1, "durationMs": 1300 },
         { "patches": ["blink"], "offsetY": 2, "durationMs": 1100 }
+      ]
+    },
+    {
+      "id": "wings-fold",
+      "loops": 1,
+      "weights": { "sleepy": 2 },
+      "frames": [
+        { "patches": ["wingsOpen"], "offsetY": 1, "durationMs": 900 },
+        { "patches": ["blink"], "offsetY": 2, "durationMs": 1100 },
+        { "patches": ["blink", "zNear"], "offsetY": 2, "durationMs": 1300 }
       ]
     }
   ]
