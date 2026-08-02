@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–6 terminadas.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1–7 terminadas.** El resto sin empezar.
 
 ---
 
@@ -21,15 +21,14 @@ dependencias sí se respetan.
 | 4 | [Personajes intercambiables](#fase-4--personajes-intercambiables) ✅ | M | — |
 | 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) ✅ | M/L | — |
 | 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) ✅ | L | — |
-| 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) | M | 1, 3, 6 |
+| 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) ✅ | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
 
-**Siguiente recomendada:** la **7** (ánimo de la mascota), que ya tiene todo
-lo que le hacía falta — diálogo, conductas e historial — listo para leer. La
-alternativa es la **8** (deambular por el escritorio), que con la 5 ya
-entregada tiene sus dos dependencias resueltas, aunque sigue siendo la más
-riesgosa de la lista.
+**Siguiente recomendada:** la **9** (objetivos y tareas) es la única que
+queda sin dependencias pendientes y no obliga a asumir el riesgo técnico de
+la **8** (deambular por el escritorio) — que sigue disponible, con sus dos
+dependencias (3 y 5) resueltas, para quien prefiera esa en vez.
 
 ---
 
@@ -492,7 +491,47 @@ puro), panel nuevo en `ui/`.
 
 ---
 
-## Fase 7 — Ánimo de la mascota
+## Fase 7 — Ánimo de la mascota ✅
+
+**Terminada · Costo: M**
+
+Un modelo diminuto de estado — `energized` / `steady` / `weary` — derivado de
+tu uso real: cuántos pomodoros llevas hoy, si vienes de una racha, cuánto
+hace de un descanso de verdad. Decide qué línea de diálogo puede salir y, en
+un caso, qué animación. Cómo quedó frente al plan:
+
+- **Sin ánimo nuevo para "cansado".** El plan hablaba de que el ánimo
+  decidiera "qué animación sale"; en vez de dibujar una pose de cansancio
+  aparte, un pato `weary` que está ocioso (sin sesión corriendo, sin
+  celebrar) simplemente toma prestado el estado `sleepy` que la pausa ya
+  usaba. Cero arte nuevo, un `if` de tres líneas en `petState()`.
+- **"Hace cuánto que no aparecías" se separó del ánimo en sí.** Una ausencia
+  larga no es lo mismo que estar cansado — son narrativamente opuestos, uno
+  es de haber trabajado de más y el otro de no haber estado — así que en vez
+  de forzarlos al mismo enum, el saludo al volver ganó un segundo disparador,
+  `welcomeBackLong`, que se activa con una ausencia bastante mayor a la de
+  `welcomeBack` (que sigue siendo para "te levantaste a hacer café").
+- **La racha no se recalcula en cada render.** `currentStreak` recorre hasta
+  un año de historial — el mismo costo que la fase 6 ya había aislado detrás
+  del panel de historial. El ánimo se guarda en una variable que solo se
+  refresca cuando una fase termina y en el chequeo ambiental de cada minuto,
+  no en el ciclo de render que corre cuatro veces por segundo.
+- **El catálogo de frases ganó una cuarta condición de filtro** (`mood`,
+  junto a `hours`, `minCompleted` y `maxCompleted`), con el mismo contrato
+  que las demás: ausente significa "encaja con cualquier ánimo". La
+  suite de tests que exige una línea incondicional por disparador y tono
+  ahora también exige que esa línea no tenga ánimo — así una fase futura no
+  puede dejar accidentalmente algún disparador mudo en algún ánimo.
+
+**Toca:** `src/core/mood.ts` (nuevo, puro), y conexiones en
+`messages/types.ts`, `dialogue.ts`, `catalog.ts`/`catalog.json` y `main.ts`.
+`sprites/behaviors.ts` no necesitó tocarse — reusar `sleepy` no le pidió nada
+nuevo.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: M · Depende de las fases 1, 3 y 6**
 
@@ -511,6 +550,8 @@ expresarse.
 
 **Toca:** `src/core/mood.ts` (nuevo, puro), y conexiones en `dialogue.ts`,
 `behaviors.ts` y `main.ts`.
+
+</details>
 
 ---
 

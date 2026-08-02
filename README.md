@@ -45,6 +45,12 @@ El contador de abajo abre tu historial: racha, récords y un heatmap del
   seco, `HYPE` motivacional, `PLAIN` solo lo funcional y `OFF` para callarlo—
   y frases que saben en qué fase estás, cuántos pomodoros llevas y qué hora
   es. Clic para descartar.
+- **Un ánimo que sale del uso real, no del azar**: cuatro horas seguidas sin
+  un descanso de verdad, u ocho pomodoros en el día, y el pato se ve y suena
+  cansado — pide prestadas las animaciones de la pausa en vez de necesitar
+  arte nuevo para "cansado". Una racha de tres días o más y hay frases que lo
+  notan. Y si desaparecés bastante más que una pausa para café, el saludo al
+  volver ya no es el mismo.
 - **Recordatorios anclados a la fase**: agua, vista (regla 20-20-20), postura,
   estiramiento y respiración. Lo que importa no es la lista sino *cuándo*
   caen: los de levantarse llegan en el descanso, cuando de verdad te podés
@@ -136,7 +142,7 @@ src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
 tests/         Vitest sobre core/, store/, sprites/ y messages/.
 ```
 
-Ocho decisiones que vale la pena explicar:
+Nueve decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -199,6 +205,15 @@ reloj, algo que este archivo no tiene por qué calcular por fórmula; salir en
 cambio reusa la escala guardada en vez de medir, porque justo después del
 cambio de modo la ventana del SO todavía es la chica, y medir en ese instante
 exacto leería un viewport que todavía no llegó a su tamaño real.
+
+**El ánimo se recalcula en los eventos, nunca en cada render.** `computeMood`
+es puro y barato, pero uno de sus tres insumos —la racha— no lo es:
+`currentStreak` recorre hasta un año de historial, el mismo costo que el
+heatmap ya evita pagar detrás de un panel cerrado. Recalcularlo cuatro veces
+por segundo junto al resto del render habría sido ese mismo error de nuevo.
+El ánimo vive en una variable que solo se refresca cuando alguno de sus
+insumos pudo haberse movido de verdad: una fase que termina, y el chequeo
+ambiental de cada minuto para el único insumo que deriva solo, el tiempo.
 
 **Tauri solo hace lo que la web no puede.** Ventana sin bordes, transparencia,
 bandeja y hotkeys viven en Rust; todo el dominio vive en la webview. La capa
