@@ -36,7 +36,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             window::set_click_through,
             window::set_widget_scale,
-            window::resize_keep_center
+            window::resize_keep_center,
+            shortcuts::update_shortcuts
         ])
         .run(tauri::generate_context!())
         .expect("failed to start pixel-pomodoro-pet");

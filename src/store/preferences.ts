@@ -8,6 +8,7 @@ import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
 import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
 import { DEFAULT_CHARACTER_ID, isCharacterId } from "../sprites/characters";
+import { DEFAULT_SHORTCUTS, readShortcuts, type ShortcutMap } from "../core/shortcuts";
 import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
 import type { JsonStore } from "./persistence";
 
@@ -25,6 +26,8 @@ export interface Preferences {
   readonly voice: Voice;
   /** Reminder pack id to whether the user wants it. */
   readonly reminders: Readonly<Record<string, boolean>>;
+  /** Keybindings for global hotkeys. */
+  readonly shortcuts: ShortcutMap;
   /** When a temporary vow of silence expires; 0 when there is none. */
   readonly quietUntil: number;
   /** Widget size multiplier; the native window is resized to match. */
@@ -48,6 +51,7 @@ export function defaultPreferences(day: string): Preferences {
     soundEnabled: true,
     voice: DEFAULT_VOICE,
     reminders: defaultEnabled(REMINDER_PACKS),
+    shortcuts: DEFAULT_SHORTCUTS,
     quietUntil: 0,
     uiScale: DEFAULT_UI_SCALE,
     miniMode: false,
@@ -79,6 +83,7 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
     voice: isVoice(raw["voice"]) ? raw["voice"] : defaults.voice,
     reminders: readReminders(raw["reminders"]),
+    shortcuts: readShortcuts(raw["shortcuts"]),
     quietUntil: readQuietUntil(raw["quietUntil"]),
     uiScale:
       typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,

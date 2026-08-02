@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7 y 9 terminadas.** Fases 10–18
+**Estado:** v0.1 entregada. **Fases 1–7, 9 y 13 terminadas.** Fases 10–12, 14–18
 planeadas y aprobadas, a la espera de que se defina el orden de arranque. La
 fase 8 sigue en pausa.
 
@@ -29,7 +29,7 @@ fase 8 sigue en pausa.
 | 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) | S | — |
 | 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) | S/M | — |
 | 12 | [Recordatorios propios](#fase-12--recordatorios-propios) | S/M | 2 |
-| 13 | [Atajos configurables](#fase-13--atajos-configurables) | M | — |
+| 13 | [Atajos configurables](#fase-13--atajos-configurables) ✅ | M | — |
 | 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
 | 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) | L | 4 |
 | 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) | M | 3 |
@@ -714,20 +714,35 @@ separada de los packs con switches que ya existen.
 
 ---
 
-## Fase 13 — Atajos configurables
+## Fase 13 — Atajos configurables ✅
 
-**Costo: M · Sin dependencias**
+**Terminada · Costo: M**
 
-Reasignar los atajos existentes (`Ctrl+Alt+G/H/Z`, más los que sumen las
-fases siguientes) desde ajustes, con detección de conflictos entre ellos. El
-riesgo real es reregistrar los shortcuts de Tauri en caliente sin dejar el
-atajo anterior fantasma si la reasignación falla a mitad de camino — ya hubo
-un caso (fase 5) de un atajo que se registra sin error pero nunca dispara por
-algo externo, así que el flujo necesita un modo de "probar y confirmar" antes
-de guardar.
+Reasignación configurable de atajos globales (`Ctrl+Alt+Space/N/R/G/Z/H`) desde
+el panel de ajustes. Incluye detección inmediata de conflictos entre funciones y
+re-registro dinámico en caliente en el shell de Rust.
 
-**Toca:** el registro de shortcuts en `src-tauri/`, `settings-panel.ts`,
-`store/preferences.ts`.
+Detalles de implementación y cómo quedó frente al plan:
+
+- **Lógica de dominio pura (`src/core/shortcuts.ts`):** Módulo aislado con
+  tests unitarios para normalizar combinaciones de teclas (`Ctrl+Alt+G`), validar
+  esquemas y detectar duplicados entre acciones antes de solicitar cambios al
+  sistema.
+- **Re-registro seguro con rollback en caliente (`src-tauri/src/shortcuts.rs`):**
+  El comando `update_shortcuts` en Rust desregistra los atajos existentes y
+  aplica la nueva configuración. Si el sistema operativo rechaza algún atajo (por
+  ejemplo, tomado exclusivamente por otra app), deshace los cambios y restaura los
+  atajos previos sin dejar accesos "fantasma".
+- **Edición interactiva en ajustes:** Captura directa por teclado de combinaciones
+  de teclas y campos normales con resaltado de error si existe conflicto o rechazo
+  del SO.
+- **Persistencia defensiva (`src/store/preferences.ts`):** La carga de preferencias
+  valida la integridad del mapa de atajos y cae a `DEFAULT_SHORTCUTS` si encuentra
+  datos malformados o duplicados.
+
+**Toca:** `src/core/shortcuts.ts` (nuevo, puro), `tests/shortcuts.test.ts` (nuevo),
+`src-tauri/src/shortcuts.rs`, `src-tauri/src/lib.rs`, `src/platform/desktop.ts`,
+`src/store/preferences.ts`, `settings-panel.ts`, `styles.css`, `index.html`.
 
 ---
 
