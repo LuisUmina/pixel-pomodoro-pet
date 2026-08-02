@@ -1,0 +1,182 @@
+{
+  "id": "tentacat",
+  "name": "Gato pulpo",
+  "label": "PULPO",
+  "hint": "Un gato curioso con demasiadas patas",
+  "size": 32,
+  "base": [
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    ".........oo..........oo.........",
+    ".........onn........nno.........",
+    "........onnn........nnno........",
+    ".......onnnnnnnnnnnnnnnno.......",
+    "......onnnnnnnnnnnnnnnnnno......",
+    "......onnnnnnnnnnnnnnnnnno......",
+    "......onnnwwnnnnnnnnwwnnno......",
+    "......onnneennnnnnnneennno......",
+    "......onnnnnnnccnnnnnnnnno......",
+    ".......onnnnnnnnnnnnnnnno.......",
+    "........oonnnnnnnnnnnnoo........",
+    ".........onnnnnnnnnnnno.........",
+    "........onnnnnNNNNnnnnno........",
+    ".......onnnnnnnnnnnnnnnno.......",
+    ".......onnnnnnnnnnnnnnnno.......",
+    ".......onnnnnnnnnnnnnnnno.......",
+    ".......onnnnnnnnnnnnnnnno.......",
+    "......oonnnnnnnnnnnnnnoo........",
+    "......onnnoonnnoonnnoonnno......",
+    "......onnnoonnnoonnnoonnno......",
+    "......onn..onn..onn..onn..o.....",
+    ".....oon..oon..oon..oon..oo.....",
+    ".....on....on....on....on....o..",
+    ".....oo....oo....oo....oo....oo.",
+    "......o......o....o......o......",
+    "................................",
+    "................................"
+  ],
+  "patches": {
+    "blink": { "x": 10, "y": 11, "rows": ["nn........nn", "nn........nn"] },
+    "focusEyes": { "x": 10, "y": 11, "rows": ["ee........ee", "ww........ww"] },
+    "happyEyes": { "x": 10, "y": 11, "rows": ["oo........oo", "nn........nn"] },
+    "glanceRight": { "x": 10, "y": 12, "rows": ["we........we"] },
+    "lookDown": { "x": 10, "y": 11, "rows": ["nn........nn", "we........we"] },
+    "earTwitch": { "x": 9, "y": 5, "rows": ["no", "on"] },
+    "tentacleLeft": { "x": 5, "y": 25, "rows": ["oonn", "on..", "oo..", ".o..", "oo.."] },
+    "tentacleRight": { "x": 23, "y": 25, "rows": ["nnoo", "..no", "..oo", "..o.", "..oo"] },
+    "stepLeft": { "x": 5, "y": 27, "rows": ["       ", "       ", "       "] },
+    "stepRight": { "x": 21, "y": 27, "rows": ["          ", "          ", "          "] },
+    "bug": { "x": 26, "y": 12, "rows": [".a.", "aea", ".a."] },
+    "note": { "x": 25, "y": 6, "rows": [".aa", ".a.", ".a.", "aa."] },
+    "zNear": { "x": 25, "y": 10, "rows": ["aaa", ".a.", "aaa"] },
+    "zFar": { "x": 27, "y": 5, "rows": ["aaa", ".a.", "aaa"] },
+    "sparkleLeft": { "x": 2, "y": 10, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 27, "y": 17, "rows": [".a.", "aAa", ".a."] }
+  },
+  "behaviors": [
+    {
+      "id": "soft-purr",
+      "loops": 2,
+      "weights": { "idle": 7, "rest": 3 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 1600 },
+        { "patches": ["blink"], "offsetY": 0, "durationMs": 130 },
+        { "patches": [], "offsetY": 1, "durationMs": 1450 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 150 }
+      ]
+    },
+    {
+      "id": "ear-twitch",
+      "loops": 1,
+      "weights": { "idle": 3 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 720 },
+        { "patches": ["earTwitch"], "offsetY": 0, "durationMs": 180 },
+        { "patches": [], "offsetY": 0, "durationMs": 260 },
+        { "patches": ["earTwitch"], "offsetY": 1, "durationMs": 140 },
+        { "patches": [], "offsetY": 1, "durationMs": 900 }
+      ]
+    },
+    {
+      "id": "tentacle-wave",
+      "loops": 1,
+      "weights": { "idle": 4, "rest": 2 },
+      "frames": [
+        { "patches": ["tentacleLeft"], "offsetY": 0, "durationMs": 420 },
+        { "patches": [], "offsetY": 1, "durationMs": 310 },
+        { "patches": ["tentacleRight"], "offsetY": 0, "durationMs": 470 },
+        { "patches": [], "offsetY": 1, "durationMs": 760 }
+      ]
+    },
+    {
+      "id": "sideways-prowl",
+      "loops": 1,
+      "weights": { "idle": 2, "rest": 2 },
+      "frames": [
+        { "patches": ["stepLeft"], "offsetX": -1, "offsetY": 0, "durationMs": 230 },
+        { "patches": ["stepRight"], "offsetX": -2, "offsetY": 1, "durationMs": 270 },
+        { "patches": ["stepLeft"], "offsetX": -3, "offsetY": 0, "durationMs": 240 },
+        { "patches": ["glanceRight"], "offsetX": -3, "offsetY": 1, "durationMs": 850 },
+        { "patches": ["stepRight"], "offsetX": -2, "offsetY": 0, "durationMs": 250 },
+        { "patches": ["stepLeft"], "offsetX": -1, "offsetY": 1, "durationMs": 280 },
+        { "patches": [], "offsetX": 0, "offsetY": 0, "durationMs": 650 }
+      ]
+    },
+    {
+      "id": "bug-watch",
+      "loops": 2,
+      "weights": { "focus": 7 },
+      "frames": [
+        { "patches": ["focusEyes", "bug"], "offsetY": 0, "durationMs": 820 },
+        { "patches": ["glanceRight", "bug"], "offsetY": 1, "durationMs": 630 },
+        { "patches": ["focusEyes", "bug"], "offsetY": 0, "durationMs": 970 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 140 }
+      ]
+    },
+    {
+      "id": "tiny-pounce",
+      "loops": 1,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["focusEyes", "bug"], "offsetY": 1, "durationMs": 680 },
+        { "patches": ["focusEyes", "tentacleRight"], "offsetX": 1, "offsetY": 0, "durationMs": 210 },
+        { "patches": ["happyEyes"], "offsetX": 2, "offsetY": 2, "durationMs": 240 },
+        { "patches": ["blink"], "offsetX": 1, "offsetY": 1, "durationMs": 340 },
+        { "patches": ["focusEyes"], "offsetX": 0, "offsetY": 0, "durationMs": 820 }
+      ]
+    },
+    {
+      "id": "contented",
+      "loops": 2,
+      "weights": { "rest": 5 },
+      "frames": [
+        { "patches": ["happyEyes", "note"], "offsetY": 0, "durationMs": 690 },
+        { "patches": ["happyEyes"], "offsetY": 1, "durationMs": 540 },
+        { "patches": ["happyEyes", "note"], "offsetY": 0, "durationMs": 610 }
+      ]
+    },
+    {
+      "id": "tentacle-knead",
+      "loops": 2,
+      "weights": { "rest": 4 },
+      "frames": [
+        { "patches": ["happyEyes", "tentacleLeft"], "offsetY": 1, "durationMs": 430 },
+        { "patches": ["happyEyes", "tentacleRight"], "offsetY": 0, "durationMs": 510 },
+        { "patches": ["happyEyes"], "offsetY": 1, "durationMs": 390 }
+      ]
+    },
+    {
+      "id": "eight-arm-party",
+      "loops": 4,
+      "weights": { "celebrate": 1 },
+      "frames": [
+        { "patches": ["happyEyes", "tentacleLeft", "sparkleLeft"], "offsetY": 0, "durationMs": 170 },
+        { "patches": ["happyEyes", "tentacleRight", "sparkleRight"], "offsetY": 2, "durationMs": 190 },
+        { "patches": ["happyEyes", "tentacleLeft", "tentacleRight", "sparkleLeft", "sparkleRight"], "offsetY": 0, "durationMs": 160 },
+        { "patches": ["happyEyes"], "offsetY": 2, "durationMs": 180 }
+      ]
+    },
+    {
+      "id": "catnap",
+      "loops": 3,
+      "weights": { "sleepy": 6 },
+      "frames": [
+        { "patches": ["blink", "zNear"], "offsetY": 1, "durationMs": 1200 },
+        { "patches": ["lookDown", "zNear", "zFar"], "offsetY": 1, "durationMs": 980 }
+      ]
+    },
+    {
+      "id": "deep-dream",
+      "loops": 2,
+      "weights": { "sleepy": 3 },
+      "frames": [
+        { "patches": ["lookDown", "tentacleLeft", "zNear"], "offsetY": 1, "durationMs": 1700 },
+        { "patches": ["blink", "tentacleRight", "zFar"], "offsetY": 2, "durationMs": 1300 },
+        { "patches": ["lookDown"], "offsetY": 1, "durationMs": 1100 }
+      ]
+    }
+  ]
+}

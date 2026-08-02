@@ -1,0 +1,160 @@
+{
+  "id": "coffee",
+  "name": "Café",
+  "label": "CAFÉ",
+  "hint": "Una taza que nunca deja enfriar el foco",
+  "size": 32,
+  "base": [
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "...........NN...................",
+    "..........NN..NN................",
+    "............NN..NN..............",
+    "...........NN..NN...............",
+    "..........NN..NN................",
+    "............NN..NN..............",
+    "...........NN..NN...............",
+    "................................",
+    "........oooooooooooooooo........",
+    ".......oonnnnnnnnnnnnnnoo.......",
+    ".......onkKKKKKKKKKKKkno........",
+    ".......onkKKKKKKKKKKKkno........",
+    ".......onnnnnnnnnnnnnnno........",
+    ".......obBBBBBBBBBBBBBbo........",
+    ".......obBBBBBBBBBBBBBboooo.....",
+    ".......obBBBBBBBBBBBBBbonnno....",
+    ".......obBBBBBBBBBBBBBboonnno...",
+    ".......obBBBBBBBBBBBBBboonnno...",
+    ".......obBBBBBBBBBBBBBboonnno...",
+    ".......obBBBBBBBBBBBBBboooo.....",
+    ".......obBBBBBBBBBBBBBbo........",
+    ".......obBBBBBBBBBBBBBbo........",
+    "........obbbbbbbbbbbbbo.........",
+    ".........oooooooooooooo.........",
+    "................................",
+    "......oooooooooooooooooooo......",
+    ".......onnnnnnnnnnnnnnnno.......",
+    "........oooooooooooooooo........"
+  ],
+  "patches": {
+    "steamLeft": { "x": 9, "y": 3, "rows": ["..aa..........", ".aa...........", "...aa.........", "....aa........", "..aa..........", ".aa...........", "...aa.........", "..aa.........."] },
+    "steamRight": { "x": 9, "y": 3, "rows": [".........aa...", "........aa....", "......aa......", ".......aa.....", ".........aa...", "........aa....", "......aa......", ".......aa....."] },
+    "steamBoth": { "x": 9, "y": 3, "rows": ["..aa.....aa...", ".aa.....aa....", "...aa.aa......", "....aa.aa.....", "..aa.....aa...", ".aa.....aa....", "...aa.aa......", "..aa.....aa..."] },
+    "strongSteam": { "x": 8, "y": 2, "rows": ["..AA......AA....", ".AA......AA.....", "...AA..AA.......", "....AAAA........", "..AA..AA........", ".AA....AA.......", "...AA..AA.......", "..AA....AA......", "....AA..AA......"] },
+    "clearSteam": { "x": 8, "y": 2, "rows": ["                ", "                ", "                ", "                ", "                ", "                ", "                ", "                ", "                "] },
+    "freshGlow": { "x": 9, "y": 14, "rows": ["aAAAAAAAAAAAAa", "aAAAAAAAAAAAAa"] },
+    "rimGlow": { "x": 8, "y": 12, "rows": ["oAAAAAAAAAAAAAAo", ".oaaaaaaaaaaaao."] },
+    "dimCup": { "x": 8, "y": 17, "rows": ["oddddddddddddddo", "oddddddddddddddo", "oddddddddddddddo", "oddddddddddddddo", "oddddddddddddddo", "oddddddddddddddo", "oddddddddddddddo", "oddddddddddddddo", ".oddddddddddddo."] },
+    "handleFlash": { "x": 23, "y": 18, "rows": ["oAAo", "oAAAo", "oAAAo", "oAAAo", "oAAAo", "oAAo"] },
+    "sparkleLeft": { "x": 2, "y": 15, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 27, "y": 12, "rows": [".a.", "aAa", ".a."] }
+  },
+  "behaviors": [
+    {
+      "id": "steam-drift",
+      "loops": 2,
+      "weights": { "idle": 7 },
+      "frames": [
+        { "patches": ["steamLeft"], "offsetY": 0, "durationMs": 720 },
+        { "patches": ["steamBoth"], "offsetY": 0, "durationMs": 540 },
+        { "patches": ["steamRight"], "offsetY": 0, "durationMs": 810 },
+        { "patches": [], "offsetY": 0, "durationMs": 650 }
+      ]
+    },
+    {
+      "id": "slow-brew",
+      "loops": 2,
+      "weights": { "idle": 5 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 1450 },
+        { "patches": ["steamLeft"], "offsetY": 1, "durationMs": 680 },
+        { "patches": ["steamRight"], "offsetY": 0, "durationMs": 920 }
+      ]
+    },
+    {
+      "id": "tiny-clink",
+      "loops": 1,
+      "weights": { "idle": 2 },
+      "frames": [
+        { "patches": ["steamBoth"], "offsetY": 0, "durationMs": 830 },
+        { "patches": ["handleFlash", "sparkleRight"], "offsetX": 1, "offsetY": 1, "durationMs": 140 },
+        { "patches": ["steamRight"], "offsetX": -1, "offsetY": 0, "durationMs": 170 },
+        { "patches": [], "offsetX": 0, "offsetY": 0, "durationMs": 790 }
+      ]
+    },
+    {
+      "id": "strong-brew",
+      "loops": 2,
+      "weights": { "focus": 7 },
+      "frames": [
+        { "patches": ["strongSteam"], "offsetY": 0, "durationMs": 620 },
+        { "patches": ["steamBoth"], "offsetY": 0, "durationMs": 510 },
+        { "patches": ["strongSteam"], "offsetY": 1, "durationMs": 680 },
+        { "patches": ["steamLeft"], "offsetY": 0, "durationMs": 430 }
+      ]
+    },
+    {
+      "id": "steady-steam",
+      "loops": 3,
+      "weights": { "focus": 4 },
+      "frames": [
+        { "patches": ["steamLeft"], "offsetY": 0, "durationMs": 760 },
+        { "patches": ["steamRight"], "offsetY": 0, "durationMs": 690 },
+        { "patches": ["steamBoth"], "offsetY": 0, "durationMs": 580 }
+      ]
+    },
+    {
+      "id": "fresh-pour",
+      "loops": 2,
+      "weights": { "rest": 7 },
+      "frames": [
+        { "patches": ["freshGlow", "strongSteam"], "offsetY": 0, "durationMs": 420 },
+        { "patches": ["freshGlow", "steamBoth"], "offsetY": 1, "durationMs": 610 },
+        { "patches": ["rimGlow", "steamLeft"], "offsetY": 0, "durationMs": 780 },
+        { "patches": ["steamRight"], "offsetY": 1, "durationMs": 920 }
+      ]
+    },
+    {
+      "id": "aroma",
+      "loops": 2,
+      "weights": { "rest": 4 },
+      "frames": [
+        { "patches": ["steamLeft"], "offsetY": 1, "durationMs": 850 },
+        { "patches": ["steamBoth", "rimGlow"], "offsetY": 0, "durationMs": 530 },
+        { "patches": ["steamRight"], "offsetY": 1, "durationMs": 740 }
+      ]
+    },
+    {
+      "id": "coffee-cheers",
+      "loops": 4,
+      "weights": { "celebrate": 1 },
+      "frames": [
+        { "patches": ["strongSteam", "sparkleLeft"], "offsetY": 0, "durationMs": 160 },
+        { "patches": ["handleFlash", "sparkleRight"], "offsetX": 1, "offsetY": 2, "durationMs": 180 },
+        { "patches": ["rimGlow", "sparkleLeft", "sparkleRight"], "offsetX": -1, "offsetY": 0, "durationMs": 170 },
+        { "patches": ["steamBoth"], "offsetX": 0, "offsetY": 2, "durationMs": 190 }
+      ]
+    },
+    {
+      "id": "cool-down",
+      "loops": 3,
+      "weights": { "sleepy": 6 },
+      "frames": [
+        { "patches": ["dimCup", "steamLeft"], "offsetY": 1, "durationMs": 1500 },
+        { "patches": ["dimCup", "steamRight"], "offsetY": 1, "durationMs": 1350 }
+      ]
+    },
+    {
+      "id": "cold-cup",
+      "loops": 2,
+      "weights": { "sleepy": 3 },
+      "frames": [
+        { "patches": ["dimCup", "clearSteam"], "offsetY": 2, "durationMs": 1900 },
+        { "patches": ["dimCup", "steamLeft"], "offsetY": 1, "durationMs": 920 },
+        { "patches": ["dimCup", "clearSteam"], "offsetY": 2, "durationMs": 1600 }
+      ]
+    }
+  ]
+}

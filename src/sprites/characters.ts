@@ -11,9 +11,12 @@
 
 import type { SpriteGrid, SpritePatch } from "./types";
 import type { Behavior } from "./behaviors";
+import bug from "./characters/bug.json";
+import coffee from "./characters/coffee.json";
 import duck from "./characters/duck.json";
 import ninja from "./characters/ninja.json";
 import spark from "./characters/spark.json";
+import tentacat from "./characters/tentacat.json";
 import terminal from "./characters/terminal.json";
 
 /** How the mascot is feeling. Drives which behaviours it can pick from. */
@@ -50,7 +53,15 @@ export interface Character {
   readonly behaviors: readonly Behavior[];
 }
 
-export const CHARACTERS: readonly Character[] = parseRegistry([duck, ninja, terminal, spark]);
+export const CHARACTERS: readonly Character[] = parseRegistry([
+  duck,
+  ninja,
+  terminal,
+  spark,
+  tentacat,
+  bug,
+  coffee,
+]);
 
 export function parseRegistry(raw: readonly unknown[]): readonly Character[] {
   const characters = raw.map((entry) => parseCharacter(entry));
