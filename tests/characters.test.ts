@@ -36,6 +36,15 @@ describe("the registry", () => {
     expect(getCharacter(DEFAULT_CHARACTER_ID).id).toBe("duck");
   });
 
+  it("bundles the three phase 15 characters", () => {
+    expect(CHARACTERS.map((character) => character.id)).toEqual(
+      expect.arrayContaining(["tentacat", "bug", "coffee"]),
+    );
+    expect(getCharacter("tentacat").name).toBe("Gato pulpo");
+    expect(getCharacter("bug").name).toBe("Bicho");
+    expect(getCharacter("coffee").name).toBe("Café");
+  });
+
   it("has unique ids and unique labels", () => {
     const ids = CHARACTERS.map((character) => character.id);
     const labels = CHARACTERS.map((character) => character.label);

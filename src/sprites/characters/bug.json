@@ -1,0 +1,170 @@
+{
+  "id": "bug",
+  "name": "Bicho",
+  "label": "BUG",
+  "hint": "El bug que sí querés encontrar",
+  "size": 32,
+  "base": [
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "...........aa........aa.........",
+    "............aa......aa..........",
+    ".............aa....aa...........",
+    "..............oooo..............",
+    "...........ooAAAAAAoo...........",
+    ".........ooAAAAAAAAAAoo.........",
+    "........oAAAAwwwwAAAAo..........",
+    "........oAAAweewwAAAAo..........",
+    ".......ooAAAAAAAAAAAAoo.........",
+    "......oAAAANAAAAANAAAAAo........",
+    ".....ooAAAAAAAAAAAAAAAAoo.......",
+    ".....oAAAAAAooAAAAAAAAAo........",
+    "...oooAAAAAooAAAAAAAooo.........",
+    ".....oAAAAAAAAAAAAAAAAAAo.......",
+    "....ooAAAAAANNNNAAAAAAAoo.......",
+    ".....oAAAAAAAAAAAAAAAAAAo.......",
+    ".....ooAAAAAAAAAAAAAAAAoo.......",
+    ".......oAAAooooAAAAo............",
+    "....oooAAAooooAAAooo............",
+    "...oo..oo......oo..oo...........",
+    "..oo....oo....oo....oo..........",
+    ".oo......oo..oo......oo.........",
+    "oo........oooo........oo........",
+    "................................",
+    "................................",
+    "................................"
+  ],
+  "patches": {
+    "blink": { "x": 13, "y": 12, "rows": ["AAAA", "oooo"] },
+    "focusEyes": { "x": 13, "y": 12, "rows": ["eeee", "wwww"] },
+    "happyEyes": { "x": 13, "y": 12, "rows": ["oooo", "AAAA"] },
+    "antennaLeft": { "x": 10, "y": 5, "rows": ["aa", ".aa", "..aa", "...a"] },
+    "antennaRight": { "x": 20, "y": 5, "rows": ["aa", "aa.", "aa..", "a..."] },
+    "shellGlow": { "x": 10, "y": 15, "rows": ["AAAABAAAA", "AAABAAAAB", "AABBAAAAA"] },
+    "wingsOpen": { "x": 4, "y": 16, "rows": ["BB.........BB", ".BBB.....BBB.", "..BB.....BB.."] },
+    "legsA": { "x": 0, "y": 25, "rows": ["..oo..oo......oo..oo..", ".oo....oo....oo....oo.", "oo......oo..oo......oo", "o.........oo.........o"] },
+    "legsB": { "x": 0, "y": 25, "rows": ["oo......oo..oo......oo", ".oo....oo....oo....oo.", "..oo..oo......oo..oo..", "...oo..........oo..."] },
+    "tinyTool": { "x": 24, "y": 13, "rows": [".bb", "bBb", ".bb", ".bb", "bb."] },
+    "zNear": { "x": 24, "y": 10, "rows": ["aaa", ".a.", "aaa"] },
+    "zFar": { "x": 27, "y": 5, "rows": ["aaa", ".a.", "aaa"] },
+    "sparkleLeft": { "x": 2, "y": 11, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 27, "y": 17, "rows": [".a.", "aAa", ".a."] }
+  },
+  "behaviors": [
+    {
+      "id": "feelers",
+      "loops": 2,
+      "weights": { "idle": 6 },
+      "frames": [
+        { "patches": ["antennaLeft"], "offsetY": 0, "durationMs": 510 },
+        { "patches": [], "offsetY": 1, "durationMs": 430 },
+        { "patches": ["antennaRight"], "offsetY": 0, "durationMs": 570 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 130 }
+      ]
+    },
+    {
+      "id": "shell-breathe",
+      "loops": 2,
+      "weights": { "idle": 5, "rest": 2 },
+      "frames": [
+        { "patches": [], "offsetY": 0, "durationMs": 1350 },
+        { "patches": ["shellGlow"], "offsetY": 1, "durationMs": 360 },
+        { "patches": [], "offsetY": 1, "durationMs": 1120 },
+        { "patches": ["blink"], "offsetY": 0, "durationMs": 120 }
+      ]
+    },
+    {
+      "id": "six-leg-skitter",
+      "loops": 1,
+      "weights": { "idle": 3 },
+      "frames": [
+        { "patches": ["legsA"], "offsetX": 1, "offsetY": 0, "durationMs": 170 },
+        { "patches": ["legsB"], "offsetX": 2, "offsetY": 1, "durationMs": 150 },
+        { "patches": ["legsA"], "offsetX": 3, "offsetY": 0, "durationMs": 180 },
+        { "patches": ["antennaRight"], "offsetX": 3, "offsetY": 1, "durationMs": 520 },
+        { "patches": ["legsB"], "offsetX": 2, "offsetY": 0, "durationMs": 160 },
+        { "patches": ["legsA"], "offsetX": 1, "offsetY": 1, "durationMs": 190 },
+        { "patches": [], "offsetX": 0, "offsetY": 0, "durationMs": 610 }
+      ]
+    },
+    {
+      "id": "inspect",
+      "loops": 2,
+      "weights": { "focus": 7 },
+      "frames": [
+        { "patches": ["focusEyes", "tinyTool"], "offsetY": 0, "durationMs": 720 },
+        { "patches": ["shellGlow", "tinyTool"], "offsetY": 1, "durationMs": 480 },
+        { "patches": ["focusEyes", "tinyTool"], "offsetY": 0, "durationMs": 830 },
+        { "patches": ["blink"], "offsetY": 1, "durationMs": 120 }
+      ]
+    },
+    {
+      "id": "debug-dash",
+      "loops": 1,
+      "weights": { "focus": 3 },
+      "frames": [
+        { "patches": ["focusEyes", "legsA"], "offsetX": -1, "offsetY": 0, "durationMs": 150 },
+        { "patches": ["focusEyes", "legsB"], "offsetX": -2, "offsetY": 1, "durationMs": 170 },
+        { "patches": ["shellGlow"], "offsetX": -3, "offsetY": 0, "durationMs": 220 },
+        { "patches": ["tinyTool"], "offsetX": -2, "offsetY": 1, "durationMs": 310 },
+        { "patches": ["legsA"], "offsetX": -1, "offsetY": 0, "durationMs": 180 },
+        { "patches": ["focusEyes"], "offsetX": 0, "offsetY": 1, "durationMs": 690 }
+      ]
+    },
+    {
+      "id": "wing-stretch",
+      "loops": 2,
+      "weights": { "rest": 6 },
+      "frames": [
+        { "patches": [], "offsetY": 1, "durationMs": 760 },
+        { "patches": ["wingsOpen"], "offsetY": 0, "durationMs": 430 },
+        { "patches": ["wingsOpen", "happyEyes"], "offsetY": 0, "durationMs": 620 },
+        { "patches": ["happyEyes"], "offsetY": 1, "durationMs": 880 }
+      ]
+    },
+    {
+      "id": "antenna-reset",
+      "loops": 1,
+      "weights": { "rest": 3 },
+      "frames": [
+        { "patches": ["happyEyes", "antennaLeft"], "offsetY": 0, "durationMs": 540 },
+        { "patches": ["happyEyes", "antennaRight"], "offsetY": 1, "durationMs": 610 },
+        { "patches": ["happyEyes"], "offsetY": 0, "durationMs": 930 }
+      ]
+    },
+    {
+      "id": "victory-buzz",
+      "loops": 4,
+      "weights": { "celebrate": 1 },
+      "frames": [
+        { "patches": ["wingsOpen", "sparkleLeft"], "offsetY": 0, "durationMs": 150 },
+        { "patches": ["happyEyes", "sparkleRight"], "offsetY": 2, "durationMs": 180 },
+        { "patches": ["wingsOpen", "sparkleLeft", "sparkleRight"], "offsetY": 0, "durationMs": 160 },
+        { "patches": ["happyEyes"], "offsetY": 2, "durationMs": 190 }
+      ]
+    },
+    {
+      "id": "tuck-in",
+      "loops": 3,
+      "weights": { "sleepy": 6 },
+      "frames": [
+        { "patches": ["blink", "zNear"], "offsetY": 1, "durationMs": 1250 },
+        { "patches": ["blink", "legsB", "zNear", "zFar"], "offsetY": 2, "durationMs": 1050 }
+      ]
+    },
+    {
+      "id": "low-power",
+      "loops": 2,
+      "weights": { "sleepy": 3 },
+      "frames": [
+        { "patches": ["blink", "antennaLeft"], "offsetY": 2, "durationMs": 1700 },
+        { "patches": ["blink", "antennaRight", "zNear"], "offsetY": 1, "durationMs": 1300 },
+        { "patches": ["blink"], "offsetY": 2, "durationMs": 1100 }
+      ]
+    }
+  ]
+}
