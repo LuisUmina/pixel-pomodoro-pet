@@ -1,4 +1,9 @@
-# Briefs para sub-agentes — Fases 10-18
+# Briefs para sub-agentes — fases pendientes (11, 12, 14, 16, 17, 18)
+
+Las fases 10, 13 y 15 ya se implementaron, auditaron y mergearon a `main` —
+sus briefs se sacaron de este archivo. El detalle de cómo quedaron (incluidos
+dos bugs reales que la auditoría encontró y ya se corrigieron) está en
+`docs/ROADMAP.md`.
 
 ## Preámbulo (pegar antes de CADA fase, a cada sub-agente)
 
@@ -33,22 +38,8 @@ Flujo esperado:
 
 ---
 
-## Fase 10 — Legibilidad de la burbuja de diálogo
-**Costo: S · Sin dependencias · Sin conflicto de archivos con otras fases**
-
-- Subí el `font-size` de `.bubble__text` en `src/ui/styles.css` (hoy 10px) a
-  12-13px, y ajustá `min-height`/padding para que no quede apretado.
-- Si algún texto de `src/messages/catalog.json` deja de entrar en dos líneas
-  al nuevo tamaño, achicá ese texto puntual.
-- No toques `.task-item__text` (10px) — eso ya se resolvió aparte con un
-  `title` en hover.
-- Listo cuando: se ve bien en una captura nativa con un mensaje largo del
-  catálogo.
-
----
-
 ## Fase 11 — Exportar e importar datos
-**Costo: S/M · Sin dependencias · Comparte `settings-panel.ts` con 12, 13, 14**
+**Costo: S/M · Sin dependencias · Comparte `settings-panel.ts` con 12, 14**
 
 - Botón en ajustes: volcar historial + tareas + preferencias a un `.json`
   (diálogo de guardado nativo), y otro para cargar uno de vuelta.
@@ -65,7 +56,7 @@ Flujo esperado:
 
 ## Fase 12 — Recordatorios propios
 **Costo: S/M · Depende de la fase 2 (ya hecha) · Comparte `settings-panel.ts`
-y `store/preferences.ts` con 11, 13, 14**
+y `store/preferences.ts` con 11, 14**
 
 - Recordatorio con texto libre + cadencia + fase de anclaje (focus/descanso),
   con su propia pantalla de edición en ajustes — separado de los packs con
@@ -76,24 +67,9 @@ y `store/preferences.ts` con 11, 13, 14**
 
 ---
 
-## Fase 13 — Atajos configurables
-**Costo: M · Sin dependencias · Comparte `settings-panel.ts` y
-`store/preferences.ts` con 11, 12, 14**
-
-- UI en ajustes para reasignar los atajos existentes (`Ctrl+Alt+G/H/Z`), con
-  detección de conflictos entre ellos.
-- Riesgo real: re-registrar shortcuts de Tauri en caliente sin dejar el atajo
-  viejo "fantasma" si la reasignación falla. Diseñá un flujo de "probar y
-  confirmar" antes de persistir el cambio.
-- No asumas que un atajo que se registra sin error dispara de verdad (ya hubo
-  un caso así por un hook externo) — no hace falta resolverlo, pero el flujo
-  de reasignación no debe asumir éxito silencioso.
-
----
-
 ## Fase 14 — Vista previa animada y temas de color nuevos
 **Costo: S/M · Depende de la fase 4 (ya hecha) · Comparte `settings-panel.ts`
-con 11, 12, 13**
+con 11, 12**
 
 - El selector de personajes en ajustes muestra un loop animado en miniatura
   en vez de solo el nombre.
@@ -101,25 +77,6 @@ con 11, 12, 13**
   puro en `themes.ts`, sin lógica nueva).
 - Cuidado con instanciar un canvas de más por cada personaje listado —
   pensá el costo de render si son varios a la vez.
-
----
-
-## Fase 15 — Tres personajes nuevos
-**Costo: L · Depende de la fase 4 (ya hecha) · Sin conflicto de archivos con
-otras fases (carpetas nuevas)**
-
-Tres personajes nuevos en `src/sprites/characters/`, cada uno con su grilla,
-sus parches por estado (`idle/focus/rest/celebrate/sleepy`) y pasando el
-validador de contrato que ya existe:
-
-1. **Inspirado en el Octocat de GitHub** — NO reproducir el logo real (es
-   marca registrada); versión propia "inspirada en" (gato-pulpo genérico),
-   familia *criatura*.
-2. **Bicho (bug)** — familia *criatura*, más chico, andar propio.
-3. **Taza de café humeante** — familia *emblema* (efectos, no anatomía):
-   vapor animado, tintineo ocasional.
-
-No toques el motor de sprites/parches — el contrato ya soporta esto.
 
 ---
 

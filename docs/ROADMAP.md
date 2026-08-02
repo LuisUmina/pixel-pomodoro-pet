@@ -7,9 +7,9 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9 y 13 terminadas.** Fases 10–12, 14–18
-planeadas y aprobadas, a la espera de que se defina el orden de arranque. La
-fase 8 sigue en pausa.
+**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 13 y 15 terminadas.** Fases
+11, 12, 14, 16, 17 y 18 planeadas y aprobadas, a la espera de que se defina el
+orden de arranque. La fase 8 sigue en pausa.
 
 ---
 
@@ -26,22 +26,22 @@ fase 8 sigue en pausa.
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) ✅ | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) ✅ | XL | — |
-| 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) | S | — |
+| 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) ✅ | S | — |
 | 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) | S/M | — |
 | 12 | [Recordatorios propios](#fase-12--recordatorios-propios) | S/M | 2 |
 | 13 | [Atajos configurables](#fase-13--atajos-configurables) ✅ | M | — |
 | 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
-| 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) | L | 4 |
+| 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) ✅ | L | 4 |
 | 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) | M | 3 |
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
 
-**Siguiente recomendada:** sin definir todavía — las fases 10 a 18 fueron
-aprobadas como bloque, pero el orden de arranque queda a criterio propio.
-Ninguna depende de la 8, que sigue en pausa por decisión propia: sus
-dependencias (3 y 5) están resueltas, pero el riesgo que el roadmap siempre le
-marcó — mover la ventana del SO en tiempo real, multi-monitor y DPI distinto —
-sigue en pie.
+**Siguiente recomendada:** sin definir todavía entre las que quedan (11, 12,
+14, 16, 17, 18) — el orden de arranque queda a criterio propio. Ninguna
+depende de la 8, que sigue en pausa por decisión propia: sus dependencias (3
+y 5) están resueltas, pero el riesgo que el roadmap siempre le marcó — mover
+la ventana del SO en tiempo real, multi-monitor y DPI distinto — sigue en
+pie.
 
 ---
 
@@ -672,18 +672,23 @@ nuevo, `main.ts`, `widget.ts`.
 
 ---
 
-## Fase 10 — Legibilidad de la burbuja de diálogo
+## Fase 10 — Legibilidad de la burbuja de diálogo ✅
 
-**Costo: S · Sin dependencias**
+**Terminada · Costo: S**
 
-La burbuja usa el mismo `font-size: 10px` que resultó imperceptible en el
-panel de tareas. Subir el tamaño de fuente (10px → 12-13px) y ajustar el
-`min-height`/padding de `.bubble__text` para que el texto no quede apretado.
-Puede exigir revisar el largo máximo de las frases del catálogo si alguna
-deja de entrar en dos renglones al tamaño nuevo.
+`.bubble__text` subió de 10px a 13px, con `line-height`, padding y
+`min-height` ajustados en proporción. Ningún texto del catálogo necesitó
+acortarse: el mensaje más largo (58 caracteres) se verificó contra el ancho
+real de la burbuja en una corrida de DOM en vivo y sigue entrando en dos
+líneas.
 
-**Toca:** `src/ui/styles.css`, posible ajuste puntual en
-`src/messages/catalog.json`.
+Una observación que quedó documentada en el commit: el mismo chequeo contra
+`main` mostró que la burbuja ya excedía su propio `min-height` para los
+mensajes más largos *antes* de este cambio — no es una regresión de esta
+fase, es una característica preexistente del catálogo que sigue igual de
+presente (en la misma proporción) con la fuente más grande.
+
+**Toca:** `src/ui/styles.css`.
 
 ---
 
@@ -740,6 +745,22 @@ Detalles de implementación y cómo quedó frente al plan:
   valida la integridad del mapa de atajos y cae a `DEFAULT_SHORTCUTS` si encuentra
   datos malformados o duplicados.
 
+**Dos bugs reales, encontrados en auditoría y ya corregidos:**
+
+- **El arranque era "todo o nada".** La primera versión registraba los 6
+  atajos por defecto llamando al mismo `update_shortcuts` transaccional que
+  usa una reasignación manual: si el sistema operativo rechazaba uno solo (el
+  caso real que ya vivió `Ctrl+Alt+M` en la fase 5), el rollback dejaba la
+  app **sin ningún atajo global**, no solo el que chocaba. Arreglado
+  devolviendo el registro inicial a intentar cada atajo por separado — la
+  transacción con rollback quedó exclusivamente para cuando el usuario
+  reasigna algo a mano desde ajustes, que es donde sí corresponde.
+- **Captura de atajos disparaba una llamada por cada tecla.** Mientras se
+  mantenían solo los modificadores (`Ctrl`, luego `Ctrl+Alt`) ya se intentaba
+  aplicar el cambio. Arreglado con `hasPrimaryKey()`: no se aplica hasta que
+  la combinación tenga una tecla real, y si el campo pierde el foco a medio
+  capturar, vuelve solo al valor guardado.
+
 **Toca:** `src/core/shortcuts.ts` (nuevo, puro), `tests/shortcuts.test.ts` (nuevo),
 `src-tauri/src/shortcuts.rs`, `src-tauri/src/lib.rs`, `src/platform/desktop.ts`,
 `src/store/preferences.ts`, `settings-panel.ts`, `styles.css`, `index.html`.
@@ -759,25 +780,32 @@ adicional para la miniatura.
 
 ---
 
-## Fase 15 — Tres personajes nuevos
+## Fase 15 — Tres personajes nuevos ✅
 
-**Costo: L · Depende de la fase 4**
+**Terminada · Costo: L**
 
-- **Inspirado en el Octocat de GitHub** — no el logo real (es marca
-  registrada de GitHub), sino una versión propia "inspirada en", igual que se
-  hizo con terminal y chispa: un gato-pulpo genérico, familia *criatura*
-  (parpadeo, caminata, expresión).
-- **Bicho (bug)** — guiño a "debuggear", familia *criatura*, más pequeño y
-  con andar distinto (patas, antenas).
-- **Taza de café humeante** — familia *emblema*, efectos en vez de anatomía:
-  vapor animado, un salto/tintineo ocasional, un brillo distinto recién
-  empieza un descanso.
+Tres personajes entregados tal como se planeó, registrados en
+`characters.ts` vía imports explícitos (el registro no auto-descubre
+carpetas, así que sumar uno sigue siendo tocar esa lista, no soltar un
+archivo suelto — una diferencia menor con la fase 4 original que quedó
+documentada en el commit en vez de improvisada):
 
-El costo real es el arte, no el motor: cada personaje necesita su grilla, sus
-parches por estado y pasar el validador de contrato que ya existe.
+- **`tentacat`** ("Gato pulpo") — inspirado en el Octocat de GitHub sin
+  reproducir el logo real, familia *criatura*.
+- **`bug`** ("Bicho") — guiño a "debuggear", familia *criatura*, seis patas
+  y antenas propias.
+- **`coffee`** ("Café") — familia *emblema*: vapor animado que se enfría y
+  se apaga en el estado `sleepy`, igual que la chispa se vuelve brasa.
 
-**Toca:** `src/sprites/characters/` (tres carpetas nuevas), sin tocar el
-motor.
+**Un bug real, encontrado en auditoría y ya corregido:** la fila de
+personajes en ajustes no tenía `flex-wrap`, así que al pasar de 4 a 7 chips
+el último (`CAFÉ`) quedaba fuera del panel visible — alcanzable solo con
+scroll horizontal, que nada indicaba. Arreglado agregando `flex-wrap: wrap`
+a `.chips`; confirmado que las demás filas de chips (que sí entran en una
+línea) no cambiaron.
+
+**Toca:** `src/sprites/characters/` (tres archivos nuevos), `characters.ts`,
+`src/ui/styles.css`.
 
 ---
 

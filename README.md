@@ -54,12 +54,14 @@ silueta y el reloj — el resto vuelve al pasar el mouse:
   casi siempre respira, a veces mira de reojo, de vez en cuando algo le llama
   la atención arriba y cada tanto se pasea un par de píxeles sin motivo. Se
   concentra en focus, tararea en el descanso y se duerme en pausa.
-- **Cuatro personajes intercambiables** desde ajustes: el pato, un ninja, una
-  terminal CRT y una chispa. Los dos últimos son otra familia — un logo no
-  puede parpadear ni caminar sin verse mal, así que animan *efectos*: la
-  terminal parpadea su cursor, se tipea sola y entra en standby; la chispa
-  pulsa el núcleo, pasea un brillo por sus rayos y queda en brasa al pausar.
-  Cambiar de tema repinta a los cuatro.
+- **Siete personajes intercambiables** desde ajustes, repartidos en dos
+  familias. *Criaturas* — el pato, un ninja, un gato pulpo y un bicho — con
+  cuerpo, parpadeo y andar propios. *Emblemas* — una terminal CRT, una chispa
+  y una taza de café — que no pueden parpadear ni caminar sin verse mal, así
+  que animan *efectos* en su lugar: la terminal parpadea su cursor y se
+  tipea sola y entra en standby; la chispa pulsa el núcleo, pasea un brillo
+  por sus rayos y queda en brasa al pausar; la taza suelta vapor que se
+  enfría al pausar. Cambiar de tema repinta a los siete.
 - **El pato habla**: comenta al arrancar, al cerrar una sesión, al entrar al
   descanso y de vez en cuando por su cuenta. Cuatro voces —`DEV` con humor
   seco, `HYPE` motivacional, `PLAIN` solo lo funcional y `OFF` para callarlo—
@@ -119,6 +121,10 @@ silueta y el reloj — el resto vuelve al pasar el mouse:
   pomodoros del día.
 
 ## Atajos
+
+Todos son reasignables desde ajustes → shortcuts, con detección de
+conflictos entre ellos y sin dejar un atajo fantasma si el sistema operativo
+rechaza el nuevo. La tabla muestra los valores por defecto.
 
 | Atajo | Acción |
 | --- | --- |

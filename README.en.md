@@ -56,12 +56,14 @@ hover:
   occasionally something catches its eye up above, and every so often it
   wanders a couple of pixels for no reason. It focuses during focus, hums
   during breaks, and falls asleep when paused.
-- **Four swappable characters** from settings: the duck, a ninja, a CRT
-  terminal, and a spark. The last two are a different family — a logo can't
-  blink or walk without looking broken, so they animate *effects* instead:
-  the terminal blinks its cursor, types itself out and enters standby; the
-  spark pulses its core, runs a glow along its rays, and settles into an
-  ember when paused. Switching themes repaints all four.
+- **Seven swappable characters** from settings, split across two families.
+  *Creatures* — the duck, a ninja, a cat-octopus and a bug — with their own
+  body, blink and walk. *Emblems* — a CRT terminal, a spark and a steaming
+  coffee mug — that can't blink or walk without looking broken, so they
+  animate *effects* instead: the terminal blinks its cursor, types itself
+  out and enters standby; the spark pulses its core, runs a glow along its
+  rays, and settles into an ember when paused; the mug lets off steam that
+  cools down when paused. Switching themes repaints all seven.
 - **The duck talks**: it comments when you start, when you close a session,
   when you enter a break, and every so often on its own. Four voices —`DEV`
   with dry humor, `HYPE` for encouragement, `PLAIN` for just the facts, and
@@ -122,6 +124,10 @@ hover:
   and today's pomodoros.
 
 ## Hotkeys
+
+All of them can be reassigned from settings → shortcuts, with conflict
+detection between them and no ghost binding left behind if the OS rejects
+the new one. The table below shows the defaults.
 
 | Hotkey | Action |
 | --- | --- |
