@@ -42,6 +42,8 @@ export interface WidgetActions {
   toggleTaskDone(id: string): void;
   removeTask(id: string): void;
   restoreDefaults(): void;
+  exportData(): void;
+  importData(): void;
   /** Fired only when the history panel opens — closing needs no fresh data. */
   viewHistory(): HistoryModel;
   /**
@@ -151,6 +153,8 @@ export class Widget {
       changeDimOpacity: (value) => actions.changeDimOpacity(value),
       changeDailyGoal: (value) => actions.changeDailyGoal(value),
       restoreDefaults: () => actions.restoreDefaults(),
+      exportData: () => actions.exportData(),
+      importData: () => actions.importData(),
     });
 
     this.#history = new HistoryPanel();

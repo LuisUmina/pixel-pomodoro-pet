@@ -20,6 +20,8 @@ export interface DesktopBridge {
   updateShortcuts(shortcuts: Record<string, string>): Promise<{ success: boolean; error?: string }>;
   notify(title: string, body: string): void;
   hide(): void;
+  exportBackup(jsonContent: string): Promise<boolean>;
+  importBackup(): Promise<string | null>;
 }
 
 const runningInTauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -30,6 +32,8 @@ function createTauriBridge(): DesktopBridge {
   const event = import("@tauri-apps/api/event");
   const currentWindow = import("@tauri-apps/api/window");
   const notification = import("@tauri-apps/plugin-notification");
+  const dialog = import("@tauri-apps/plugin-dialog");
+  const fs = import("@tauri-apps/plugin-fs");
 
   let notificationsAllowed: Promise<boolean> | null = null;
 
@@ -85,6 +89,45 @@ function createTauriBridge(): DesktopBridge {
     hide() {
       void currentWindow.then((api) => api.getCurrentWindow().hide());
     },
+
+    async exportBackup(jsonContent) {
+      try {
+        const dialogApi = await dialog;
+        const fsApi = await fs;
+        const filePath = await dialogApi.save({
+          defaultPath: "pixel-pomodoro-pet-backup.json",
+          filters: [{ name: "JSON", extensions: ["json"] }],
+        });
+
+        if (filePath && typeof filePath === "string") {
+          await fsApi.writeTextFile(filePath, jsonContent);
+          return true;
+        }
+        return false;
+      } catch (err) {
+        console.error("Export backup failed", err);
+        return false;
+      }
+    },
+
+    async importBackup() {
+      try {
+        const dialogApi = await dialog;
+        const fsApi = await fs;
+        const filePath = await dialogApi.open({
+          multiple: false,
+          filters: [{ name: "JSON", extensions: ["json"] }],
+        });
+
+        if (filePath && typeof filePath === "string") {
+          return await fsApi.readTextFile(filePath);
+        }
+        return null;
+      } catch (err) {
+        console.error("Import backup failed", err);
+        return null;
+      }
+    },
   };
 }
 
@@ -102,6 +145,41 @@ function createBrowserBridge(): DesktopBridge {
       console.info(`[notification] ${title} — ${body}`);
     },
     hide() {},
+    async exportBackup(jsonContent) {
+      try {
+        const blob = new Blob([jsonContent], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "pixel-pomodoro-pet-backup.json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    async importBackup() {
+      return new Promise<string | null>((resolve) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".json";
+        input.onchange = () => {
+          const file = input.files?.[0];
+          if (!file) {
+            resolve(null);
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => resolve(null);
+          reader.readAsText(file);
+        };
+        input.click();
+      });
+    },
   };
 }
 
