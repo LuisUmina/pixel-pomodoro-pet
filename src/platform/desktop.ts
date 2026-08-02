@@ -16,6 +16,8 @@ export interface DesktopBridge {
   setScale(scale: number): void;
   /** Resizes the native window to an exact size, keeping its centre fixed. */
   resizeKeepCenter(width: number, height: number): void;
+  /** Re-registers global hotkeys in the native shell. */
+  updateShortcuts(shortcuts: Record<string, string>): Promise<{ success: boolean; error?: string }>;
   notify(title: string, body: string): void;
   hide(): void;
 }
@@ -62,6 +64,16 @@ function createTauriBridge(): DesktopBridge {
       void core.then((api) => api.invoke("resize_keep_center", { width, height }));
     },
 
+    async updateShortcuts(shortcuts) {
+      const api = await core;
+      try {
+        await api.invoke("update_shortcuts", { shortcuts });
+        return { success: true };
+      } catch (err: unknown) {
+        return { success: false, error: String(err) };
+      }
+    },
+
     notify(title, body) {
       void (async () => {
         if (await canNotify()) {
@@ -83,6 +95,9 @@ function createBrowserBridge(): DesktopBridge {
     setClickThrough() {},
     setScale() {},
     resizeKeepCenter() {},
+    updateShortcuts() {
+      return Promise.resolve({ success: true });
+    },
     notify(title, body) {
       console.info(`[notification] ${title} — ${body}`);
     },

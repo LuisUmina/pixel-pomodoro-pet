@@ -7,6 +7,14 @@ import { REMINDER_PACKS } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
 import { CHARACTERS } from "../sprites/characters";
+import {
+  SHORTCUT_DEFINITIONS,
+  findShortcutConflicts,
+  hasPrimaryKey,
+  normalizeShortcut,
+  type ShortcutAction,
+  type ShortcutMap,
+} from "../core/shortcuts";
 import { element } from "./dom";
 
 export interface SettingsPanelActions {
@@ -14,6 +22,7 @@ export interface SettingsPanelActions {
   changeScale(scale: number): void;
   changeVoice(voice: Voice): void;
   changeReminder(id: string, enabled: boolean): void;
+  changeShortcuts(shortcuts: ShortcutMap): Promise<{ success: boolean; error?: string }>;
   /** Minutes of silence from now; 0 turns it back off. */
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
@@ -31,6 +40,7 @@ export interface SettingsModel {
   readonly uiScale: number;
   readonly voice: Voice;
   readonly reminders: Readonly<Record<string, boolean>>;
+  readonly shortcuts: ShortcutMap;
   readonly quietMinutesLeft: number;
   readonly characterId: string;
   readonly miniMode: boolean;
@@ -78,6 +88,8 @@ export class SettingsPanel {
   readonly #sizes: HTMLElement;
   readonly #voices: HTMLElement;
   readonly #reminders: HTMLElement;
+  readonly #shortcuts: HTMLElement;
+  readonly #shortcutsError: HTMLElement;
   readonly #quiet: HTMLElement;
   readonly #pets: HTMLElement;
   readonly #dims: HTMLElement;
@@ -86,6 +98,7 @@ export class SettingsPanel {
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
   readonly #reminderBoxes = new Map<string, HTMLInputElement>();
+  readonly #shortcutInputs = new Map<ShortcutAction, HTMLInputElement>();
   readonly #quietButtons = new Map<number, HTMLButtonElement>();
   readonly #petButtons = new Map<string, HTMLButtonElement>();
   readonly #dimButtons = new Map<number, HTMLButtonElement>();
@@ -93,6 +106,7 @@ export class SettingsPanel {
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
+  #lastShortcuts: ShortcutMap | null = null;
 
   constructor(private readonly actions: SettingsPanelActions) {
     this.#root = element("settings");
@@ -106,6 +120,8 @@ export class SettingsPanel {
     this.#sizes = element("set-sizes");
     this.#voices = element("set-voice");
     this.#reminders = element("set-reminders");
+    this.#shortcuts = element("set-shortcuts");
+    this.#shortcutsError = element("set-shortcuts-error");
     this.#quiet = element("set-quiet");
     this.#pets = element("set-pet");
     this.#dims = element("set-dim");
@@ -132,6 +148,7 @@ export class SettingsPanel {
     this.#buildSizeButtons();
     this.#buildVoiceButtons();
     this.#buildReminderRows();
+    this.#buildShortcutRows();
     this.#buildQuietButtons();
     this.#buildPetButtons();
     this.#buildDimButtons();
@@ -165,6 +182,7 @@ export class SettingsPanel {
   render(model: SettingsModel): void {
     this.#settings = model.settings;
     this.#scale = model.uiScale;
+    this.#lastShortcuts = model.shortcuts;
     this.#writeSettings();
 
     for (const [preset, button] of this.#sizeButtons) {
@@ -181,6 +199,14 @@ export class SettingsPanel {
       // none of them; saying so beats letting the switches look live.
       box.disabled = model.voice === "off";
     }
+
+    for (const [id, input] of this.#shortcutInputs) {
+      if (document.activeElement !== input) {
+        input.value = model.shortcuts[id] ?? "";
+        input.classList.remove("shortcut__input--error");
+      }
+    }
+    this.#shortcutsError.hidden = true;
 
     const active = activeQuietPreset(model.quietMinutesLeft);
     for (const [preset, button] of this.#quietButtons) {
@@ -285,6 +311,118 @@ export class SettingsPanel {
       row.append(box, label, when);
       this.#reminderBoxes.set(pack.id, box);
       this.#reminders.append(row);
+    }
+  }
+
+  #buildShortcutRows(): void {
+    for (const def of SHORTCUT_DEFINITIONS) {
+      const row = document.createElement("div");
+      row.className = "shortcut-row";
+
+      const label = document.createElement("span");
+      label.className = "shortcut__label";
+      label.textContent = def.label;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "shortcut__input";
+      input.spellcheck = false;
+      input.autocomplete = "off";
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Tab" || e.key === "Escape") {
+          return;
+        }
+        e.preventDefault();
+
+        const modifiers: string[] = [];
+        if (e.ctrlKey) modifiers.push("Ctrl");
+        if (e.altKey) modifiers.push("Alt");
+        if (e.shiftKey) modifiers.push("Shift");
+        if (e.metaKey) modifiers.push("Super");
+
+        let key = "";
+        const rawKey = e.key;
+        if (!["Control", "Alt", "Shift", "Meta"].includes(rawKey)) {
+          if (e.code === "Space" || rawKey === " ") {
+            key = "Space";
+          } else if (e.code.startsWith("Key")) {
+            key = e.code.slice(3).toUpperCase();
+          } else if (e.code.startsWith("Digit")) {
+            key = e.code.slice(5);
+          } else if (rawKey.length === 1) {
+            key = rawKey.toUpperCase();
+          } else {
+            key = rawKey.charAt(0).toUpperCase() + rawKey.slice(1);
+          }
+        }
+
+        const combined = [...modifiers, key].filter(Boolean).join("+");
+        if (combined) {
+          if (key !== "") {
+            input.value = normalizeShortcut(combined);
+            void this.#applyShortcutChanges();
+          } else {
+            // Partial combination (modifiers only, e.g. "Ctrl+Alt") — show in input field
+            // but do NOT trigger IPC to Rust until a non-modifier key is pressed.
+            input.value = combined;
+          }
+        }
+      });
+
+      const normalizeOrRevert = () => {
+        if (hasPrimaryKey(input.value)) {
+          input.value = normalizeShortcut(input.value);
+          void this.#applyShortcutChanges();
+        } else {
+          // Revert to stored value if left incomplete or invalid on blur/change
+          const fallback = this.#lastShortcuts?.[def.id] ?? def.defaultShortcut;
+          input.value = fallback;
+          input.classList.remove("shortcut__input--error");
+        }
+      };
+
+      input.addEventListener("change", normalizeOrRevert);
+      input.addEventListener("blur", normalizeOrRevert);
+
+      row.append(label, input);
+      this.#shortcutInputs.set(def.id, input);
+      this.#shortcuts.append(row);
+    }
+  }
+
+  async #applyShortcutChanges(): Promise<void> {
+    const current: Record<string, string> = {};
+    for (const [actionId, input] of this.#shortcutInputs) {
+      current[actionId] = normalizeShortcut(input.value);
+    }
+
+    const conflicts = findShortcutConflicts(current);
+    let hasConflict = false;
+
+    for (const [actionId, input] of this.#shortcutInputs) {
+      if (conflicts[actionId] !== null) {
+        input.classList.add("shortcut__input--error");
+        hasConflict = true;
+      } else {
+        input.classList.remove("shortcut__input--error");
+      }
+    }
+
+    if (hasConflict) {
+      this.#shortcutsError.textContent = "Conflicto: atajo duplicado entre funciones.";
+      this.#shortcutsError.hidden = false;
+      return;
+    }
+
+    this.#shortcutsError.hidden = true;
+    const res = await this.actions.changeShortcuts(current as ShortcutMap);
+    if (!res.success) {
+      this.#shortcutsError.textContent = res.error ?? "No se pudo actualizar el atajo.";
+      this.#shortcutsError.hidden = false;
+      for (const input of this.#shortcutInputs.values()) {
+        input.classList.add("shortcut__input--error");
+      }
     }
   }
 

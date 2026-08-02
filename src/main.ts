@@ -25,6 +25,7 @@ import {
   type TasksState,
 } from "./core/tasks";
 import { Ticker } from "./core/ticker";
+import { DEFAULT_SHORTCUTS, type ShortcutMap } from "./core/shortcuts";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
 import { REMINDER_PACKS } from "./messages/reminders";
@@ -125,6 +126,7 @@ function main(): void {
       save();
       render();
     },
+    changeShortcuts: (shortcuts) => applyShortcuts(shortcuts),
     changeQuiet: (minutes) => applyQuiet(minutes),
     changeCharacter: (id) => {
       preferences = { ...preferences, characterId: id };
@@ -378,6 +380,7 @@ function main(): void {
       settings: shipped.settings,
       voice: shipped.voice,
       reminders: shipped.reminders,
+      shortcuts: shipped.shortcuts,
       quietUntil: shipped.quietUntil,
       characterId: shipped.characterId,
     };
@@ -388,6 +391,19 @@ function main(): void {
     applyMiniMode(shipped.miniMode);
     applyDimOpacity(shipped.dimOpacity, true);
     applyDailyGoal(shipped.dailyGoal, true);
+    void desktop.updateShortcuts(shipped.shortcuts);
+  }
+
+  async function applyShortcuts(
+    shortcuts: ShortcutMap,
+  ): Promise<{ success: boolean; error?: string }> {
+    const res = await desktop.updateShortcuts(shortcuts);
+    if (res.success) {
+      preferences = { ...preferences, shortcuts };
+      save();
+      render();
+    }
+    return res;
   }
 
   function applySettings(settings: PomodoroSettings): void {
@@ -561,6 +577,7 @@ function main(): void {
       uiScale,
       voice: preferences.voice,
       reminders: preferences.reminders,
+      shortcuts: preferences.shortcuts,
       quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
       characterId: preferences.characterId,
       miniMode: preferences.miniMode,
@@ -640,6 +657,9 @@ function main(): void {
   document.addEventListener("contextmenu", (event) => event.preventDefault());
 
   widget.start();
+  if (JSON.stringify(preferences.shortcuts) !== JSON.stringify(DEFAULT_SHORTCUTS)) {
+    void desktop.updateShortcuts(preferences.shortcuts);
+  }
   // Restores the size the widget was left at, window included -- unless
   // mini mode is about to override it right below. The native window
   // already restored its own last position *and size* on its own (see
