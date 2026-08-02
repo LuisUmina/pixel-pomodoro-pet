@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "description": "Pomodoro de escritorio siempre visible con una mascota pixel-art developer",
+  "license": "MIT",
+  "author": "LuisUmina",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LuisUmina/pixel-pomodoro-pet.git"
+  },
+  "homepage": "https://github.com/LuisUmina/pixel-pomodoro-pet#readme",
   "type": "module",
   "scripts": {
     "dev": "vite",
