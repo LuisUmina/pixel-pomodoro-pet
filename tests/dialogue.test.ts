@@ -4,6 +4,7 @@ import {
   AMBIENT_GAP_MS,
   AWAY_MS,
   INITIAL_DIALOGUE,
+  LONG_AWAY_MS,
   allowAmbient,
   ambientTrigger,
   speak,
@@ -13,6 +14,7 @@ import {
 import { CATALOG, parseCatalog } from "../src/messages/catalog";
 import {
   MAX_LINE_LENGTH,
+  MOODS,
   TONES,
   TRIGGERS,
   type Line,
@@ -33,6 +35,7 @@ function request(extra: Partial<DialogueRequest> = {}): DialogueRequest {
     now: NOW,
     completedToday: 0,
     hour: 12,
+    mood: "steady",
     ...extra,
   };
 }
@@ -148,6 +151,12 @@ describe("ambientTrigger", () => {
     expect(ambientTrigger({ ...check, sinceLastCheckMs: AWAY_MS + 1 })).toBe("welcomeBack");
   });
 
+  it("greets you differently after a gap long enough to mean you were really gone", () => {
+    expect(ambientTrigger({ ...check, sinceLastCheckMs: LONG_AWAY_MS + 1 })).toBe(
+      "welcomeBackLong",
+    );
+  });
+
   it("treats an ordinary interval as ordinary idle chatter", () => {
     expect(ambientTrigger(check)).toBe("idle");
   });
@@ -205,12 +214,31 @@ describe("line conditions", () => {
     expect(speak(INITIAL_DIALOGUE, request({ hour: 2 }), catalog, first).line?.id).toBe("late");
     expect(speak(INITIAL_DIALOGUE, request({ hour: 5 }), catalog, first).line).toBeNull();
   });
+
+  it("honours a mood", () => {
+    const catalog = [line("tired", { mood: "weary" })];
+
+    expect(speak(INITIAL_DIALOGUE, request({ mood: "steady" }), catalog, first).line).toBeNull();
+    expect(
+      speak(INITIAL_DIALOGUE, request({ mood: "weary" }), catalog, first).line?.id,
+    ).toBe("tired");
+  });
+
+  it("a line with no mood fits every mood", () => {
+    const catalog = [line("evergreen")];
+
+    for (const mood of MOODS) {
+      expect(speak(INITIAL_DIALOGUE, request({ mood }), catalog, first).line?.id).toBe(
+        "evergreen",
+      );
+    }
+  });
 });
 
 describe("the bundled catalogue", () => {
   it("has an unconditional line for every trigger and tone", () => {
     // A conditional line is not enough: without a fallback, a trigger would
-    // silently produce nothing at the wrong hour or the wrong tally.
+    // silently produce nothing at the wrong hour, tally or mood.
     const missing: string[] = [];
 
     for (const trigger of TRIGGERS) {
@@ -221,7 +249,8 @@ describe("the bundled catalogue", () => {
             entry.tone === tone &&
             entry.minCompleted === undefined &&
             entry.maxCompleted === undefined &&
-            entry.hours === undefined,
+            entry.hours === undefined &&
+            entry.mood === undefined,
         );
 
         if (!covered) {
@@ -233,22 +262,24 @@ describe("the bundled catalogue", () => {
     expect(missing).toEqual([]);
   });
 
-  it("answers every trigger and tone at any hour and any tally", () => {
+  it("answers every trigger, tone and mood at any hour and any tally", () => {
     const silent: string[] = [];
 
     for (const trigger of TRIGGERS) {
       for (const tone of TONES) {
-        for (const hour of [0, 6, 12, 23]) {
-          for (const completedToday of [0, 1, 4, 12]) {
-            const result = speak(
-              INITIAL_DIALOGUE,
-              { trigger, voice: tone, now: NOW, completedToday, hour },
-              CATALOG,
-              first,
-            );
+        for (const mood of MOODS) {
+          for (const hour of [0, 6, 12, 23]) {
+            for (const completedToday of [0, 1, 4, 12]) {
+              const result = speak(
+                INITIAL_DIALOGUE,
+                { trigger, voice: tone, now: NOW, completedToday, hour, mood },
+                CATALOG,
+                first,
+              );
 
-            if (!result.line) {
-              silent.push(`${trigger}/${tone} @${hour}h ×${completedToday}`);
+              if (!result.line) {
+                silent.push(`${trigger}/${tone}/${mood} @${hour}h ×${completedToday}`);
+              }
             }
           }
         }

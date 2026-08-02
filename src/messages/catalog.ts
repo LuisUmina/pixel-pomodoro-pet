@@ -1,5 +1,5 @@
 import raw from "./catalog.json";
-import { MAX_LINE_LENGTH, isTone, isTrigger, type Line } from "./types";
+import { MAX_LINE_LENGTH, isMood, isTone, isTrigger, type Line, type Mood } from "./types";
 
 /**
  * Parses the bundled catalogue, refusing anything malformed.
@@ -64,6 +64,7 @@ function parseLine(value: unknown, index: number): Line {
     text,
     ...tally(value, id),
     ...hourWindow(value, id),
+    ...mood(value, id),
   };
 }
 
@@ -115,6 +116,19 @@ function hourWindow(
   }
 
   return { hours: [from, to] };
+}
+
+function mood(value: Record<string, unknown>, id: string): { mood?: Mood } {
+  const raw = value["mood"];
+  if (raw === undefined) {
+    return {};
+  }
+
+  if (!isMood(raw)) {
+    throw new Error(`message "${id}" has an unknown mood`);
+  }
+
+  return { mood: raw };
 }
 
 function isCount(value: unknown): value is number {

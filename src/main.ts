@@ -10,6 +10,7 @@ import {
 } from "./core/dialogue";
 import { completionNotice, isoDay } from "./core/format";
 import { currentStreak, heatmap, recordSession } from "./core/history";
+import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
 import { INITIAL_REMINDERS, accrueReminders, takeReminder } from "./core/reminders";
@@ -17,7 +18,7 @@ import { Ticker } from "./core/ticker";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
 import { REMINDER_PACKS } from "./messages/reminders";
-import type { Trigger, Voice } from "./messages/types";
+import type { Mood, Trigger, Voice } from "./messages/types";
 import { clampDimOpacity } from "./dim";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
@@ -53,6 +54,14 @@ function main(): void {
   let dialogue = INITIAL_DIALOGUE;
   let reminders = INITIAL_REMINDERS;
   let history = loadHistory(browserStore);
+  // Not persisted, same as `dialogue`'s cooldown clock and `ghost` -- a
+  // restart is a fair, simple place for the tiredness read to reset.
+  let lastBreakEndedAt = Date.now();
+  let mood: Mood = computeMood({
+    completedToday: state.completedToday,
+    currentStreak: currentStreak(history.days, isoDay(new Date())),
+    msSinceBreak: 0,
+  });
 
   applyThemeCss(theme, document.documentElement);
 
@@ -102,7 +111,12 @@ function main(): void {
   const autoDim = new AutoDim(widget.frame);
 
   function dispatch(event: PomodoroEvent): void {
-    rollOverDay();
+    if (rollOverDay()) {
+      // completedToday just reset to 0; a mood computed off yesterday's
+      // tally (e.g. weary from finishing a heavy day) would otherwise bleed
+      // into the fresh one until the next unrelated refresh.
+      refreshMood();
+    }
 
     const wasRunning = state.status === "running";
     // The phase the elapsed time belongs to, which a completing tick changes.
@@ -113,13 +127,19 @@ function main(): void {
     let spoke = true;
     if (transition.completed) {
       announce(transition.completed);
-      say(transition.completed === "focus" ? "focusDone" : "breakDone");
 
       if (transition.completed === "focus") {
         history = recordSession(history, isoDay(new Date()));
         saveHistory(browserStore, history);
         widget.refreshHistory();
+      } else {
+        // A completed break, not a skipped one -- this is the "real break"
+        // the weary read is timed from.
+        lastBreakEndedAt = Date.now();
       }
+
+      refreshMood();
+      say(transition.completed === "focus" ? "focusDone" : "breakDone");
     } else if (!wasRunning && state.status === "running") {
       if (preferences.soundEnabled) {
         playChime("start");
@@ -182,6 +202,7 @@ function main(): void {
         now,
         completedToday: state.completedToday,
         hour: new Date(now).getHours(),
+        mood,
       },
       CATALOG,
     );
@@ -406,7 +427,26 @@ function main(): void {
       return isBreak(state.phase) ? "rest" : "focus";
     }
 
-    return "idle";
+    // A weary mascot borrows the sleepy state's animations rather than
+    // needing tired-specific art: idle already has nothing scheduled, so
+    // "sitting there worn out" and "sitting there waiting" read the same.
+    return mood === "weary" ? "sleepy" : "idle";
+  }
+
+  /**
+   * Recomputes `mood` from the day's tally, the streak and how long it has
+   * been since a real break. Not run on every tick -- `currentStreak` walks
+   * up to a year of history, the same cost the heatmap avoids paying behind
+   * a closed panel. Called only at points the inputs can actually have
+   * moved: a phase completing, and the periodic ambient check for the one
+   * input that drifts on its own, time.
+   */
+  function refreshMood(): void {
+    mood = computeMood({
+      completedToday: state.completedToday,
+      currentStreak: currentStreak(history.days, isoDay(new Date())),
+      msSinceBreak: Date.now() - lastBreakEndedAt,
+    });
   }
 
   /**
@@ -482,6 +522,12 @@ function main(): void {
     }
 
     expireQuiet(now);
+
+    // A weary crossing has nothing else forcing a repaint the way a
+    // dispatch or a rollover already does -- an idle widget nobody touches
+    // would otherwise say it's tired while still drawing the awake pose.
+    refreshMood();
+    render();
 
     const trigger = ambientTrigger({
       sinceLastCheckMs: now - lastCheckAt,

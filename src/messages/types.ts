@@ -9,6 +9,8 @@ export const TRIGGERS = [
   "paused",
   "idle",
   "welcomeBack",
+  /** A `welcomeBack` far enough out that "you were gone a bit" is a lie. */
+  "welcomeBackLong",
 ] as const;
 
 export type Trigger = (typeof TRIGGERS)[number];
@@ -20,6 +22,7 @@ export type Trigger = (typeof TRIGGERS)[number];
 export const AMBIENT_TRIGGERS: ReadonlySet<Trigger> = new Set<Trigger>([
   "idle",
   "welcomeBack",
+  "welcomeBackLong",
 ]);
 
 /** Personalities the catalogue is written in. */
@@ -35,6 +38,14 @@ export type Tone = (typeof TONES)[number];
 export const VOICES = [...TONES, "off"] as const;
 
 export type Voice = (typeof VOICES)[number];
+
+/**
+ * How the day has gone, layered onto the moment-to-moment `PetState` the
+ * timer already drives. Derived, never stored — see `core/mood.ts`.
+ */
+export const MOODS = ["energized", "steady", "weary"] as const;
+
+export type Mood = (typeof MOODS)[number];
 
 /**
  * Longest line the bubble can show without overflowing its fixed box. The
@@ -54,6 +65,8 @@ export interface Line {
   readonly maxCompleted?: number;
   /** Local-hour window `[from, to)`. Wraps when `from` is the larger one. */
   readonly hours?: readonly [number, number];
+  /** Only offered while the mascot's mood matches. Absent fits every mood. */
+  readonly mood?: Mood;
 }
 
 export function isTrigger(value: unknown): value is Trigger {
@@ -66,4 +79,8 @@ export function isTone(value: unknown): value is Tone {
 
 export function isVoice(value: unknown): value is Voice {
   return VOICES.includes(value as Voice);
+}
+
+export function isMood(value: unknown): value is Mood {
+  return MOODS.includes(value as Mood);
 }

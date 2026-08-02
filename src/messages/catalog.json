@@ -93,6 +93,18 @@
   { "id": "idle-plain-1", "trigger": "idle", "tone": "plain", "text": "Timer idle." },
   { "id": "idle-plain-2", "trigger": "idle", "tone": "plain", "text": "No session running." },
 
+  { "id": "idle-weary-dev-1", "trigger": "idle", "tone": "dev", "text": "Long stretch without a break. Even ducks need to blink.", "mood": "weary" },
+  { "id": "idle-weary-dev-2", "trigger": "idle", "tone": "dev", "text": "You've been at this a while. A break counts too.", "mood": "weary" },
+  { "id": "idle-weary-hype-1", "trigger": "idle", "tone": "hype", "text": "You've put in real hours today. Rest counts as progress.", "mood": "weary" },
+  { "id": "idle-weary-hype-2", "trigger": "idle", "tone": "hype", "text": "Big push today. Champions rest between rounds too.", "mood": "weary" },
+  { "id": "idle-weary-plain-1", "trigger": "idle", "tone": "plain", "text": "Long session. A break is recommended.", "mood": "weary" },
+
+  { "id": "idle-energized-dev-1", "trigger": "idle", "tone": "dev", "text": "Nice streak going. Don't jinx it by talking about it.", "mood": "energized" },
+  { "id": "idle-energized-dev-2", "trigger": "idle", "tone": "dev", "text": "Still on a roll. The duck approves, quietly.", "mood": "energized" },
+  { "id": "idle-energized-hype-1", "trigger": "idle", "tone": "hype", "text": "You're on a streak! Let's keep that momentum going.", "mood": "energized" },
+  { "id": "idle-energized-hype-2", "trigger": "idle", "tone": "hype", "text": "Days in a row now. That's the real trick, not one big day.", "mood": "energized" },
+  { "id": "idle-energized-plain-1", "trigger": "idle", "tone": "plain", "text": "Streak active. Ready when you are.", "mood": "energized" },
+
   { "id": "welcome-dev-1", "trigger": "welcomeBack", "tone": "dev", "text": "You're back. I didn't move." },
   { "id": "welcome-dev-2", "trigger": "welcomeBack", "tone": "dev", "text": "Oh good, you're alive." },
   { "id": "welcome-dev-3", "trigger": "welcomeBack", "tone": "dev", "text": "Welcome back. Nothing happened." },
@@ -105,5 +117,18 @@
   { "id": "welcome-hype-4", "trigger": "welcomeBack", "tone": "hype", "text": "You returned. That already counts." },
 
   { "id": "welcome-plain-1", "trigger": "welcomeBack", "tone": "plain", "text": "Welcome back." },
-  { "id": "welcome-plain-2", "trigger": "welcomeBack", "tone": "plain", "text": "Session ready." }
+  { "id": "welcome-plain-2", "trigger": "welcomeBack", "tone": "plain", "text": "Session ready." },
+
+  { "id": "welcome-long-dev-1", "trigger": "welcomeBackLong", "tone": "dev", "text": "It's been a while. Did you forget I live on your machine?" },
+  { "id": "welcome-long-dev-2", "trigger": "welcomeBackLong", "tone": "dev", "text": "Long gap. I assume something more important happened." },
+  { "id": "welcome-long-dev-3", "trigger": "welcomeBackLong", "tone": "dev", "text": "You vanished for a bit. The duck endures." },
+  { "id": "welcome-long-dev-4", "trigger": "welcomeBackLong", "tone": "dev", "text": "Back after all that? Bold. Let's ease back in." },
+
+  { "id": "welcome-long-hype-1", "trigger": "welcomeBackLong", "tone": "hype", "text": "It's been a minute! Great to have you back." },
+  { "id": "welcome-long-hype-2", "trigger": "welcomeBackLong", "tone": "hype", "text": "Whenever you're ready to jump back in, I'm here." },
+  { "id": "welcome-long-hype-3", "trigger": "welcomeBackLong", "tone": "hype", "text": "A real break, huh. Good. Now let's make it count." },
+  { "id": "welcome-long-hype-4", "trigger": "welcomeBackLong", "tone": "hype", "text": "Welcome back after all that time away!" },
+
+  { "id": "welcome-long-plain-1", "trigger": "welcomeBackLong", "tone": "plain", "text": "Welcome back after a while away." },
+  { "id": "welcome-long-plain-2", "trigger": "welcomeBackLong", "tone": "plain", "text": "Long gap detected. Session ready." }
 ]

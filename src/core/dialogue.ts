@@ -4,7 +4,7 @@
  * (cooldowns, repeats, hour windows) are testable without running the app.
  */
 
-import { AMBIENT_TRIGGERS, type Line, type Trigger, type Voice } from "../messages/types";
+import { AMBIENT_TRIGGERS, type Line, type Mood, type Trigger, type Voice } from "../messages/types";
 
 /**
  * Quiet period before ambient chatter is allowed again. Any line at all
@@ -14,6 +14,12 @@ export const AMBIENT_GAP_MS = 9 * 60_000;
 
 /** A wall-clock jump this large means the machine slept or you walked off. */
 export const AWAY_MS = 25 * 60_000;
+
+/**
+ * A gap this large is not "stepped away" territory any more -- "you're back
+ * from lunch" and "you're back from Tuesday" are not the same greeting.
+ */
+export const LONG_AWAY_MS = 8 * 60 * 60_000;
 
 /**
  * Odds an idle check actually speaks. The cooldown above already keeps the
@@ -41,6 +47,8 @@ export interface DialogueRequest {
   readonly completedToday: number;
   /** Local hour, 0-23, for lines that only make sense at some times. */
   readonly hour: number;
+  /** How the day has gone, for lines that only fit a certain mood. */
+  readonly mood: Mood;
 }
 
 export interface DialogueResult {
@@ -126,6 +134,10 @@ export function ambientTrigger(check: AmbientCheck): Trigger | null {
     return null;
   }
 
+  if (check.sinceLastCheckMs > LONG_AWAY_MS) {
+    return "welcomeBackLong";
+  }
+
   if (check.sinceLastCheckMs > AWAY_MS) {
     return "welcomeBack";
   }
@@ -139,7 +151,8 @@ function matches(line: Line, request: DialogueRequest): boolean {
     line.tone === request.voice &&
     (line.minCompleted === undefined || request.completedToday >= line.minCompleted) &&
     (line.maxCompleted === undefined || request.completedToday <= line.maxCompleted) &&
-    withinHours(line.hours, request.hour)
+    withinHours(line.hours, request.hour) &&
+    (line.mood === undefined || line.mood === request.mood)
   );
 }
 
