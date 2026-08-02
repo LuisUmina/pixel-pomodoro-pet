@@ -7,7 +7,7 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7 terminadas.** El resto sin empezar.
+**Estado:** v0.1 entregada. **Fases 1–7 y 9 terminadas.** Solo queda la 8.
 
 ---
 
@@ -23,12 +23,12 @@ dependencias sí se respetan.
 | 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) ✅ | L | — |
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) ✅ | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
-| 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) | XL | — |
+| 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) ✅ | XL | — |
 
-**Siguiente recomendada:** la **9** (objetivos y tareas) es la única que
-queda sin dependencias pendientes y no obliga a asumir el riesgo técnico de
-la **8** (deambular por el escritorio) — que sigue disponible, con sus dos
-dependencias (3 y 5) resueltas, para quien prefiera esa en vez.
+**Siguiente recomendada:** la **8** (deambular por el escritorio) es lo
+único que queda. Sus dos dependencias (3 y 5) ya están resueltas; el riesgo
+que queda es el que el roadmap siempre le marcó — mover la ventana del SO en
+tiempo real, multi-monitor y DPI distinto.
 
 ---
 
@@ -577,7 +577,56 @@ que se ve casi igual y no pelea con nada.
 
 ---
 
-## Fase 9 — Objetivos y tareas
+## Fase 9 — Objetivos y tareas ✅
+
+**Terminada · Costo: XL**
+
+El pomodoro ahora trabaja por objetivos: una tarea activa, atribución
+automática de cada sesión, un panel para el resto de la lista. Cómo quedó
+frente al plan:
+
+- **"Tu lista del día" resultó ser el objetivo, no la lista.** Una tarea que
+  no se termina hoy no tiene por qué desaparecer a medianoche — eso hubiera
+  castigado exactamente lo que la app está para ayudar. Lo que sí es del día
+  es la meta: un objetivo diario opcional de pomodoros (chips en ajustes,
+  igual que `dim` o `quiet`) que convierte "3 today" en "3/6 today". Se optó
+  por contar pomodoros y no tareas — ya existía el contador, contar tareas
+  hubiera exigido definir qué hace que una meta de tareas cuente como
+  cumplida sin ganar nada a cambio.
+- **Escribir en el campo nunca crea una tarea nueva — siempre renombra la
+  activa.** Esa única regla resolvió de un saque la pregunta más difícil del
+  diseño: qué pasa con el campo de texto libre que ya existía. Alguien que
+  nunca abre el panel de tareas sigue usando la app exactamente como antes,
+  sin fricción nueva ni saberlo; una segunda tarea es siempre un gesto
+  explícito desde el panel (☰, junto al campo), nunca un accidente de
+  retipear.
+- **Un bug real, encontrado y arreglado durante la verificación:** el panel
+  de tareas empezó guardando su modelo en `WidgetModel`, igual que
+  settings/history — pero a diferencia de esos dos, una acción *del propio
+  panel* (agregar, marcar hecha) necesita verse reflejada antes de que el
+  próximo `render()` normal llegue a correr, y según qué corriera primero se
+  veía una fila fantasma o directamente ninguna. La salida fue la misma que
+  `history` ya usaba por otra razón (no recalcular el heatmap detrás de un
+  panel cerrado): un callback `viewTasks()` que main.ts resuelve en el
+  momento, no un valor cacheado — así "¿ya corrió el render?" deja de ser una
+  pregunta que importa.
+- **Sin sincronización, tal como decía "fuera de alcance".** Todo vive en
+  `store/tasks.ts`, mismo patrón defensivo que `history.ts`.
+
+Lo que quedó deliberadamente afuera, seguido al pie de la letra: sin
+subtareas, sin etiquetas, sin fechas, sin proyectos. Tampoco hay reordenar
+arrastrando ni una vista retrospectiva de tareas por día — la lista es una
+sola cosa, hecha o por hacer, y el heatmap ya cuenta la historia de las
+sesiones.
+
+**Toca:** `src/core/tasks.ts` (nuevo, puro), `src/store/tasks.ts` (nuevo),
+`src/dailyGoal.ts` (nuevo), `src/ui/tasks-panel.ts` (nuevo), y conexiones en
+`main.ts`, `widget.ts`, `settings-panel.ts`, `store/preferences.ts`.
+
+---
+
+<details>
+<summary>Plan original</summary>
 
 **Costo: XL · Sin dependencias, pero es la que más cambia el modelo de datos**
 
@@ -606,6 +655,8 @@ diseño — sin subtareas, sin etiquetas, sin fechas, sin proyectos.
 **Toca:** `src/core/tasks.ts` (nuevo), `src/store/tasks.ts` (nuevo), panel
 nuevo, `main.ts`, `widget.ts`.
 
+</details>
+
 ---
 
 ## Decisiones abiertas
@@ -615,9 +666,6 @@ Cosas que hay que resolver antes de tocar la fase correspondiente.
 - **Fase 4** — ¿Los personajes se distribuyen con la app o se pueden añadir
   desde una carpeta del usuario? Lo segundo es más bonito y no cuesta mucho
   más, pero abre la puerta a JSON malformado que hay que validar.
-- **Fase 6** — Meta semanal o comodines. Hay que elegir una, no ambas.
-- **Fase 9** — ¿Las tareas viven solo aquí, o algún día se sincronizan con
-  algo externo? Si es lo segundo, el modelo de datos nace distinto.
 
 ## Fuera de alcance
 

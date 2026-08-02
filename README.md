@@ -60,6 +60,14 @@ El contador de abajo abre tu historial: racha, récords y un heatmap del
   encendidos; el resto los prendés vos.
 - **Modo silencio** de 30 min, 1 h o 2 h para llamadas y presentaciones. Se
   anuncia en la barra de título con lo que le queda y se apaga solo.
+- **Checklist del día**: el mismo campo de siempre, pero ahora respaldado por
+  tareas de verdad. Escribir ahí solo renombra la tarea activa — una segunda
+  tarea siempre se agrega desde el panel de la lista (☰, junto al campo), con
+  estimación opcional en pomodoros. Cada sesión de focus que se cierra suma
+  sola a la tarea activa, sin que hagas nada; cambiar de tarea es un clic en
+  la lista, no hay que retipear el nombre. Un objetivo diario opcional
+  (ajustes → goal) hace que el contador de abajo pase de "3 today" a
+  "3/6 today".
 - **Historial, rachas y heatmap** detrás del contador "N today": racha
   actual, mejor racha, total y mejor semana, más un heatmap de 53 semanas
   estilo GitHub. La racha perdona un día vacío por semana — descansar un
@@ -131,18 +139,18 @@ Build Tools de MSVC y WebView2 (ya viene con Windows 10/11).
 
 ```
 src/
-  core/        Timer, fases, frases, recordatorios e historial. Puro.
+  core/        Timer, fases, frases, recordatorios, historial, ánimo y tareas. Puro.
   sprites/     Datos de pixel art (JSON) + renderer a canvas + temas.
   messages/    Catálogo de frases y packs de recordatorios (JSON) + validación.
   ui/          DOM, canvas de la mascota y del reloj, burbuja, paneles.
   platform/    Única frontera con Tauri, detrás de una interfaz.
-  store/       Preferencias e historial, con lectura defensiva.
+  store/       Preferencias, historial y tareas, con lectura defensiva.
   audio/       Blips chiptune sintetizados con WebAudio.
 src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
 tests/         Vitest sobre core/, store/, sprites/ y messages/.
 ```
 
-Nueve decisiones que vale la pena explicar:
+Diez decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -214,6 +222,19 @@ por segundo junto al resto del render habría sido ese mismo error de nuevo.
 El ánimo vive en una variable que solo se refresca cuando alguno de sus
 insumos pudo haberse movido de verdad: una fase que termina, y el chequeo
 ambiental de cada minuto para el único insumo que deriva solo, el tiempo.
+
+**Un panel se refresca leyendo el estado en vivo, nunca un modelo cacheado.**
+`settings`/`history` reciben su modelo a través de `WidgetModel`, actualizado
+en cada `render()` — funciona porque nada más puede tocarlos entre un
+`render()` y el siguiente. El panel de tareas rompió ese supuesto: una acción
+del propio panel (agregar, marcar hecha) dispara un cambio y necesita verlo
+reflejado *antes* de que el próximo `render()` normal llegue a correr. Guardar
+`tasks` en `WidgetModel` y confiar en el último valor cacheado producía una
+fila fantasma o directamente ninguna, según qué corriera primero — el mismo
+bug de un lado y del otro. La salida fue la que `history` ya usaba para su
+heatmap por otra razón (evitar recalcularlo detrás de un panel cerrado):
+`viewTasks()` es un callback que main.ts resuelve en el momento, así que
+"¿corrió el render todavía?" deja de ser una pregunta que importa.
 
 **Tauri solo hace lo que la web no puede.** Ventana sin bordes, transparencia,
 bandeja y hotkeys viven en Rust; todo el dominio vive en la webview. La capa
