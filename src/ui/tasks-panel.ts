@@ -99,6 +99,9 @@ export class TasksPanel {
     const text = document.createElement("span");
     text.className = "task-item__text";
     text.textContent = task.text === "" ? "(untitled)" : task.text;
+    // The ellipsis dots barely register at 10px, so a long name needs a
+    // second way to be read in full without widening the row.
+    text.title = text.textContent;
 
     const count = document.createElement("span");
     count.className = "task-item__count";
