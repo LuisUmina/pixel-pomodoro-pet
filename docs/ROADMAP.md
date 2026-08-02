@@ -7,7 +7,9 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7 y 9 terminadas.** Solo queda la 8.
+**Estado:** v0.1 entregada. **Fases 1–7 y 9 terminadas.** Fases 10–18
+planeadas y aprobadas, a la espera de que se defina el orden de arranque. La
+fase 8 sigue en pausa.
 
 ---
 
@@ -24,11 +26,22 @@ dependencias sí se respetan.
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) ✅ | M | 1, 3, 6 |
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) ✅ | XL | — |
+| 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) | S | — |
+| 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) | S/M | — |
+| 12 | [Recordatorios propios](#fase-12--recordatorios-propios) | S/M | 2 |
+| 13 | [Atajos configurables](#fase-13--atajos-configurables) | M | — |
+| 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
+| 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) | L | 4 |
+| 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) | M | 3 |
+| 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) | M | 5, 9 |
+| 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
 
-**Siguiente recomendada:** la **8** (deambular por el escritorio) es lo
-único que queda. Sus dos dependencias (3 y 5) ya están resueltas; el riesgo
-que queda es el que el roadmap siempre le marcó — mover la ventana del SO en
-tiempo real, multi-monitor y DPI distinto.
+**Siguiente recomendada:** sin definir todavía — las fases 10 a 18 fueron
+aprobadas como bloque, pero el orden de arranque queda a criterio propio.
+Ninguna depende de la 8, que sigue en pausa por decisión propia: sus
+dependencias (3 y 5) están resueltas, pero el riesgo que el roadmap siempre le
+marcó — mover la ventana del SO en tiempo real, multi-monitor y DPI distinto —
+sigue en pie.
 
 ---
 
@@ -656,6 +669,156 @@ diseño — sin subtareas, sin etiquetas, sin fechas, sin proyectos.
 nuevo, `main.ts`, `widget.ts`.
 
 </details>
+
+---
+
+## Fase 10 — Legibilidad de la burbuja de diálogo
+
+**Costo: S · Sin dependencias**
+
+La burbuja usa el mismo `font-size: 10px` que resultó imperceptible en el
+panel de tareas. Subir el tamaño de fuente (10px → 12-13px) y ajustar el
+`min-height`/padding de `.bubble__text` para que el texto no quede apretado.
+Puede exigir revisar el largo máximo de las frases del catálogo si alguna
+deja de entrar en dos renglones al tamaño nuevo.
+
+**Toca:** `src/ui/styles.css`, posible ajuste puntual en
+`src/messages/catalog.json`.
+
+---
+
+## Fase 11 — Exportar e importar datos
+
+**Costo: S/M · Sin dependencias**
+
+Un botón en ajustes vuelca historial + tareas + preferencias a un `.json` vía
+el diálogo de guardado nativo, y otro carga uno de vuelta con la misma
+lectura defensiva que ya usan los stores. Sin nube ni cuentas — respeta el
+límite ya fijado en "fuera de alcance".
+
+**Toca:** nuevo módulo de export/import (`src/store/backup.ts`),
+`settings-panel.ts`, dependencia nueva `@tauri-apps/plugin-dialog`.
+
+---
+
+## Fase 12 — Recordatorios propios
+
+**Costo: S/M · Depende de la fase 2**
+
+La "fase 2b" que quedó pendiente desde el principio: texto libre, cadencia y
+fase de anclaje (focus/descanso), con su propia pantalla de edición —
+separada de los packs con switches que ya existen.
+
+**Toca:** `src/core/reminders.ts`, `settings-panel.ts` (sub-pantalla nueva),
+`store/preferences.ts`.
+
+---
+
+## Fase 13 — Atajos configurables
+
+**Costo: M · Sin dependencias**
+
+Reasignar los atajos existentes (`Ctrl+Alt+G/H/Z`, más los que sumen las
+fases siguientes) desde ajustes, con detección de conflictos entre ellos. El
+riesgo real es reregistrar los shortcuts de Tauri en caliente sin dejar el
+atajo anterior fantasma si la reasignación falla a mitad de camino — ya hubo
+un caso (fase 5) de un atajo que se registra sin error pero nunca dispara por
+algo externo, así que el flujo necesita un modo de "probar y confirmar" antes
+de guardar.
+
+**Toca:** el registro de shortcuts en `src-tauri/`, `settings-panel.ts`,
+`store/preferences.ts`.
+
+---
+
+## Fase 14 — Vista previa animada y temas de color nuevos
+
+**Costo: S/M · Depende de la fase 4**
+
+El selector de personajes gana una vista previa animada en miniatura (hoy la
+elección es "a ciegas" hasta cerrar el panel). Se suman 2-3 paletas de color
+nuevas — dato puro, mismo patrón que las 3 actuales.
+
+**Toca:** `settings-panel.ts`, `src/sprites/themes.ts`, un canvas chico
+adicional para la miniatura.
+
+---
+
+## Fase 15 — Tres personajes nuevos
+
+**Costo: L · Depende de la fase 4**
+
+- **Inspirado en el Octocat de GitHub** — no el logo real (es marca
+  registrada de GitHub), sino una versión propia "inspirada en", igual que se
+  hizo con terminal y chispa: un gato-pulpo genérico, familia *criatura*
+  (parpadeo, caminata, expresión).
+- **Bicho (bug)** — guiño a "debuggear", familia *criatura*, más pequeño y
+  con andar distinto (patas, antenas).
+- **Taza de café humeante** — familia *emblema*, efectos en vez de anatomía:
+  vapor animado, un salto/tintineo ocasional, un brillo distinto recién
+  empieza un descanso.
+
+El costo real es el arte, no el motor: cada personaje necesita su grilla, sus
+parches por estado y pasar el validador de contrato que ya existe.
+
+**Toca:** `src/sprites/characters/` (tres carpetas nuevas), sin tocar el
+motor.
+
+---
+
+## Fase 16 — Comportamientos más vivos
+
+**Costo: M · Depende de la fase 3**
+
+Más amplitud y variedad en las animaciones existentes (parpadeos, caminata,
+estiramientos) para que se noten más a simple vista, más 1-2 conductas nuevas
+por estado. Sigue dentro de la ventana — no toca lo que la fase 8 (deambular
+libre) dejó pendiente.
+
+**Toca:** `src/sprites/behaviors.ts`, arte nuevo en los JSON de cada
+personaje existente.
+
+---
+
+## Fase 17 — Checklist flotante en modo mascota
+
+**Costo: M · Depende de las fases 5 y 9**
+
+Un estado opcional y alternable del modo mascota: además de personaje +
+reloj, debajo aparece una lista compacta de las tareas del día (solo lectura
++ tildar hecha, sin el formulario de alta que tiene el panel completo). Se
+prende y apaga con su propio atajo/botón, igual que el modo mascota mismo se
+prende con `Ctrl+Alt+Z`.
+
+**El problema técnico:** el modo mascota hoy encoge la ventana para abrazar
+exactamente al sprite (`resize_keep_center`). Sumar una lista debajo cambia
+el alto necesario, así que el toggle de la lista tiene que disparar el mismo
+recálculo de tamaño — y sin repetir el problema ya documentado en la fase 5
+de que un panel abierto y el modo mascota no conviven bien solos.
+
+**Toca:** `src-tauri/src/window.rs`, `widget.ts`, una vista compacta nueva
+que reusa el modelo de `tasks-panel.ts` pero sin su formulario.
+
+---
+
+## Fase 18 — Secciones de tareas
+
+**Costo: S/M · Depende de la fase 9**
+
+Una forma liviana de dividir la lista, no un sistema de etiquetas: cada tarea
+gana un campo opcional de "sección" (texto corto, se escribe una vez y las
+siguientes tareas la reusan de una lista desplegable), y el panel — y el
+checklist de la fase 17, si ya existe — agrupan visualmente por esa sección
+en vez de mostrar todo en una sola lista plana. Sin colores, sin filtros, sin
+jerarquía: una tarea pertenece a una sección o a ninguna.
+
+Conviene resolverla antes o junto con la fase 17, porque así el checklist
+flotante nace ya sabiendo agrupar en vez de necesitar un segundo cambio
+después — pero no hay una dependencia dura entre ambas; se pueden hacer en
+cualquier orden.
+
+**Toca:** `src/core/tasks.ts` (campo nuevo en `Task`), `src/store/tasks.ts`
+(migración defensiva), `tasks-panel.ts`.
 
 ---
 
