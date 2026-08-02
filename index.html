@@ -89,18 +89,28 @@
           <span class="progress__fill" id="progress"></span>
         </div>
 
-        <label class="task">
-          <span class="task__prompt">$</span>
-          <input
-            type="text"
-            id="task"
-            class="task__input"
-            maxlength="48"
-            spellcheck="false"
-            autocomplete="off"
-            placeholder="what are you working on?"
-          />
-        </label>
+        <div class="task-row">
+          <label class="task">
+            <span class="task__prompt">$</span>
+            <input
+              type="text"
+              id="task"
+              class="task__input"
+              maxlength="48"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="what are you working on?"
+            />
+          </label>
+          <button
+            type="button"
+            class="iconbtn"
+            data-action="tasks"
+            title="Task list"
+          >
+            ☰
+          </button>
+        </div>
 
         <div class="controls">
           <button type="button" class="btn btn--primary" data-action="toggle" id="toggle">
@@ -201,6 +211,14 @@
               <span class="chips" id="set-voice"></span>
             </div>
 
+            <div
+              class="field field--chips"
+              title="Pomodoros that make a good day, shown next to the tally"
+            >
+              <span class="field__label">goal</span>
+              <span class="chips" id="set-goal"></span>
+            </div>
+
             <p class="panel__heading">reminders</p>
             <div class="reminders" id="set-reminders"></div>
 
@@ -254,6 +272,43 @@
             <p class="panel__heading">last year</p>
             <div class="heatmap" id="hist-heatmap"></div>
             <p class="history__caption" id="hist-caption"></p>
+          </div>
+        </section>
+
+        <!-- Same overlay shell again. Typing in the task field only ever
+             renames whichever task is active -- a second task always comes
+             from here, deliberately. -->
+        <section class="panel" id="tasks" hidden>
+          <header class="panel__bar">
+            <span class="panel__title">tasks</span>
+            <button type="button" class="iconbtn" data-action="tasks" title="Close">
+              ✕
+            </button>
+          </header>
+
+          <div class="panel__body">
+            <div class="task-add">
+              <input
+                type="text"
+                id="task-new-text"
+                maxlength="48"
+                spellcheck="false"
+                autocomplete="off"
+                placeholder="new task"
+              />
+              <input
+                type="number"
+                id="task-new-estimate"
+                min="0"
+                max="20"
+                step="1"
+                title="Estimated pomodoros"
+                placeholder="🍅"
+              />
+              <button type="button" class="btn" id="task-add-btn">+</button>
+            </div>
+
+            <div class="task-list" id="task-list"></div>
           </div>
         </section>
       </div>

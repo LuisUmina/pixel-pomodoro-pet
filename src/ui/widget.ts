@@ -12,6 +12,7 @@ import { HistoryPanel, type HistoryModel } from "./history-panel";
 import { PetCanvas } from "./pet-canvas";
 import { ResizeGrip } from "./resize-grip";
 import { SettingsPanel } from "./settings-panel";
+import { TasksPanel, type TasksModel } from "./tasks-panel";
 
 export interface WidgetActions {
   toggle(): void;
@@ -32,9 +33,23 @@ export interface WidgetActions {
   changeMiniMode(enabled: boolean): void;
   /** Opacity while auto-faded; 0 turns auto-fade off. */
   changeDimOpacity(value: number): void;
+  /** Pomodoros that make a good day; 0 turns the goal off. */
+  changeDailyGoal(value: number): void;
+  addTask(text: string, estimatePomodoros: number): void;
+  setActiveTask(id: string): void;
+  toggleTaskDone(id: string): void;
+  removeTask(id: string): void;
   restoreDefaults(): void;
   /** Fired only when the history panel opens — closing needs no fresh data. */
   viewHistory(): HistoryModel;
+  /**
+   * Read fresh on open and on every refresh, never cached in
+   * {@link WidgetModel} -- unlike everything else there, this can change out
+   * from under a render that already happened (a pomodoro attributing to a
+   * task while the panel sits open), so a stale copy is exactly the bug to
+   * avoid.
+   */
+  viewTasks(): TasksModel;
 }
 
 export interface WidgetModel {
@@ -53,6 +68,8 @@ export interface WidgetModel {
   readonly miniMode: boolean;
   /** Opacity while auto-faded; 0 means auto-fade is off. */
   readonly dimOpacity: number;
+  /** Pomodoros that make a good day; 0 means no goal is set. */
+  readonly dailyGoal: number;
 }
 
 export interface FrameSize {
@@ -77,6 +94,7 @@ export class Widget {
   readonly #bubble: Bubble;
   readonly #settings: SettingsPanel;
   readonly #history: HistoryPanel;
+  readonly #tasksPanel: TasksPanel;
   readonly #grip: ResizeGrip;
   readonly #path: HTMLElement;
   readonly #phase: HTMLElement;
@@ -89,7 +107,9 @@ export class Widget {
   readonly #ghostButton: HTMLElement;
   readonly #settingsButton: HTMLElement;
   readonly #miniButton: HTMLElement;
+  readonly #tasksButton: HTMLElement;
   readonly #viewHistory: () => HistoryModel;
+  readonly #viewTasks: () => TasksModel;
 
   #roundsSignature = "";
   /** Last rendered model, so opening the panel can fill it in immediately. */
@@ -125,11 +145,20 @@ export class Widget {
       changeCharacter: (id) => actions.changeCharacter(id),
       changeMiniMode: (enabled) => actions.changeMiniMode(enabled),
       changeDimOpacity: (value) => actions.changeDimOpacity(value),
+      changeDailyGoal: (value) => actions.changeDailyGoal(value),
       restoreDefaults: () => actions.restoreDefaults(),
     });
 
     this.#history = new HistoryPanel();
     this.#viewHistory = actions.viewHistory;
+
+    this.#tasksPanel = new TasksPanel({
+      addTask: (text, estimatePomodoros) => actions.addTask(text, estimatePomodoros),
+      setActive: (id) => actions.setActiveTask(id),
+      toggleDone: (id) => actions.toggleTaskDone(id),
+      removeTask: (id) => actions.removeTask(id),
+    });
+    this.#viewTasks = actions.viewTasks;
 
     this.#grip = new ResizeGrip(
       element("grip"),
@@ -149,6 +178,7 @@ export class Widget {
       defaults: () => this.#settings.restoreDefaults(),
       history: () => this.#toggleHistory(),
       mini: () => actions.changeMiniMode(!(this.#model?.miniMode ?? false)),
+      tasks: () => this.#toggleTasks(),
     };
 
     for (const button of document.querySelectorAll<HTMLElement>("[data-action]")) {
@@ -162,6 +192,7 @@ export class Widget {
     this.#ghostButton = actionElement("ghost");
     this.#settingsButton = actionElement("settings");
     this.#miniButton = actionElement("mini");
+    this.#tasksButton = actionElement("tasks");
 
     this.#task.addEventListener("input", () => actions.setTask(this.#task.value));
     // Enter should hand focus back rather than submit anything.
@@ -208,7 +239,10 @@ export class Widget {
     }
 
     this.#renderRounds(state.round, settings.roundsPerCycle);
-    this.#tally.textContent = `${state.completedToday} today`;
+    this.#tally.textContent =
+      model.dailyGoal > 0
+        ? `${state.completedToday}/${model.dailyGoal} today`
+        : `${state.completedToday} today`;
 
     this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
@@ -264,12 +298,28 @@ export class Widget {
     }
   }
 
+  #toggleTasks(): void {
+    this.#tasksPanel.toggle();
+    this.#tasksButton.setAttribute("aria-pressed", String(this.#tasksPanel.isOpen));
+
+    if (this.#tasksPanel.isOpen) {
+      this.#tasksPanel.render(this.#viewTasks());
+    }
+  }
+
+  /** Keeps an already-open task list current when a pomodoro lands on it. */
+  refreshTasks(): void {
+    if (this.#tasksPanel.isOpen) {
+      this.#tasksPanel.render(this.#viewTasks());
+    }
+  }
+
   /**
    * Mini mode has no room for a panel and no titlebar button to reach one
    * from, but a panel opened beforehand can still be sitting open when a
-   * shortcut or the tray flips the mode — so entering mini mode forces both
-   * shut rather than leaving a settings/history panel squashed into the tiny
-   * frame underneath the mini titlebar's higher stacking order.
+   * shortcut or the tray flips the mode — so entering mini mode forces every
+   * panel shut rather than leaving one squashed into the tiny frame
+   * underneath the mini titlebar's higher stacking order.
    */
   closePanels(): void {
     if (this.#settings.isOpen) {
@@ -280,6 +330,11 @@ export class Widget {
     if (this.#history.isOpen) {
       this.#history.close();
       this.#tally.setAttribute("aria-pressed", "false");
+    }
+
+    if (this.#tasksPanel.isOpen) {
+      this.#tasksPanel.close();
+      this.#tasksButton.setAttribute("aria-pressed", "false");
     }
   }
 

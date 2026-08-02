@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import { QUIET_PRESETS, formatQuiet } from "../core/quiet";
 import type { Phase, PomodoroSettings } from "../core/types";
+import { DAILY_GOAL_PRESETS, formatDailyGoal } from "../dailyGoal";
 import { DIM_OPACITY_PRESETS, formatDimOpacity } from "../dim";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
@@ -19,6 +20,8 @@ export interface SettingsPanelActions {
   changeMiniMode(enabled: boolean): void;
   /** Opacity while auto-faded; 0 turns auto-fade off. */
   changeDimOpacity(value: number): void;
+  /** Pomodoros that make a good day; 0 turns the goal off. */
+  changeDailyGoal(value: number): void;
   /** Everything this panel controls, not just the durations. */
   restoreDefaults(): void;
 }
@@ -32,6 +35,7 @@ export interface SettingsModel {
   readonly characterId: string;
   readonly miniMode: boolean;
   readonly dimOpacity: number;
+  readonly dailyGoal: number;
 }
 
 const MIN_MINUTES = 1;
@@ -77,6 +81,7 @@ export class SettingsPanel {
   readonly #quiet: HTMLElement;
   readonly #pets: HTMLElement;
   readonly #dims: HTMLElement;
+  readonly #goals: HTMLElement;
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
@@ -84,6 +89,7 @@ export class SettingsPanel {
   readonly #quietButtons = new Map<number, HTMLButtonElement>();
   readonly #petButtons = new Map<string, HTMLButtonElement>();
   readonly #dimButtons = new Map<number, HTMLButtonElement>();
+  readonly #goalButtons = new Map<number, HTMLButtonElement>();
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
@@ -103,6 +109,7 @@ export class SettingsPanel {
     this.#quiet = element("set-quiet");
     this.#pets = element("set-pet");
     this.#dims = element("set-dim");
+    this.#goals = element("set-goal");
 
     for (const input of this.#numberInputs()) {
       // `input` reacts as you type but leaves the field alone; `change` fires
@@ -128,6 +135,7 @@ export class SettingsPanel {
     this.#buildQuietButtons();
     this.#buildPetButtons();
     this.#buildDimButtons();
+    this.#buildGoalButtons();
   }
 
   get isOpen(): boolean {
@@ -185,6 +193,10 @@ export class SettingsPanel {
 
     for (const [preset, button] of this.#dimButtons) {
       button.setAttribute("aria-pressed", String(Math.abs(preset - model.dimOpacity) < 0.005));
+    }
+
+    for (const [preset, button] of this.#goalButtons) {
+      button.setAttribute("aria-pressed", String(preset === model.dailyGoal));
     }
 
     this.#mini.checked = model.miniMode;
@@ -302,6 +314,15 @@ export class SettingsPanel {
 
       this.#dimButtons.set(preset, button);
       this.#dims.append(button);
+    }
+  }
+
+  #buildGoalButtons(): void {
+    for (const preset of DAILY_GOAL_PRESETS) {
+      const button = chip(formatDailyGoal(preset), () => this.actions.changeDailyGoal(preset));
+
+      this.#goalButtons.set(preset, button);
+      this.#goals.append(button);
     }
   }
 }

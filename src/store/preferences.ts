@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import { MAX_QUIET_MS } from "../core/quiet";
 import { defaultEnabled } from "../core/reminders";
 import type { PomodoroSettings } from "../core/types";
+import { DEFAULT_DAILY_GOAL, clampDailyGoal } from "../dailyGoal";
 import { DEFAULT_DIM_OPACITY, clampDimOpacity } from "../dim";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
@@ -12,8 +13,6 @@ import type { JsonStore } from "./persistence";
 
 const STORAGE_KEY = "pixel-pomodoro-pet:preferences";
 
-export const TASK_MAX_LENGTH = 48;
-
 export const DEFAULT_VOICE: Voice = "dev";
 
 export interface Preferences {
@@ -21,7 +20,6 @@ export interface Preferences {
   /** Which mascot lives in the widget. */
   readonly characterId: string;
   readonly settings: PomodoroSettings;
-  readonly task: string;
   readonly soundEnabled: boolean;
   /** Personality the mascot speaks in, or `off` for silence. */
   readonly voice: Voice;
@@ -35,6 +33,8 @@ export interface Preferences {
   readonly miniMode: boolean;
   /** Opacity the widget fades to once a session runs unattended; 0 turns auto-fade off. */
   readonly dimOpacity: number;
+  /** Pomodoros that make a good day, shown next to the tally; 0 turns it off. */
+  readonly dailyGoal: number;
   /** ISO day that `completedToday` belongs to; a new day resets the count. */
   readonly day: string;
   readonly completedToday: number;
@@ -45,7 +45,6 @@ export function defaultPreferences(day: string): Preferences {
     themeId: DEFAULT_THEME_ID,
     characterId: DEFAULT_CHARACTER_ID,
     settings: DEFAULT_SETTINGS,
-    task: "",
     soundEnabled: true,
     voice: DEFAULT_VOICE,
     reminders: defaultEnabled(REMINDER_PACKS),
@@ -53,6 +52,7 @@ export function defaultPreferences(day: string): Preferences {
     uiScale: DEFAULT_UI_SCALE,
     miniMode: false,
     dimOpacity: DEFAULT_DIM_OPACITY,
+    dailyGoal: DEFAULT_DAILY_GOAL,
     day,
     completedToday: 0,
   };
@@ -76,7 +76,6 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     themeId: isThemeId(raw["themeId"]) ? raw["themeId"] : defaults.themeId,
     characterId: isCharacterId(raw["characterId"]) ? raw["characterId"] : defaults.characterId,
     settings: readSettings(raw["settings"]),
-    task: typeof raw["task"] === "string" ? raw["task"].slice(0, TASK_MAX_LENGTH) : "",
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
     voice: isVoice(raw["voice"]) ? raw["voice"] : defaults.voice,
     reminders: readReminders(raw["reminders"]),
@@ -88,6 +87,8 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
       typeof raw["dimOpacity"] === "number"
         ? clampDimOpacity(raw["dimOpacity"])
         : DEFAULT_DIM_OPACITY,
+    dailyGoal:
+      typeof raw["dailyGoal"] === "number" ? clampDailyGoal(raw["dailyGoal"]) : DEFAULT_DAILY_GOAL,
     day: today,
     // Yesterday's tally is not today's.
     completedToday: sameDay ? readCount(raw["completedToday"]) : 0,

@@ -14,11 +14,22 @@ import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
 import { INITIAL_REMINDERS, accrueReminders, takeReminder } from "./core/reminders";
+import {
+  activeTaskText,
+  addTask as addTaskToState,
+  attributePomodoro,
+  removeTask as removeTaskFromState,
+  renameActive,
+  setActive,
+  toggleDone,
+  type TasksState,
+} from "./core/tasks";
 import { Ticker } from "./core/ticker";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
 import { REMINDER_PACKS } from "./messages/reminders";
 import type { Mood, Trigger, Voice } from "./messages/types";
+import { clampDailyGoal } from "./dailyGoal";
 import { clampDimOpacity } from "./dim";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
@@ -28,6 +39,7 @@ import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
 import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
+import { loadTasks, readLegacyTaskText, saveTasks } from "./store/tasks";
 import { AutoDim } from "./ui/auto-dim";
 import type { HistoryModel } from "./ui/history-panel";
 import { Widget } from "./ui/widget";
@@ -41,8 +53,22 @@ const AMBIENT_CHECK_MS = 60_000;
 function main(): void {
   let preferences = loadPreferences(browserStore, isoDay(new Date()));
   let theme = getTheme(preferences.themeId);
+  let tasks = loadTasks(browserStore);
+
+  // One-time bridge for anyone updating from before tasks existed: the free
+  // text field used to live directly in preferences. Only worth checking
+  // while the task store is genuinely empty -- past that point real use has
+  // already superseded whatever was there.
+  if (tasks.tasks.length === 0) {
+    const legacyTask = readLegacyTaskText(browserStore);
+    if (legacyTask !== "") {
+      tasks = renameActive(tasks, legacyTask, crypto.randomUUID());
+      saveTasks(browserStore, tasks);
+    }
+  }
+
   let state = createInitialState(preferences.settings, {
-    task: preferences.task,
+    task: activeTaskText(tasks),
     completedToday: preferences.completedToday,
   });
 
@@ -69,7 +95,11 @@ function main(): void {
     toggle: () => dispatch({ type: "toggle" }),
     skip: () => dispatch({ type: "skip" }),
     reset: () => dispatch({ type: "reset" }),
-    setTask: (task) => dispatch({ type: "setTask", task }),
+    setTask: (task) => {
+      tasks = renameActive(tasks, task, crypto.randomUUID());
+      saveTasks(browserStore, tasks);
+      dispatch({ type: "setTask", task });
+    },
     cycleTheme: () => {
       theme = getTheme(nextThemeId(theme.id));
       preferences = { ...preferences, themeId: theme.id };
@@ -103,8 +133,15 @@ function main(): void {
     },
     changeMiniMode: (enabled) => applyMiniMode(enabled),
     changeDimOpacity: (value) => applyDimOpacity(value, true),
+    changeDailyGoal: (value) => applyDailyGoal(value, true),
+    addTask: (text, estimatePomodoros) =>
+      applyTasksChange(addTaskToState(tasks, text, estimatePomodoros, crypto.randomUUID())),
+    setActiveTask: (id) => applyTasksChange(setActive(tasks, id)),
+    toggleTaskDone: (id) => applyTasksChange(toggleDone(tasks, id)),
+    removeTask: (id) => applyTasksChange(removeTaskFromState(tasks, id)),
     restoreDefaults: () => restoreDefaults(),
     viewHistory: () => computeHistoryModel(),
+    viewTasks: () => ({ tasks: tasks.tasks, activeId: tasks.activeId }),
   });
 
   const ticker = new Ticker((elapsedMs) => dispatch({ type: "tick", elapsedMs }));
@@ -132,6 +169,10 @@ function main(): void {
         history = recordSession(history, isoDay(new Date()));
         saveHistory(browserStore, history);
         widget.refreshHistory();
+
+        tasks = attributePomodoro(tasks);
+        saveTasks(browserStore, tasks);
+        widget.refreshTasks();
       } else {
         // A completed break, not a skipped one -- this is the "real break"
         // the weary read is timed from.
@@ -297,6 +338,30 @@ function main(): void {
     render();
   }
 
+  function applyDailyGoal(value: number, persist: boolean): void {
+    if (persist) {
+      preferences = { ...preferences, dailyGoal: clampDailyGoal(value) };
+      save();
+    }
+
+    render();
+  }
+
+  /**
+   * Every task-panel action funnels through here: persist the checklist,
+   * keep the main task field in step in case a different task just became
+   * active (or none did), and refresh the panel if it's open to see it.
+   * `refreshTasks` reads `tasks` live rather than a cached copy, so unlike
+   * the widget's own settings/history panels, the order of these three
+   * calls relative to each other genuinely does not matter.
+   */
+  function applyTasksChange(next: TasksState): void {
+    tasks = next;
+    saveTasks(browserStore, tasks);
+    dispatch({ type: "setTask", task: activeTaskText(tasks) });
+    widget.refreshTasks();
+  }
+
   /**
    * Puts everything the settings panel controls back to shipped values.
    *
@@ -322,6 +387,7 @@ function main(): void {
     applyScale(shipped.uiScale, true);
     applyMiniMode(shipped.miniMode);
     applyDimOpacity(shipped.dimOpacity, true);
+    applyDailyGoal(shipped.dailyGoal, true);
   }
 
   function applySettings(settings: PomodoroSettings): void {
@@ -470,7 +536,6 @@ function main(): void {
   function save(): void {
     preferences = {
       ...preferences,
-      task: state.task,
       completedToday: state.completedToday,
     };
 
@@ -500,6 +565,7 @@ function main(): void {
       characterId: preferences.characterId,
       miniMode: preferences.miniMode,
       dimOpacity: preferences.dimOpacity,
+      dailyGoal: preferences.dailyGoal,
     });
   }
 
