@@ -266,14 +266,14 @@ body {
      progress never resizes the box — which is also why a one-line message
      has to be centred rather than left sitting against the top. */
   display: flex;
-  min-height: 30px;
+  min-height: 36px;
   align-items: center;
-  padding: 5px 7px;
+  padding: 6px 8px;
   background: var(--surface-deep);
   color: var(--text);
-  font-size: 10px;
+  font-size: 13px;
   letter-spacing: 0.2px;
-  line-height: 15px;
+  line-height: 17px;
   clip-path: polygon(
     4px 0,
     calc(100% - 4px) 0,
