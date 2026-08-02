@@ -30,6 +30,8 @@ export interface WidgetActions {
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
   changeMiniMode(enabled: boolean): void;
+  /** Opacity while auto-faded; 0 turns auto-fade off. */
+  changeDimOpacity(value: number): void;
   restoreDefaults(): void;
   /** Fired only when the history panel opens — closing needs no fresh data. */
   viewHistory(): HistoryModel;
@@ -49,6 +51,8 @@ export interface WidgetModel {
   readonly quietMinutesLeft: number;
   readonly characterId: string;
   readonly miniMode: boolean;
+  /** Opacity while auto-faded; 0 means auto-fade is off. */
+  readonly dimOpacity: number;
 }
 
 export interface FrameSize {
@@ -120,6 +124,7 @@ export class Widget {
       changeQuiet: (minutes) => actions.changeQuiet(minutes),
       changeCharacter: (id) => actions.changeCharacter(id),
       changeMiniMode: (enabled) => actions.changeMiniMode(enabled),
+      changeDimOpacity: (value) => actions.changeDimOpacity(value),
       restoreDefaults: () => actions.restoreDefaults(),
     });
 

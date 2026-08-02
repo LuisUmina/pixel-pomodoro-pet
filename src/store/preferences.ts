@@ -2,6 +2,7 @@ import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import { MAX_QUIET_MS } from "../core/quiet";
 import { defaultEnabled } from "../core/reminders";
 import type { PomodoroSettings } from "../core/types";
+import { DEFAULT_DIM_OPACITY, clampDimOpacity } from "../dim";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
 import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
@@ -32,6 +33,8 @@ export interface Preferences {
   readonly uiScale: number;
   /** Frame shrunk to just the mascot and the clock. */
   readonly miniMode: boolean;
+  /** Opacity the widget fades to once a session runs unattended; 0 turns auto-fade off. */
+  readonly dimOpacity: number;
   /** ISO day that `completedToday` belongs to; a new day resets the count. */
   readonly day: string;
   readonly completedToday: number;
@@ -49,6 +52,7 @@ export function defaultPreferences(day: string): Preferences {
     quietUntil: 0,
     uiScale: DEFAULT_UI_SCALE,
     miniMode: false,
+    dimOpacity: DEFAULT_DIM_OPACITY,
     day,
     completedToday: 0,
   };
@@ -80,6 +84,10 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     uiScale:
       typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,
     miniMode: typeof raw["miniMode"] === "boolean" ? raw["miniMode"] : false,
+    dimOpacity:
+      typeof raw["dimOpacity"] === "number"
+        ? clampDimOpacity(raw["dimOpacity"])
+        : DEFAULT_DIM_OPACITY,
     day: today,
     // Yesterday's tally is not today's.
     completedToday: sameDay ? readCount(raw["completedToday"]) : 0,

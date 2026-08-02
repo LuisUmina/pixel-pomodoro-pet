@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import { QUIET_PRESETS, formatQuiet } from "../core/quiet";
 import type { Phase, PomodoroSettings } from "../core/types";
+import { DIM_OPACITY_PRESETS, formatDimOpacity } from "../dim";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
@@ -16,6 +17,8 @@ export interface SettingsPanelActions {
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
   changeMiniMode(enabled: boolean): void;
+  /** Opacity while auto-faded; 0 turns auto-fade off. */
+  changeDimOpacity(value: number): void;
   /** Everything this panel controls, not just the durations. */
   restoreDefaults(): void;
 }
@@ -28,6 +31,7 @@ export interface SettingsModel {
   readonly quietMinutesLeft: number;
   readonly characterId: string;
   readonly miniMode: boolean;
+  readonly dimOpacity: number;
 }
 
 const MIN_MINUTES = 1;
@@ -72,12 +76,14 @@ export class SettingsPanel {
   readonly #reminders: HTMLElement;
   readonly #quiet: HTMLElement;
   readonly #pets: HTMLElement;
+  readonly #dims: HTMLElement;
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
   readonly #reminderBoxes = new Map<string, HTMLInputElement>();
   readonly #quietButtons = new Map<number, HTMLButtonElement>();
   readonly #petButtons = new Map<string, HTMLButtonElement>();
+  readonly #dimButtons = new Map<number, HTMLButtonElement>();
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
@@ -96,6 +102,7 @@ export class SettingsPanel {
     this.#reminders = element("set-reminders");
     this.#quiet = element("set-quiet");
     this.#pets = element("set-pet");
+    this.#dims = element("set-dim");
 
     for (const input of this.#numberInputs()) {
       // `input` reacts as you type but leaves the field alone; `change` fires
@@ -120,6 +127,7 @@ export class SettingsPanel {
     this.#buildReminderRows();
     this.#buildQuietButtons();
     this.#buildPetButtons();
+    this.#buildDimButtons();
   }
 
   get isOpen(): boolean {
@@ -173,6 +181,10 @@ export class SettingsPanel {
 
     for (const [id, button] of this.#petButtons) {
       button.setAttribute("aria-pressed", String(id === model.characterId));
+    }
+
+    for (const [preset, button] of this.#dimButtons) {
+      button.setAttribute("aria-pressed", String(Math.abs(preset - model.dimOpacity) < 0.005));
     }
 
     this.#mini.checked = model.miniMode;
@@ -281,6 +293,15 @@ export class SettingsPanel {
 
       this.#petButtons.set(character.id, button);
       this.#pets.append(button);
+    }
+  }
+
+  #buildDimButtons(): void {
+    for (const preset of DIM_OPACITY_PRESETS) {
+      const button = chip(formatDimOpacity(preset), () => this.actions.changeDimOpacity(preset));
+
+      this.#dimButtons.set(preset, button);
+      this.#dims.append(button);
     }
   }
 }

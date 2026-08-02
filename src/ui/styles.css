@@ -11,6 +11,8 @@
   /* Set from the settings panel; the native window is resized to match, so
      these two stay the widget's size in its own coordinate space. */
   --ui-scale: 1;
+  /* Set from the settings panel; 0 means auto-fade never kicks in. */
+  --dim-opacity: 0.4;
   --bevel-outer: 8px;
   --bevel-inner: 6px;
   color-scheme: dark;
@@ -66,7 +68,7 @@ body {
 
 /* Fades out of the way while a session runs; hovering brings it back. */
 .frame.is-dimmed {
-  opacity: 0.42;
+  opacity: var(--dim-opacity);
 }
 
 /* Click-through is invisible by its nature — clicks simply pass through — so

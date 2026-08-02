@@ -20,6 +20,7 @@ coverage/
 
 # agent tooling, not part of the project
 .agents/
+.claude/
 skills-lock.json
 
 # os

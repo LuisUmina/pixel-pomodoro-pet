@@ -18,6 +18,7 @@ import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { CATALOG } from "./messages/catalog";
 import { REMINDER_PACKS } from "./messages/reminders";
 import type { Trigger, Voice } from "./messages/types";
+import { clampDimOpacity } from "./dim";
 import { desktop } from "./platform/desktop";
 import { SHELL_EVENTS } from "./platform/events";
 import { BASE_WIDGET_HEIGHT, BASE_WIDGET_WIDTH, clampUiScale } from "./scale";
@@ -92,6 +93,7 @@ function main(): void {
       render();
     },
     changeMiniMode: (enabled) => applyMiniMode(enabled),
+    changeDimOpacity: (value) => applyDimOpacity(value, true),
     restoreDefaults: () => restoreDefaults(),
     viewHistory: () => computeHistoryModel(),
   });
@@ -139,7 +141,7 @@ function main(): void {
       ticker.stop();
     }
 
-    autoDim.setEnabled(state.status === "running");
+    autoDim.setEnabled(state.status === "running" && preferences.dimOpacity > 0);
     save();
     render();
   }
@@ -257,6 +259,24 @@ function main(): void {
   }
 
   /**
+   * How opaque the widget goes once auto-fade kicks in. 0 does not mean "fade
+   * to invisible" -- it means auto-fade never engages, mirroring how 0
+   * minutes of quiet means "not silenced" rather than "silenced forever".
+   */
+  function applyDimOpacity(value: number, persist: boolean): void {
+    const dimOpacity = clampDimOpacity(value);
+    document.documentElement.style.setProperty("--dim-opacity", String(dimOpacity));
+    autoDim.setEnabled(state.status === "running" && dimOpacity > 0);
+
+    if (persist) {
+      preferences = { ...preferences, dimOpacity };
+      save();
+    }
+
+    render();
+  }
+
+  /**
    * Puts everything the settings panel controls back to shipped values.
    *
    * The button lives at the bottom of a panel that now covers durations, size,
@@ -280,6 +300,7 @@ function main(): void {
     reminders = INITIAL_REMINDERS;
     applyScale(shipped.uiScale, true);
     applyMiniMode(shipped.miniMode);
+    applyDimOpacity(shipped.dimOpacity, true);
   }
 
   function applySettings(settings: PomodoroSettings): void {
@@ -438,6 +459,7 @@ function main(): void {
       quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
       characterId: preferences.characterId,
       miniMode: preferences.miniMode,
+      dimOpacity: preferences.dimOpacity,
     });
   }
 
@@ -513,6 +535,7 @@ function main(): void {
   // leaves that correct starting box alone for `applyMiniMode` to centre
   // around, instead of overwriting it with the full-size box first.
   applyScale(uiScale, false, !preferences.miniMode);
+  applyDimOpacity(preferences.dimOpacity, false);
 
   if (preferences.miniMode) {
     applyMiniMode(true);

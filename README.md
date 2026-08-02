@@ -68,9 +68,10 @@ El contador de abajo abre tu historial: racha, récords y un heatmap del
   **repinta también al pato**, no solo la interfaz.
 - **Reloj en fuente pixel propia**, dibujada con el mismo motor de sprites que
   la mascota. Nítida a cualquier escala y sin un solo asset binario.
-- **Auto-fade**: seis segundos después de arrancar una sesión el widget baja a
-  42 % de opacidad y vuelve al pasar el mouse. Sin esto, algo que se superpone a
-  todo se vuelve insoportable en una hora.
+- **Auto-fade**: seis segundos después de arrancar una sesión el widget baja de
+  opacidad y vuelve al pasar el mouse. Sin esto, algo que se superpone a todo
+  se vuelve insoportable en una hora. El nivel (20/40/65 %, o apagado del todo)
+  se elige en ajustes.
 - **Modo click-through**: el widget deja de capturar el mouse por completo y
   flota de verdad sobre el IDE.
 - **Modo mascota**: encoge la ventana a solo el personaje y el reloj, sin
