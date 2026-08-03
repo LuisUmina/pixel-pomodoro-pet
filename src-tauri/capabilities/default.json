@@ -22,6 +22,56 @@
     "notification:default",
     "window-state:default",
     "dialog:default",
-    "fs:default"
+    "fs:default",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read-file",
+    "fs:allow-write-file",
+    "fs:allow-exists",
+    "fs:allow-create",
+    "fs:allow-desktop-read-recursive",
+    "fs:allow-desktop-write-recursive",
+    "fs:allow-download-read-recursive",
+    "fs:allow-download-write-recursive",
+    "fs:allow-document-read-recursive",
+    "fs:allow-document-write-recursive",
+    "fs:allow-home-read-recursive",
+    "fs:allow-home-write-recursive",
+    "fs:allow-appdata-read-recursive",
+    "fs:allow-appdata-write-recursive",
+    {
+      "identifier": "fs:allow-write-text-file",
+      "allow": [
+        { "path": "$DESKTOP/*" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$DOWNLOAD/*" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DOCUMENT/*" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$HOME/*" },
+        { "path": "$HOME/**" },
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" },
+        { "path": "*" },
+        { "path": "**" }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [
+        { "path": "$DESKTOP/*" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$DOWNLOAD/*" },
+        { "path": "$DOWNLOAD/**" },
+        { "path": "$DOCUMENT/*" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$HOME/*" },
+        { "path": "$HOME/**" },
+        { "path": "$APPDATA/*" },
+        { "path": "$APPDATA/**" },
+        { "path": "*" },
+        { "path": "**" }
+      ]
+    }
   ]
 }

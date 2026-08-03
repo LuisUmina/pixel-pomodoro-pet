@@ -437,9 +437,11 @@ function main(): void {
       theme = getTheme(preferences.themeId);
       applyThemeCss(theme, document.documentElement);
       applyScale(preferences.uiScale, false);
+      applyMiniMode(preferences.miniMode);
       applyDimOpacity(preferences.dimOpacity, false);
       applyDailyGoal(preferences.dailyGoal, false);
       applyTasksChange(tasks);
+      desktop.updateShortcuts();
       render();
       utter("¡Datos importados correctamente!", Date.now());
     } else {
