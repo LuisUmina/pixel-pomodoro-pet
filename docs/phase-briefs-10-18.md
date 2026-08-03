@@ -1,9 +1,9 @@
-# Briefs para sub-agentes — fases pendientes (11, 12, 14, 16, 17, 18)
+# Briefs para sub-agentes — fases pendientes (11, 12, 14, 17, 18)
 
-Las fases 10, 13 y 15 ya se implementaron, auditaron y mergearon a `main` —
-sus briefs se sacaron de este archivo. El detalle de cómo quedaron (incluidos
-dos bugs reales que la auditoría encontró y ya se corrigieron) está en
-`docs/ROADMAP.md`.
+Las fases 10, 13, 15 y 16 ya se implementaron, auditaron y mergearon a
+`main` — sus briefs se sacaron de este archivo. El detalle de cómo quedaron
+(incluidos dos bugs reales que la auditoría encontró y ya se corrigieron en
+10/13/15) está en `docs/ROADMAP.md`.
 
 ## Preámbulo (pegar antes de CADA fase, a cada sub-agente)
 
@@ -77,20 +77,6 @@ con 11, 12**
   puro en `themes.ts`, sin lógica nueva).
 - Cuidado con instanciar un canvas de más por cada personaje listado —
   pensá el costo de render si son varios a la vez.
-
----
-
-## Fase 16 — Comportamientos más vivos
-**Costo: M · Depende de la fase 3 (ya hecha) · Sin conflicto de archivos con
-otras fases**
-
-- Más amplitud/variedad en animaciones existentes (parpadeo, caminata,
-  estiramiento) y 1-2 conductas nuevas por estado, dentro de la ventana
-  actual. NO es deambular libre por el escritorio — eso es la fase 8, aparte
-  y en pausa.
-- Toca: `src/sprites/behaviors.ts` y los JSON de personajes existentes.
-- Mantené duraciones desparejas entre cuadros — cuadros de igual largo laten
-  como metrónomo y delatan el bucle.
 
 ---
 

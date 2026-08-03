@@ -7,9 +7,9 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 13 y 15 terminadas.** Fases
-11, 12, 14, 16, 17 y 18 planeadas y aprobadas, a la espera de que se defina el
-orden de arranque. La fase 8 sigue en pausa.
+**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 13, 15 y 16 terminadas.**
+Fases 11, 12, 14, 17 y 18 planeadas y aprobadas, a la espera de que se defina
+el orden de arranque. La fase 8 sigue en pausa.
 
 ---
 
@@ -32,16 +32,15 @@ orden de arranque. La fase 8 sigue en pausa.
 | 13 | [Atajos configurables](#fase-13--atajos-configurables) ✅ | M | — |
 | 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
 | 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) ✅ | L | 4 |
-| 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) | M | 3 |
+| 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) ✅ | M | 3 |
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
 
 **Siguiente recomendada:** sin definir todavía entre las que quedan (11, 12,
-14, 16, 17, 18) — el orden de arranque queda a criterio propio. Ninguna
-depende de la 8, que sigue en pausa por decisión propia: sus dependencias (3
-y 5) están resueltas, pero el riesgo que el roadmap siempre le marcó — mover
-la ventana del SO en tiempo real, multi-monitor y DPI distinto — sigue en
-pie.
+14, 17, 18) — el orden de arranque queda a criterio propio. Ninguna depende
+de la 8, que sigue en pausa por decisión propia: sus dependencias (3 y 5)
+están resueltas, pero el riesgo que el roadmap siempre le marcó — mover la
+ventana del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
 
 ---
 
@@ -809,17 +808,29 @@ línea) no cambiaron.
 
 ---
 
-## Fase 16 — Comportamientos más vivos
+## Fase 16 — Comportamientos más vivos ✅
 
-**Costo: M · Depende de la fase 3**
+**Terminada · Costo: M**
 
-Más amplitud y variedad en las animaciones existentes (parpadeos, caminata,
-estiramientos) para que se noten más a simple vista, más 1-2 conductas nuevas
-por estado. Sigue dentro de la ventana — no toca lo que la fase 8 (deambular
-libre) dejó pendiente.
+15 conductas nuevas repartidas en los 7 personajes, una por cada estado
+(idle/focus/rest/sleepy) que estaba en el mínimo de 2 opciones — ahora todos
+tienen 3 o más, verificado contando pesos reales por estado, no solo leyendo
+la descripción del commit. `celebrate` se dejó en 1 opción a propósito: es un
+estallido corto, no necesita variedad.
 
-**Toca:** `src/sprites/behaviors.ts`, arte nuevo en los JSON de cada
-personaje existente.
+- **Cero arte nuevo.** Cada conducta nueva reusa parches que el personaje ya
+  tenía, así que `src/sprites/behaviors.ts` no necesitó ningún cambio —
+  `pickBehavior` ya era genérico sobre cualquier cantidad de conductas por
+  ánimo.
+- **`MAX_BOB`/`MAX_SHIFT` quedaron intactos a propósito.** Subirlos habría
+  aumentado el canvas del widget, y eso alimenta el cálculo de
+  `resize_keep_center` del modo mascota (fase 5) — fuera del alcance de esta
+  fase.
+- Los personajes *emblema* (terminal, spark, café) siguen sin `offsetX` ni
+  caminata en ninguna conducta nueva, consistente con la fase 4: un emblema
+  se anima por intensidad visual, no por movimiento de cuerpo.
+
+**Toca:** los 7 JSON en `src/sprites/characters/`. `behaviors.ts` sin tocar.
 
 ---
 
