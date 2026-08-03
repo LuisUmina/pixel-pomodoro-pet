@@ -53,9 +53,15 @@ export class MiniChecklist {
     box.className = "task-item__done";
     box.checked = task.done;
     box.title = "Done";
-    box.addEventListener("change", () =>
-      this.#guardedAction(() => this.actions.toggleDone(task.id)),
-    );
+    box.addEventListener("change", () => {
+      // The native checkbox has already flipped its own `checked` the moment
+      // this fires. A guarded (dropped) action must undo that, or a rapid
+      // second click shows a state that was never actually saved until the
+      // next unrelated refresh happens to overwrite it back.
+      if (!this.#guardedAction(() => this.actions.toggleDone(task.id))) {
+        box.checked = task.done;
+      }
+    });
 
     const text = document.createElement("span");
     text.className = "task-item__text";
@@ -66,13 +72,15 @@ export class MiniChecklist {
     return row;
   }
 
-  #guardedAction(run: () => void): void {
+  /** Returns whether `run` actually fired, so a rejected checkbox click can be undone. */
+  #guardedAction(run: () => void): boolean {
     const now = Date.now();
     if (now - this.#lastActionAt < ACTION_GUARD_MS) {
-      return;
+      return false;
     }
 
     this.#lastActionAt = now;
     run();
+    return true;
   }
 }

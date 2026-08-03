@@ -918,14 +918,19 @@ body {
    `.task-item` from the full panel below rather than duplicating that
    styling; only the container is specific to this compact placement. Fixed
    width so a long task name truncates instead of stretching the whole
-   mini window; capped height with scrolling so a long list does not either. */
+   mini window; capped height with scrolling so a long list does not either.
+   The bottom margin is not decorative: `.controls` above is `position:
+   absolute; bottom: 0` in mini mode and revealed on hover -- exactly the
+   gesture used to tick a box here -- so the last row(s) need to sit clear
+   of its full height (30px button + 4px padding top and bottom) or hovering
+   to tap a checkbox would hide it under the very overlay that triggered. */
 .mini-checklist {
   display: flex;
   flex-direction: column;
   gap: 4px;
   width: 150px;
   max-height: 130px;
-  margin: 0 8px 8px;
+  margin: 0 8px 42px;
   overflow-y: auto;
 }
 
