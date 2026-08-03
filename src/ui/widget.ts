@@ -10,6 +10,7 @@ import { Bubble } from "./bubble";
 import { ClockCanvas } from "./clock-canvas";
 import { actionElement, element } from "./dom";
 import { HistoryPanel, type HistoryModel } from "./history-panel";
+import { MiniChecklist } from "./mini-checklist";
 import { PetCanvas } from "./pet-canvas";
 import { ResizeGrip } from "./resize-grip";
 import { SettingsPanel } from "./settings-panel";
@@ -33,6 +34,8 @@ export interface WidgetActions {
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
   changeMiniMode(enabled: boolean): void;
+  /** Floating checklist under the mascot; only visible while mini mode is on. */
+  changeTaskChecklist(enabled: boolean): void;
   /** Opacity while auto-faded; 0 turns auto-fade off. */
   changeDimOpacity(value: number): void;
   /** Pomodoros that make a good day; 0 turns the goal off. */
@@ -69,6 +72,8 @@ export interface WidgetModel {
   readonly quietMinutesLeft: number;
   readonly characterId: string;
   readonly miniMode: boolean;
+  /** Floating checklist under the mascot; only shown while `miniMode` is on. */
+  readonly taskChecklist: boolean;
   /** Opacity while auto-faded; 0 means auto-fade is off. */
   readonly dimOpacity: number;
   /** Pomodoros that make a good day; 0 means no goal is set. */
@@ -98,6 +103,7 @@ export class Widget {
   readonly #settings: SettingsPanel;
   readonly #history: HistoryPanel;
   readonly #tasksPanel: TasksPanel;
+  readonly #miniChecklist: MiniChecklist;
   readonly #grip: ResizeGrip;
   readonly #path: HTMLElement;
   readonly #phase: HTMLElement;
@@ -111,6 +117,7 @@ export class Widget {
   readonly #settingsButton: HTMLElement;
   readonly #miniButton: HTMLElement;
   readonly #tasksButton: HTMLElement;
+  readonly #checklistButton: HTMLElement;
   readonly #viewHistory: () => HistoryModel;
   readonly #viewTasks: () => TasksModel;
 
@@ -164,6 +171,10 @@ export class Widget {
     });
     this.#viewTasks = actions.viewTasks;
 
+    this.#miniChecklist = new MiniChecklist({
+      toggleDone: (id) => actions.toggleTaskDone(id),
+    });
+
     this.#grip = new ResizeGrip(
       element("grip"),
       (scale) => actions.changeScale(scale, false),
@@ -183,6 +194,7 @@ export class Widget {
       history: () => this.#toggleHistory(),
       mini: () => actions.changeMiniMode(!(this.#model?.miniMode ?? false)),
       tasks: () => this.#toggleTasks(),
+      checklist: () => actions.changeTaskChecklist(!(this.#model?.taskChecklist ?? false)),
     };
 
     for (const button of document.querySelectorAll<HTMLElement>("[data-action]")) {
@@ -197,6 +209,7 @@ export class Widget {
     this.#settingsButton = actionElement("settings");
     this.#miniButton = actionElement("mini");
     this.#tasksButton = actionElement("tasks");
+    this.#checklistButton = actionElement("checklist");
 
     this.#task.addEventListener("input", () => actions.setTask(this.#task.value));
     // Enter should hand focus back rather than submit anything.
@@ -251,10 +264,22 @@ export class Widget {
     this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
     this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
+    this.#checklistButton.setAttribute("aria-pressed", String(model.taskChecklist));
     this.frame.dataset["ghost"] = String(model.ghost);
     this.#widget.dataset["ghost"] = String(model.ghost);
     this.frame.dataset["mini"] = String(model.miniMode);
     this.#widget.dataset["mini"] = String(model.miniMode);
+
+    // Only rebuilds the rows on an actual show/hide transition, the same
+    // reasoning as settings/history/tasks below -- not on every one of these
+    // calls, which run four times a second while a session is ticking.
+    const showChecklist = model.miniMode && model.taskChecklist;
+    if (showChecklist !== this.#miniChecklist.visible) {
+      this.#miniChecklist.visible = showChecklist;
+      if (showChecklist) {
+        this.#miniChecklist.render(this.#viewTasks());
+      }
+    }
 
     this.#pet.setCharacter(getCharacter(model.characterId));
     this.#pet.setResolution(model.uiScale);
@@ -311,10 +336,18 @@ export class Widget {
     }
   }
 
-  /** Keeps an already-open task list current when a pomodoro lands on it. */
+  /**
+   * Keeps an already-open task list current when a pomodoro lands on it --
+   * both the full panel and the mini-mode checklist, whichever is showing,
+   * so an action taken in one is never stale in the other.
+   */
   refreshTasks(): void {
     if (this.#tasksPanel.isOpen) {
       this.#tasksPanel.render(this.#viewTasks());
+    }
+
+    if (this.#miniChecklist.visible) {
+      this.#miniChecklist.render(this.#viewTasks());
     }
   }
 
