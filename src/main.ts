@@ -13,7 +13,12 @@ import { currentStreak, heatmap, recordSession } from "./core/history";
 import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
-import { INITIAL_REMINDERS, accrueReminders, takeReminder } from "./core/reminders";
+import {
+  INITIAL_REMINDERS,
+  accrueReminders,
+  customReminderPacks,
+  takeReminder,
+} from "./core/reminders";
 import {
   activeTaskText,
   addTask as addTaskToState,
@@ -124,6 +129,12 @@ function main(): void {
     changeVoice: (voice) => applyVoice(voice),
     changeReminder: (id, enabled) => {
       preferences = { ...preferences, reminders: { ...preferences.reminders, [id]: enabled } };
+      save();
+      render();
+    },
+    changeCustomReminders: (customReminders) => {
+      preferences = { ...preferences, customReminders };
+      reminders = INITIAL_REMINDERS;
       save();
       render();
     },
@@ -271,11 +282,17 @@ function main(): void {
    */
   function trackReminders(elapsedMs: number, phase: Phase, alreadySpoke: boolean): void {
     const now = Date.now();
-    const check = { phase, enabled: preferences.reminders };
+    const custom = customReminderPacks(preferences.customReminders);
+    const enabled = {
+      ...preferences.reminders,
+      ...Object.fromEntries(custom.map((reminder) => [reminder.id, true])),
+    };
+    const allReminders = [...REMINDER_PACKS, ...custom];
+    const check = { phase, enabled };
     const delivering =
       preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now);
 
-    reminders = accrueReminders(reminders, elapsedMs, { ...check, delivering }, REMINDER_PACKS);
+    reminders = accrueReminders(reminders, elapsedMs, { ...check, delivering }, allReminders);
 
     // A phase that just ended already has something to say. Skipping leaves
     // the pack's bank alone, so it comes back a quarter of a second later.
@@ -283,7 +300,7 @@ function main(): void {
       return;
     }
 
-    const due = takeReminder(reminders, check, REMINDER_PACKS);
+    const due = takeReminder(reminders, check, allReminders);
     if (due) {
       reminders = due.state;
       utter(due.line, now);
@@ -384,6 +401,7 @@ function main(): void {
       settings: shipped.settings,
       voice: shipped.voice,
       reminders: shipped.reminders,
+      customReminders: shipped.customReminders,
       shortcuts: shipped.shortcuts,
       quietUntil: shipped.quietUntil,
       characterId: shipped.characterId,
@@ -641,6 +659,7 @@ function main(): void {
       uiScale,
       voice: preferences.voice,
       reminders: preferences.reminders,
+      customReminders: preferences.customReminders,
       shortcuts: preferences.shortcuts,
       quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
       characterId: preferences.characterId,

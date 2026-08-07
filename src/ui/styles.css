@@ -741,6 +741,57 @@ body {
   text-transform: none;
 }
 
+.custom-reminder-add,
+.custom-reminder {
+  display: grid;
+  gap: 6px;
+  align-items: center;
+}
+
+.custom-reminder-screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--surface);
+}
+
+.custom-reminder-add {
+  grid-template-columns: minmax(0, 1fr) 42px 78px auto;
+}
+
+.custom-reminder-add input,
+.custom-reminder-add select {
+  min-width: 0;
+  color: var(--text);
+  background: var(--surface-deep);
+  border: 1px solid var(--border);
+  font: inherit;
+}
+
+.custom-reminder {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 4px 0;
+  color: var(--text);
+}
+
+.custom-reminder > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.custom-reminder > span:nth-child(2) {
+  color: var(--text-dim);
+}
+
+.custom-reminder__remove {
+  color: var(--danger);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
 .panel__body .btn {
   height: 28px;
   margin-top: auto;

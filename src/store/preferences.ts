@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import { MAX_QUIET_MS } from "../core/quiet";
-import { defaultEnabled } from "../core/reminders";
+import { defaultEnabled, readCustomReminder, type CustomReminder } from "../core/reminders";
 import type { PomodoroSettings } from "../core/types";
 import { DEFAULT_DAILY_GOAL, clampDailyGoal } from "../dailyGoal";
 import { DEFAULT_DIM_OPACITY, clampDimOpacity } from "../dim";
@@ -26,6 +26,8 @@ export interface Preferences {
   readonly voice: Voice;
   /** Reminder pack id to whether the user wants it. */
   readonly reminders: Readonly<Record<string, boolean>>;
+  /** User-authored lines, scheduled through the same reminder engine as packs. */
+  readonly customReminders: readonly CustomReminder[];
   /** Keybindings for global hotkeys. */
   readonly shortcuts: ShortcutMap;
   /** When a temporary vow of silence expires; 0 when there is none. */
@@ -53,6 +55,7 @@ export function defaultPreferences(day: string): Preferences {
     soundEnabled: true,
     voice: DEFAULT_VOICE,
     reminders: defaultEnabled(REMINDER_PACKS),
+    customReminders: [],
     shortcuts: DEFAULT_SHORTCUTS,
     quietUntil: 0,
     uiScale: DEFAULT_UI_SCALE,
@@ -86,6 +89,7 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
     voice: isVoice(raw["voice"]) ? raw["voice"] : defaults.voice,
     reminders: readReminders(raw["reminders"]),
+    customReminders: readCustomReminders(raw["customReminders"]),
     shortcuts: readShortcuts(raw["shortcuts"]),
     quietUntil: readQuietUntil(raw["quietUntil"]),
     uiScale:
@@ -156,6 +160,23 @@ function readReminders(value: unknown): Record<string, boolean> {
   }
 
   return enabled;
+}
+
+function readCustomReminders(value: unknown): readonly CustomReminder[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const seen = new Set<string>();
+  const reminders: CustomReminder[] = [];
+  for (const raw of value) {
+    const reminder = readCustomReminder(raw);
+    if (reminder && !seen.has(reminder.id)) {
+      seen.add(reminder.id);
+      reminders.push(reminder);
+    }
+  }
+  return reminders;
 }
 
 /**

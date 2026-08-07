@@ -22,6 +22,70 @@
 import type { ReminderPack } from "../messages/reminders";
 import type { Phase } from "./types";
 
+/** A user-authored reminder is deliberately smaller than a shipped pack. */
+export interface CustomReminder {
+  readonly id: string;
+  readonly text: string;
+  readonly everyMinutes: number;
+  /** `break` covers both short and long breaks. */
+  readonly anchor: "focus" | "break";
+}
+
+/** Keeps a custom line inside the same bubble as the bundled catalogue. */
+export const CUSTOM_REMINDER_TEXT_MAX_LENGTH = 58;
+export const CUSTOM_REMINDER_MAX_MINUTES = 180;
+
+/** The common scheduling shape; packs and authored reminders share the clock. */
+export interface SchedulableReminder {
+  readonly id: string;
+  readonly phases: readonly Phase[];
+  readonly everyMinutes: number;
+  readonly lines: readonly string[];
+}
+
+/**
+ * Turns stored user content into the same scheduler input as a bundled pack.
+ * The generated ids stay in a separate namespace so a future pack cannot
+ * accidentally spend a user's reminder bank.
+ */
+export function customReminderPacks(
+  reminders: readonly CustomReminder[],
+): readonly SchedulableReminder[] {
+  return reminders.map((reminder) => ({
+    id: `custom:${reminder.id}`,
+    phases: reminder.anchor === "focus" ? ["focus"] : ["shortBreak", "longBreak"],
+    everyMinutes: reminder.everyMinutes,
+    lines: [reminder.text],
+  }));
+}
+
+/** Rejects malformed persisted data without making the preferences loader trust it. */
+export function readCustomReminder(value: unknown): CustomReminder | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const id = value["id"];
+  const text = value["text"];
+  const everyMinutes = value["everyMinutes"];
+  const anchor = value["anchor"];
+  if (
+    typeof id !== "string" ||
+    id === "" ||
+    typeof text !== "string" ||
+    text.trim() === "" ||
+    typeof everyMinutes !== "number" ||
+    !Number.isInteger(everyMinutes) ||
+    everyMinutes < 1 ||
+    everyMinutes > CUSTOM_REMINDER_MAX_MINUTES ||
+    (anchor !== "focus" && anchor !== "break")
+  ) {
+    return null;
+  }
+
+  return { id, text: text.trim().slice(0, CUSTOM_REMINDER_TEXT_MAX_LENGTH), everyMinutes, anchor };
+}
+
 /**
  * Longest a single slice may bank. A slept or suspended machine hands the
  * ticker back an enormous gap, and without a ceiling that one slice would
@@ -47,7 +111,7 @@ export interface ReminderCheck {
 
 export interface TakenReminder {
   readonly state: ReminderState;
-  readonly pack: ReminderPack;
+  readonly pack: SchedulableReminder;
   readonly line: string;
 }
 
@@ -62,7 +126,7 @@ export function accrueReminders(
   state: ReminderState,
   elapsedMs: number,
   check: ReminderCheck & { readonly delivering: boolean },
-  packs: readonly ReminderPack[],
+  packs: readonly SchedulableReminder[],
 ): ReminderState {
   const step = sliceSize(elapsedMs);
   if (step === 0 || !check.delivering) {
@@ -87,7 +151,7 @@ export function accrueReminders(
 export function takeReminder(
   state: ReminderState,
   check: ReminderCheck,
-  packs: readonly ReminderPack[],
+  packs: readonly SchedulableReminder[],
   random: () => number = Math.random,
 ): TakenReminder | null {
   const pack = mostOverdue(state.banked, check, packs);
@@ -117,8 +181,8 @@ function sliceSize(elapsedMs: number): number {
 
 function eligible(
   check: ReminderCheck,
-  packs: readonly ReminderPack[],
-): readonly ReminderPack[] {
+  packs: readonly SchedulableReminder[],
+): readonly SchedulableReminder[] {
   return packs.filter(
     (pack) => check.enabled[pack.id] === true && pack.phases.includes(check.phase),
   );
@@ -134,9 +198,9 @@ function eligible(
 function mostOverdue(
   banked: Readonly<Record<string, number>>,
   check: ReminderCheck,
-  packs: readonly ReminderPack[],
-): ReminderPack | null {
-  let best: ReminderPack | null = null;
+  packs: readonly SchedulableReminder[],
+): SchedulableReminder | null {
+  let best: SchedulableReminder | null = null;
   let bestOver = 0;
 
   for (const pack of eligible(check, packs)) {
@@ -151,7 +215,7 @@ function mostOverdue(
   return best;
 }
 
-function pickLine(pack: ReminderPack, last: number | undefined, random: () => number): number {
+function pickLine(pack: SchedulableReminder, last: number | undefined, random: () => number): number {
   if (pack.lines.length < 2) {
     return 0;
   }
@@ -175,4 +239,8 @@ export function defaultEnabled(packs: readonly ReminderPack[]): Record<string, b
   }
 
   return enabled;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
