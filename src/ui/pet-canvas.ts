@@ -26,12 +26,16 @@ export class PetCanvas {
   #frameElapsed = 0;
   #loopsDone = 0;
   #lastTimestamp = 0;
-  #pixel = SCALE;
+  #pixel: number;
   #resolution = 1;
   #handle: number | null = null;
   #dirty = true;
 
-  constructor(canvas: HTMLCanvasElement, character = getCharacter(DEFAULT_CHARACTER_ID)) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    character = getCharacter(DEFAULT_CHARACTER_ID),
+    private readonly scale = SCALE,
+  ) {
     const ctx = canvas.getContext("2d");
     if (!ctx) {
       throw new Error("could not acquire a 2d context for the mascot");
@@ -40,6 +44,7 @@ export class PetCanvas {
     this.#canvas = canvas;
     this.#ctx = ctx;
     this.#character = character;
+    this.#pixel = scale;
     this.#nextBehavior();
     this.#resize();
   }
@@ -127,7 +132,7 @@ export class PetCanvas {
 
     // A whole number of device pixels per sprite pixel: anything fractional
     // would leave the blocks with soft, uneven edges.
-    this.#pixel = Math.max(1, Math.round(SCALE * layout));
+    this.#pixel = Math.max(1, Math.round(this.scale * layout));
 
     // Room for the bob below and for a wander either side, so neither clips.
     const width = (this.#character.size + MAX_SHIFT * 2) * this.#pixel;

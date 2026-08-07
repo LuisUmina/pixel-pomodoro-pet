@@ -634,6 +634,29 @@ body {
   gap: 4px;
 }
 
+.pet-picker {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+
+.field:has(.pet-picker) .field__label {
+  flex: none;
+}
+
+.pet-picker .chips {
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+
+.pet-preview {
+  flex: none;
+  image-rendering: pixelated;
+}
+
 .chip {
   padding: 4px 6px;
   border: 2px solid var(--surface-deep);

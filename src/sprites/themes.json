@@ -94,5 +94,71 @@
       "n": "#504945",
       "N": "#665c54"
     }
+  },
+  "nord": {
+    "name": "Nord",
+    "css": {
+      "--surface": "#2e3440",
+      "--surface-alt": "#3b4252",
+      "--surface-deep": "#272c36",
+      "--border": "#4c566a",
+      "--text": "#eceff4",
+      "--text-dim": "#7b879b",
+      "--accent": "#88c0d0",
+      "--accent-alt": "#b48ead",
+      "--phase-focus": "#88c0d0",
+      "--phase-rest": "#a3be8c",
+      "--danger": "#bf616a",
+      "--glow": "rgba(136, 192, 208, 0.48)"
+    },
+    "sprite": {
+      "o": "#2b303b", "b": "#d8a657", "B": "#ebcb8b", "d": "#b48b49",
+      "k": "#d08770", "K": "#b96f59", "e": "#272c36", "w": "#eceff4",
+      "c": "#bf616a", "a": "#a3be8c", "A": "#c3d7a8", "n": "#434c5e", "N": "#4c566a"
+    }
+  },
+  "catppuccin": {
+    "name": "Catppuccin",
+    "css": {
+      "--surface": "#1e1e2e",
+      "--surface-alt": "#313244",
+      "--surface-deep": "#181825",
+      "--border": "#45475a",
+      "--text": "#cdd6f4",
+      "--text-dim": "#6c7086",
+      "--accent": "#89b4fa",
+      "--accent-alt": "#cba6f7",
+      "--phase-focus": "#89b4fa",
+      "--phase-rest": "#a6e3a1",
+      "--danger": "#f38ba8",
+      "--glow": "rgba(137, 180, 250, 0.48)"
+    },
+    "sprite": {
+      "o": "#30243a", "b": "#f5bde6", "B": "#f2cdcd", "d": "#d9a8c0",
+      "k": "#fab387", "K": "#d68c68", "e": "#181825", "w": "#cdd6f4",
+      "c": "#f38ba8", "a": "#a6e3a1", "A": "#c8edbd", "n": "#45475a", "N": "#6c7086"
+    }
+  },
+  "solarized": {
+    "name": "Solarized Dark",
+    "css": {
+      "--surface": "#002b36",
+      "--surface-alt": "#073642",
+      "--surface-deep": "#00212b",
+      "--border": "#586e75",
+      "--text": "#eee8d5",
+      "--text-dim": "#657b83",
+      "--accent": "#268bd2",
+      "--accent-alt": "#6c71c4",
+      "--phase-focus": "#268bd2",
+      "--phase-rest": "#859900",
+      "--danger": "#dc322f",
+      "--glow": "rgba(38, 139, 210, 0.48)"
+    },
+    "sprite": {
+      "o": "#3b3324", "b": "#b58900", "B": "#d6b24c", "d": "#8f6b00",
+      "k": "#cb4b16", "K": "#a93d13", "e": "#00212b", "w": "#eee8d5",
+      "c": "#dc322f", "a": "#859900", "A": "#a5b63a", "n": "#073642", "N": "#586e75"
+    }
   }
 }

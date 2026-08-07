@@ -6,7 +6,8 @@ import { DIM_OPACITY_PRESETS, formatDimOpacity } from "../dim";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
-import { CHARACTERS } from "../sprites/characters";
+import { CHARACTERS, getCharacter } from "../sprites/characters";
+import type { Theme } from "../sprites/themes";
 import {
   SHORTCUT_DEFINITIONS,
   findShortcutConflicts,
@@ -16,6 +17,7 @@ import {
   type ShortcutMap,
 } from "../core/shortcuts";
 import { element } from "./dom";
+import { PetCanvas } from "./pet-canvas";
 
 export interface SettingsPanelActions {
   changeSettings(settings: PomodoroSettings): void;
@@ -48,6 +50,7 @@ export interface SettingsModel {
   readonly miniMode: boolean;
   readonly dimOpacity: number;
   readonly dailyGoal: number;
+  readonly theme: Theme;
 }
 
 const MIN_MINUTES = 1;
@@ -96,6 +99,7 @@ export class SettingsPanel {
   readonly #pets: HTMLElement;
   readonly #dims: HTMLElement;
   readonly #goals: HTMLElement;
+  readonly #petPreview: PetCanvas;
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
@@ -128,6 +132,11 @@ export class SettingsPanel {
     this.#pets = element("set-pet");
     this.#dims = element("set-dim");
     this.#goals = element("set-goal");
+    this.#petPreview = new PetCanvas(
+      element<HTMLCanvasElement>("set-pet-preview"),
+      undefined,
+      1,
+    );
 
     for (const input of this.#numberInputs()) {
       // `input` reacts as you type but leaves the field alone; `change` fires
@@ -177,10 +186,12 @@ export class SettingsPanel {
 
   open(): void {
     this.#root.hidden = false;
+    this.#petPreview.start();
   }
 
   close(): void {
     this.#root.hidden = true;
+    this.#petPreview.stop();
   }
 
   restoreDefaults(): void {
@@ -224,6 +235,9 @@ export class SettingsPanel {
     for (const [id, button] of this.#petButtons) {
       button.setAttribute("aria-pressed", String(id === model.characterId));
     }
+    this.#petPreview.setCharacter(getCharacter(model.characterId));
+    this.#petPreview.setPalette(model.theme.sprite);
+    this.#petPreview.setState("idle");
 
     for (const [preset, button] of this.#dimButtons) {
       button.setAttribute("aria-pressed", String(Math.abs(preset - model.dimOpacity) < 0.005));

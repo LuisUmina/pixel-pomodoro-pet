@@ -1,13 +1,13 @@
-# Briefs para sub-agentes — fases en curso (12, 14)
+# Briefs para sub-agentes — fase en curso (12)
 
-Las fases 10, 11, 13 y 15–18 ya se implementaron, auditaron y mergearon a
+Las fases 10, 11 y 13–18 ya se implementaron, auditaron y mergearon a
 `main` — sus briefs se sacaron de este archivo. El detalle de cómo quedaron
 (incluidos varios bugs reales que la auditoría encontró y ya se corrigieron)
 está en `docs/ROADMAP.md`.
 
-Las dos que quedan (12 y 14) ya tienen agente asignado y están en revisión
-tras la primera vuelta de auditoría — sus briefs se dejan abajo como
-referencia del alcance original, no como algo por asignar.
+La única que queda (12) ya tiene agente asignado y está en revisión tras la
+primera vuelta de auditoría — su brief se deja abajo como referencia del
+alcance original, no como algo por asignar.
 
 ## Preámbulo (pegar antes de CADA fase, a cada sub-agente)
 
@@ -43,8 +43,8 @@ Flujo esperado:
 ---
 
 ## Fase 12 — Recordatorios propios
-**Costo: S/M · Depende de la fase 2 (ya hecha) · Comparte `settings-panel.ts`
-y `store/preferences.ts` con 14**
+**Costo: S/M · Depende de la fase 2 (ya hecha) · Sin conflicto de archivos
+con otras fases pendientes**
 
 - Recordatorio con texto libre + cadencia + fase de anclaje (focus/descanso),
   con su propia pantalla de edición en ajustes — separado de los packs con
@@ -52,16 +52,3 @@ y `store/preferences.ts` con 14**
 - Tiene que respetar el modo silencio y pasar por el mismo `utter()` central
   que ya usan burbujas/recordatorios — no crear un canal paralelo.
 - Toca: `src/core/reminders.ts`, `settings-panel.ts`, `store/preferences.ts`.
-
----
-
-## Fase 14 — Vista previa animada y temas de color nuevos
-**Costo: S/M · Depende de la fase 4 (ya hecha) · Comparte `settings-panel.ts`
-con 12**
-
-- El selector de personajes en ajustes muestra un loop animado en miniatura
-  en vez de solo el nombre.
-- Sumá 2-3 paletas de color nuevas, mismo formato que las 3 actuales (dato
-  puro en `themes.ts`, sin lógica nueva).
-- Cuidado con instanciar un canvas de más por cada personaje listado —
-  pensá el costo de render si son varios a la vez.

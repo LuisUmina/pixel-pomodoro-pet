@@ -48,6 +48,12 @@ describe("character sprites", () => {
 });
 
 describe("themes", () => {
+  it("bundles the three phase 14 palettes", () => {
+    expect(THEME_IDS).toEqual(
+      expect.arrayContaining(["nord", "catppuccin", "solarized"]),
+    );
+  });
+
   it("all define the same sprite keys, so no theme loses pixels", () => {
     const reference = Object.keys(getTheme("tokyo-night").sprite).sort();
 
