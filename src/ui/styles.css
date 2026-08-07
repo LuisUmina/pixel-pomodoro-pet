@@ -642,6 +642,16 @@ body {
   min-width: 0;
 }
 
+.field:has(.pet-picker) .field__label {
+  flex: none;
+}
+
+.pet-picker .chips {
+  flex: 1;
+  min-width: 0;
+  gap: 3px;
+}
+
 .pet-preview {
   flex: none;
   image-rendering: pixelated;

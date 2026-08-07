@@ -135,7 +135,7 @@ export class SettingsPanel {
     this.#petPreview = new PetCanvas(
       element<HTMLCanvasElement>("set-pet-preview"),
       undefined,
-      2,
+      1,
     );
 
     for (const input of this.#numberInputs()) {
