@@ -7,8 +7,8 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 11, 13 y 15–17 terminadas.**
-Fases 12, 14 y 18 planeadas y aprobadas, a la espera de que se defina el
+**Estado:** v0.1 entregada. **Fases 1–7, 9–11, 13–17 terminadas.**
+Fases 12 y 18 planeadas y aprobadas, a la espera de que se defina el
 orden de arranque. La fase 8 sigue en pausa.
 
 ---
@@ -30,14 +30,14 @@ orden de arranque. La fase 8 sigue en pausa.
 | 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) ✅ | S/M | — |
 | 12 | [Recordatorios propios](#fase-12--recordatorios-propios) | S/M | 2 |
 | 13 | [Atajos configurables](#fase-13--atajos-configurables) ✅ | M | — |
-| 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
+| 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) ✅ | S/M | 4 |
 | 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) ✅ | L | 4 |
 | 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) ✅ | M | 3 |
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) ✅ | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
 
-**Siguiente recomendada:** sin definir todavía entre las que quedan (12, 14,
-18) — el orden de arranque queda a criterio propio. Ninguna depende de la 8,
+**Siguiente recomendada:** sin definir todavía entre las que quedan (12, 18)
+— el orden de arranque queda a criterio propio. Ninguna depende de la 8,
 que sigue en pausa por decisión propia: sus dependencias (3 y 5) están
 resueltas, pero el riesgo que el roadmap siempre le marcó — mover la ventana
 del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
@@ -790,15 +790,21 @@ Detalles de implementación y cómo quedó frente al plan:
 
 ---
 
-## Fase 14 — Vista previa animada y temas de color nuevos
+## Fase 14 — Vista previa animada y temas de color nuevos ✅
 
-**Costo: S/M · Depende de la fase 4**
+**Terminada · Costo: S/M · Depende de la fase 4**
 
-El selector de personajes gana una vista previa animada en miniatura (hoy la
-elección es "a ciegas" hasta cerrar el panel). Se suman 2-3 paletas de color
-nuevas — dato puro, mismo patrón que las 3 actuales.
+El selector de personajes ahora muestra un único canvas de vista previa
+animada para el personaje elegido, junto a los chips. Se enciende solo al
+abrir ajustes y se detiene al cerrarlos: así reutiliza las animaciones reales
+sin crear un loop o canvas por cada personaje. Se sumaron Nord, Catppuccin y
+Solarized Dark como paletas de datos en `themes.json`.
 
-**Toca:** `settings-panel.ts`, `src/sprites/themes.ts`, un canvas chico
+El brief nombraba `themes.ts`, pero el código existente guarda las paletas en
+`themes.json`; `themes.ts` solo las carga y tipa, por lo que no necesitó lógica
+nueva.
+
+**Toca:** `settings-panel.ts`, `src/sprites/themes.json`, un canvas chico
 adicional para la miniatura.
 
 ---

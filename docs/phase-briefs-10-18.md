@@ -1,6 +1,6 @@
-# Briefs para sub-agentes — fases pendientes (12, 14, 18)
+# Briefs para sub-agentes — fases pendientes (12, 18)
 
-Las fases 10, 11, 13 y 15–17 ya se implementaron, auditaron y mergearon a
+Las fases 10, 11, 13–17 ya se implementaron, auditaron y mergearon a
 `main` — sus briefs se sacaron de este archivo. El detalle de cómo quedaron
 (incluidos varios bugs reales que la auditoría encontró y ya se corrigieron)
 está en `docs/ROADMAP.md`.
@@ -48,19 +48,6 @@ y `store/preferences.ts` con 14**
 - Tiene que respetar el modo silencio y pasar por el mismo `utter()` central
   que ya usan burbujas/recordatorios — no crear un canal paralelo.
 - Toca: `src/core/reminders.ts`, `settings-panel.ts`, `store/preferences.ts`.
-
----
-
-## Fase 14 — Vista previa animada y temas de color nuevos
-**Costo: S/M · Depende de la fase 4 (ya hecha) · Comparte `settings-panel.ts`
-con 12**
-
-- El selector de personajes en ajustes muestra un loop animado en miniatura
-  en vez de solo el nombre.
-- Sumá 2-3 paletas de color nuevas, mismo formato que las 3 actuales (dato
-  puro en `themes.ts`, sin lógica nueva).
-- Cuidado con instanciar un canvas de más por cada personaje listado —
-  pensá el costo de render si son varios a la vez.
 
 ---
 

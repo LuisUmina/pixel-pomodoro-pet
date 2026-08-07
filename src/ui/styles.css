@@ -634,6 +634,19 @@ body {
   gap: 4px;
 }
 
+.pet-picker {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pet-preview {
+  flex: none;
+  image-rendering: pixelated;
+}
+
 .chip {
   padding: 4px 6px;
   border: 2px solid var(--surface-deep);
