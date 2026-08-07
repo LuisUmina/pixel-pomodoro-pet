@@ -559,6 +559,15 @@ body {
   text-transform: uppercase;
 }
 
+.backup-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.backup-actions .btn {
+  flex: 1;
+}
+
 .field {
   display: flex;
   align-items: center;

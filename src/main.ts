@@ -37,6 +37,7 @@ import { SHELL_EVENTS } from "./platform/events";
 import { BASE_WIDGET_HEIGHT, BASE_WIDGET_WIDTH, clampUiScale } from "./scale";
 import type { PetState } from "./sprites/characters";
 import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
+import { exportBackupJson, restoreBackupJson } from "./store/backup";
 import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
 import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
@@ -143,6 +144,8 @@ function main(): void {
     toggleTaskDone: (id) => applyTasksChange(toggleDone(tasks, id)),
     removeTask: (id) => applyTasksChange(removeTaskFromState(tasks, id)),
     restoreDefaults: () => restoreDefaults(),
+    exportData: () => void exportData(),
+    importData: () => void importData(),
     viewHistory: () => computeHistoryModel(),
     viewTasks: () => ({ tasks: tasks.tasks, activeId: tasks.activeId }),
   });
@@ -405,6 +408,46 @@ function main(): void {
       render();
     }
     return res;
+  }
+
+  async function exportData(): Promise<void> {
+    const jsonStr = exportBackupJson(browserStore, preferences.day);
+    const success = await desktop.exportBackup(jsonStr);
+    if (success) {
+      utter("¡Datos exportados correctamente!", Date.now());
+    }
+  }
+
+  async function importData(): Promise<void> {
+    const rawJson = await desktop.importBackup();
+    if (!rawJson) {
+      return;
+    }
+
+    const today = isoDay(new Date());
+    const result = restoreBackupJson(browserStore, rawJson, today);
+
+    if (result.success) {
+      history = loadHistory(browserStore);
+      tasks = loadTasks(browserStore);
+      preferences = loadPreferences(browserStore, today);
+      state = createInitialState(preferences.settings, {
+        task: activeTaskText(tasks),
+        completedToday: preferences.completedToday,
+      });
+      theme = getTheme(preferences.themeId);
+      applyThemeCss(theme, document.documentElement);
+      applyScale(preferences.uiScale, false);
+      applyMiniMode(preferences.miniMode);
+      applyDimOpacity(preferences.dimOpacity, false);
+      applyDailyGoal(preferences.dailyGoal, false);
+      applyTasksChange(tasks);
+      void desktop.updateShortcuts(preferences.shortcuts);
+      render();
+      utter("¡Datos importados correctamente!", Date.now());
+    } else {
+      utter(result.error ?? "Error al importar datos.", Date.now());
+    }
   }
 
   function applySettings(settings: PomodoroSettings): void {

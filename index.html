@@ -241,11 +241,34 @@
             <div class="shortcuts" id="set-shortcuts"></div>
             <p class="shortcuts__error" id="set-shortcuts-error" hidden></p>
 
-            <div class="field field--chips">
+            <div
+              class="field field--chips"
+              title="Silence everything for a while"
+            >
               <span class="field__label" title="Silence everything for a while">
                 quiet
               </span>
               <span class="chips" id="set-quiet"></span>
+            </div>
+
+            <p class="panel__heading">backup</p>
+            <div class="backup-actions">
+              <button
+                type="button"
+                class="btn"
+                data-action="export-data"
+                title="Export all app data to a JSON file"
+              >
+                EXPORT DATA
+              </button>
+              <button
+                type="button"
+                class="btn"
+                data-action="import-data"
+                title="Import app data from a JSON file"
+              >
+                IMPORT DATA
+              </button>
             </div>
 
             <button type="button" class="btn" data-action="defaults">

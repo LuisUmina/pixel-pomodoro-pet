@@ -33,6 +33,8 @@ export interface SettingsPanelActions {
   changeDailyGoal(value: number): void;
   /** Everything this panel controls, not just the durations. */
   restoreDefaults(): void;
+  exportData(): void;
+  importData(): void;
 }
 
 export interface SettingsModel {
@@ -144,6 +146,12 @@ export class SettingsPanel {
     this.#mini.addEventListener("change", () =>
       this.actions.changeMiniMode(this.#mini.checked),
     );
+
+    const exportBtn = this.#root.querySelector<HTMLButtonElement>('[data-action="export-data"]');
+    exportBtn?.addEventListener("click", () => this.actions.exportData());
+
+    const importBtn = this.#root.querySelector<HTMLButtonElement>('[data-action="import-data"]');
+    importBtn?.addEventListener("click", () => this.actions.importData());
 
     this.#buildSizeButtons();
     this.#buildVoiceButtons();
