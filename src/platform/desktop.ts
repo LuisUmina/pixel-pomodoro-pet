@@ -20,7 +20,6 @@ export interface DesktopBridge {
   updateShortcuts(shortcuts: Record<string, string>): Promise<{ success: boolean; error?: string }>;
   notify(title: string, body: string): void;
   hide(): void;
-  updateShortcuts(): void;
   exportBackup(jsonContent: string): Promise<boolean>;
   importBackup(): Promise<string | null>;
 }
@@ -91,8 +90,6 @@ function createTauriBridge(): DesktopBridge {
       void currentWindow.then((api) => api.getCurrentWindow().hide());
     },
 
-    updateShortcuts() {},
-
     async exportBackup(jsonContent) {
       try {
         const dialogApi = await dialog;
@@ -148,7 +145,6 @@ function createBrowserBridge(): DesktopBridge {
       console.info(`[notification] ${title} — ${body}`);
     },
     hide() {},
-    updateShortcuts() {},
     async exportBackup(jsonContent) {
       try {
         const blob = new Blob([jsonContent], { type: "application/json" });

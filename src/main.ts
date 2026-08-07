@@ -441,7 +441,7 @@ function main(): void {
       applyDimOpacity(preferences.dimOpacity, false);
       applyDailyGoal(preferences.dailyGoal, false);
       applyTasksChange(tasks);
-      desktop.updateShortcuts();
+      void desktop.updateShortcuts(preferences.shortcuts);
       render();
       utter("¡Datos importados correctamente!", Date.now());
     } else {
