@@ -1,4 +1,4 @@
-import type { Language } from "./language";
+import { localize, type Language } from "./language";
 
 /**
  * Every static piece of UI chrome the app shows, in both languages. Character
@@ -185,5 +185,5 @@ export const UI_STRINGS = {
 export type UiStringKey = keyof typeof UI_STRINGS;
 
 export function t(key: UiStringKey, language: Language): string {
-  return UI_STRINGS[key][language];
+  return localize(UI_STRINGS[key], language);
 }

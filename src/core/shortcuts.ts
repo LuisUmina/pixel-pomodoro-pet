@@ -2,19 +2,21 @@ export type ShortcutAction = "toggle" | "skip" | "reset" | "ghost" | "mini" | "h
 
 export interface ShortcutDefinition {
   readonly id: ShortcutAction;
-  readonly label: string;
   readonly defaultShortcut: string;
 }
 
 export type ShortcutMap = Record<ShortcutAction, string>;
 
+// Display labels live in `i18n/strings.ts` (`shortcuts.*` keys) now that the
+// settings panel is bilingual -- keeping an English-only copy here would be
+// dead weight at best and a silent drift risk at worst.
 export const SHORTCUT_DEFINITIONS: readonly ShortcutDefinition[] = [
-  { id: "toggle", label: "Start / Pause", defaultShortcut: "Ctrl+Alt+Space" },
-  { id: "skip", label: "Skip phase", defaultShortcut: "Ctrl+Alt+N" },
-  { id: "reset", label: "Reset phase", defaultShortcut: "Ctrl+Alt+R" },
-  { id: "ghost", label: "Click-through", defaultShortcut: "Ctrl+Alt+G" },
-  { id: "mini", label: "Mascot mode", defaultShortcut: "Ctrl+Alt+Z" },
-  { id: "hide", label: "Hide / show", defaultShortcut: "Ctrl+Alt+H" },
+  { id: "toggle", defaultShortcut: "Ctrl+Alt+Space" },
+  { id: "skip", defaultShortcut: "Ctrl+Alt+N" },
+  { id: "reset", defaultShortcut: "Ctrl+Alt+R" },
+  { id: "ghost", defaultShortcut: "Ctrl+Alt+G" },
+  { id: "mini", defaultShortcut: "Ctrl+Alt+Z" },
+  { id: "hide", defaultShortcut: "Ctrl+Alt+H" },
 ];
 
 export const DEFAULT_SHORTCUTS: ShortcutMap = {
