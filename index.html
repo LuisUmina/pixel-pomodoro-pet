@@ -244,6 +244,9 @@
             <p class="panel__heading">reminders</p>
             <div class="reminders" id="set-reminders"></div>
 
+            <p class="panel__heading">recordatorios propios</p>
+            <button type="button" class="btn" id="custom-reminder-open">GESTIONAR</button>
+
             <p class="panel__heading">shortcuts</p>
             <div class="shortcuts" id="set-shortcuts"></div>
             <p class="shortcuts__error" id="set-shortcuts-error" hidden></p>
@@ -281,6 +284,21 @@
             <button type="button" class="btn" data-action="defaults">
               RESTORE DEFAULTS
             </button>
+          </div>
+
+          <div class="panel__body custom-reminder-screen" id="custom-reminder-screen" hidden>
+            <button type="button" class="btn" id="custom-reminder-back">← VOLVER</button>
+            <p class="panel__heading">recordatorios propios</p>
+            <div class="custom-reminder-add">
+              <input id="custom-reminder-text" type="text" maxlength="58" placeholder="mensaje" />
+              <input id="custom-reminder-cadence" type="number" min="1" max="180" step="1" value="30" title="Cada cuántos minutos" />
+              <select id="custom-reminder-anchor" title="Cuándo recordarlo">
+                <option value="focus">focus</option>
+                <option value="break">descanso</option>
+              </select>
+              <button type="button" class="btn" id="custom-reminder-add">+</button>
+            </div>
+            <div class="custom-reminders" id="set-custom-reminders"></div>
           </div>
         </section>
 

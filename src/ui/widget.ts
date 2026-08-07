@@ -5,6 +5,7 @@ import type { PomodoroSettings, PomodoroState, TimerStatus } from "../core/types
 import type { Voice } from "../messages/types";
 import { getCharacter, type PetState } from "../sprites/characters";
 import type { ShortcutMap } from "../core/shortcuts";
+import type { CustomReminder } from "../core/reminders";
 import type { Theme } from "../sprites/themes";
 import { Bubble } from "./bubble";
 import { ClockCanvas } from "./clock-canvas";
@@ -30,6 +31,7 @@ export interface WidgetActions {
   changeScale(scale: number, persist: boolean): void;
   changeVoice(voice: Voice): void;
   changeReminder(id: string, enabled: boolean): void;
+  changeCustomReminders(reminders: readonly CustomReminder[]): void;
   changeShortcuts(shortcuts: ShortcutMap): Promise<{ success: boolean; error?: string }>;
   changeQuiet(minutes: number): void;
   changeCharacter(id: string): void;
@@ -69,6 +71,7 @@ export interface WidgetModel {
   readonly uiScale: number;
   readonly voice: Voice;
   readonly reminders: Readonly<Record<string, boolean>>;
+  readonly customReminders: readonly CustomReminder[];
   readonly shortcuts: ShortcutMap;
   /** 0 when the mascot is not under a vow of silence. */
   readonly quietMinutesLeft: number;
@@ -153,6 +156,7 @@ export class Widget {
       changeScale: (scale) => actions.changeScale(scale, true),
       changeVoice: (voice) => actions.changeVoice(voice),
       changeReminder: (id, enabled) => actions.changeReminder(id, enabled),
+      changeCustomReminders: (reminders) => actions.changeCustomReminders(reminders),
       changeShortcuts: (shortcuts) => actions.changeShortcuts(shortcuts),
       changeQuiet: (minutes) => actions.changeQuiet(minutes),
       changeCharacter: (id) => actions.changeCharacter(id),

@@ -1,4 +1,9 @@
 import { DEFAULT_SETTINGS } from "../core/pomodoro";
+import {
+  CUSTOM_REMINDER_MAX_MINUTES,
+  CUSTOM_REMINDER_TEXT_MAX_LENGTH,
+  type CustomReminder,
+} from "../core/reminders";
 import { QUIET_PRESETS, formatQuiet } from "../core/quiet";
 import type { Phase, PomodoroSettings } from "../core/types";
 import { DAILY_GOAL_PRESETS, formatDailyGoal } from "../dailyGoal";
@@ -24,6 +29,7 @@ export interface SettingsPanelActions {
   changeScale(scale: number): void;
   changeVoice(voice: Voice): void;
   changeReminder(id: string, enabled: boolean): void;
+  changeCustomReminders(reminders: readonly CustomReminder[]): void;
   changeShortcuts(shortcuts: ShortcutMap): Promise<{ success: boolean; error?: string }>;
   /** Minutes of silence from now; 0 turns it back off. */
   changeQuiet(minutes: number): void;
@@ -44,6 +50,7 @@ export interface SettingsModel {
   readonly uiScale: number;
   readonly voice: Voice;
   readonly reminders: Readonly<Record<string, boolean>>;
+  readonly customReminders: readonly CustomReminder[];
   readonly shortcuts: ShortcutMap;
   readonly quietMinutesLeft: number;
   readonly characterId: string;
@@ -93,6 +100,8 @@ export class SettingsPanel {
   readonly #sizes: HTMLElement;
   readonly #voices: HTMLElement;
   readonly #reminders: HTMLElement;
+  readonly #customReminders: HTMLElement;
+  readonly #customReminderScreen: HTMLElement;
   readonly #shortcuts: HTMLElement;
   readonly #shortcutsError: HTMLElement;
   readonly #quiet: HTMLElement;
@@ -126,6 +135,8 @@ export class SettingsPanel {
     this.#sizes = element("set-sizes");
     this.#voices = element("set-voice");
     this.#reminders = element("set-reminders");
+    this.#customReminders = element("set-custom-reminders");
+    this.#customReminderScreen = element("custom-reminder-screen");
     this.#shortcuts = element("set-shortcuts");
     this.#shortcutsError = element("set-shortcuts-error");
     this.#quiet = element("set-quiet");
@@ -165,6 +176,7 @@ export class SettingsPanel {
     this.#buildSizeButtons();
     this.#buildVoiceButtons();
     this.#buildReminderRows();
+    this.#buildCustomReminderEditor();
     this.#buildShortcutRows();
     this.#buildQuietButtons();
     this.#buildPetButtons();
@@ -192,6 +204,7 @@ export class SettingsPanel {
   close(): void {
     this.#root.hidden = true;
     this.#petPreview.stop();
+    this.#customReminderScreen.hidden = true;
   }
 
   restoreDefaults(): void {
@@ -218,6 +231,7 @@ export class SettingsPanel {
       // none of them; saying so beats letting the switches look live.
       box.disabled = model.voice === "off";
     }
+    this.#renderCustomReminders(model.customReminders, model.voice === "off");
 
     for (const [id, input] of this.#shortcutInputs) {
       if (document.activeElement !== input) {
@@ -334,6 +348,66 @@ export class SettingsPanel {
       this.#reminderBoxes.set(pack.id, box);
       this.#reminders.append(row);
     }
+  }
+
+  #buildCustomReminderEditor(): void {
+    const add = element<HTMLButtonElement>("custom-reminder-add");
+    element("custom-reminder-open").addEventListener("click", () => {
+      this.#customReminderScreen.hidden = false;
+    });
+    element("custom-reminder-back").addEventListener("click", () => {
+      this.#customReminderScreen.hidden = true;
+    });
+    add.addEventListener("click", () => {
+      const text = element<HTMLInputElement>("custom-reminder-text").value.trim();
+      const cadence = element<HTMLInputElement>("custom-reminder-cadence").valueAsNumber;
+      const anchor = element<HTMLSelectElement>("custom-reminder-anchor").value;
+      if (text === "" || !Number.isFinite(cadence) || (anchor !== "focus" && anchor !== "break")) {
+        return;
+      }
+
+      const current = this.#customReminders.dataset["value"];
+      const reminders = current ? (JSON.parse(current) as CustomReminder[]) : [];
+      this.actions.changeCustomReminders([
+        ...reminders,
+        {
+          id: crypto.randomUUID(),
+          text: text.slice(0, CUSTOM_REMINDER_TEXT_MAX_LENGTH),
+          everyMinutes: Math.min(CUSTOM_REMINDER_MAX_MINUTES, Math.max(1, Math.round(cadence))),
+          anchor,
+        },
+      ]);
+      element<HTMLInputElement>("custom-reminder-text").value = "";
+    });
+  }
+
+  #renderCustomReminders(reminders: readonly CustomReminder[], disabled: boolean): void {
+    this.#customReminders.dataset["value"] = JSON.stringify(reminders);
+    this.#customReminders.replaceChildren(
+      ...reminders.map((reminder) => {
+        const row = document.createElement("div");
+        row.className = "custom-reminder";
+
+        const text = document.createElement("span");
+        text.textContent = reminder.text;
+        text.title = reminder.text;
+
+        const detail = document.createElement("span");
+        detail.textContent = `${reminder.everyMinutes}m · ${reminder.anchor === "focus" ? "focus" : "descanso"}`;
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "custom-reminder__remove";
+        remove.textContent = "×";
+        remove.title = "Eliminar recordatorio";
+        remove.disabled = disabled;
+        remove.addEventListener("click", () =>
+          this.actions.changeCustomReminders(reminders.filter((item) => item.id !== reminder.id)),
+        );
+        row.append(text, detail, remove);
+        return row;
+      }),
+    );
   }
 
   #buildShortcutRows(): void {

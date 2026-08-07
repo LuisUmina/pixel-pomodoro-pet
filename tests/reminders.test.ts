@@ -5,7 +5,9 @@ import {
   INITIAL_REMINDERS,
   MAX_TICK_MS,
   accrueReminders,
+  customReminderPacks,
   defaultEnabled,
+  readCustomReminder,
   takeReminder,
   type ReminderCheck,
   type ReminderState,
@@ -210,6 +212,34 @@ describe("defaultEnabled", () => {
       a: true,
       b: false,
     });
+  });
+});
+
+describe("custom reminders", () => {
+  it("uses the shared scheduler and anchors breaks to both break phases", () => {
+    const custom = customReminderPacks([
+      { id: "water", text: "Tomá agua", everyMinutes: 25, anchor: "break" },
+    ]);
+
+    expect(custom).toEqual([
+      {
+        id: "custom:water",
+        lines: ["Tomá agua"],
+        everyMinutes: 25,
+        phases: ["shortBreak", "longBreak"],
+      },
+    ]);
+  });
+
+  it("reads only complete, safe persisted reminders", () => {
+    expect(readCustomReminder({
+      id: "r1",
+      text: "  Mirá lejos  ",
+      everyMinutes: 20,
+      anchor: "focus",
+    })).toEqual({ id: "r1", text: "Mirá lejos", everyMinutes: 20, anchor: "focus" });
+    expect(readCustomReminder({ id: "r1", text: "x", everyMinutes: 0, anchor: "focus" })).toBeNull();
+    expect(readCustomReminder({ id: "r1", text: "x", everyMinutes: 20, anchor: "later" })).toBeNull();
   });
 });
 

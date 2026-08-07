@@ -41,7 +41,11 @@ describe("backup store", () => {
     });
 
     const prefs = loadPreferences(store, TODAY);
-    savePreferences(store, { ...prefs, soundEnabled: false });
+    savePreferences(store, {
+      ...prefs,
+      soundEnabled: false,
+      customReminders: [{ id: "r1", text: "Tomá agua", everyMinutes: 30, anchor: "break" }],
+    });
 
     const backup = createBackup(store, TODAY);
 
@@ -51,6 +55,7 @@ describe("backup store", () => {
     expect(backup.tasks.tasks.length).toBe(1);
     expect(backup.tasks.tasks[0]?.text).toBe("Write tests");
     expect(backup.preferences.soundEnabled).toBe(false);
+    expect(backup.preferences.customReminders).toHaveLength(1);
 
     const json = exportBackupJson(store, TODAY);
     const parsed = JSON.parse(json);
