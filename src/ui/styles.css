@@ -755,6 +755,10 @@ body {
   background: var(--surface);
 }
 
+.custom-reminder-screen[hidden] {
+  display: none;
+}
+
 .custom-reminder-add {
   grid-template-columns: minmax(0, 1fr) 42px 78px auto;
 }
