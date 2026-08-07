@@ -7,9 +7,8 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9–11, 13–18 terminadas.** Fase 12 en
-revisión (fix de un bug bloqueante recién enviado, pendiente de confirmar).
-La fase 8 sigue en pausa.
+**Estado:** v0.1 entregada. **Fases 1–7 y 9–18 terminadas.** Solo queda la 8,
+en pausa por decisión propia.
 
 ---
 
@@ -28,7 +27,7 @@ La fase 8 sigue en pausa.
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) ✅ | XL | — |
 | 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) ✅ | S | — |
 | 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) ✅ | S/M | — |
-| 12 | [Recordatorios propios](#fase-12--recordatorios-propios) | S/M | 2 |
+| 12 | [Recordatorios propios](#fase-12--recordatorios-propios) ✅ | S/M | 2 |
 | 13 | [Atajos configurables](#fase-13--atajos-configurables) ✅ | M | — |
 | 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) ✅ | S/M | 4 |
 | 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) ✅ | L | 4 |
@@ -36,11 +35,10 @@ La fase 8 sigue en pausa.
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) ✅ | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) ✅ | S/M | 9 |
 
-**Siguiente recomendada:** ninguna — solo queda la 12, con feedback de
-auditoría ya enviado al agente. Ninguna depende de la 8, que sigue en pausa
-por decisión propia: sus dependencias (3 y 5) están resueltas, pero el
-riesgo que el roadmap siempre le marcó — mover la ventana del SO en tiempo
-real, multi-monitor y DPI distinto — sigue en pie.
+**Siguiente recomendada:** la **8** (deambular por el escritorio) es lo único
+que queda, y sigue en pausa por decisión propia: sus dependencias (3 y 5)
+están resueltas, pero el riesgo que el roadmap siempre le marcó — mover la
+ventana del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
 
 ---
 
@@ -729,15 +727,34 @@ ninguno lo hubiera atrapado un test unitario:**
 
 ---
 
-## Fase 12 — Recordatorios propios
+## Fase 12 — Recordatorios propios ✅
 
-**Costo: S/M · Depende de la fase 2**
+**Terminada · Costo: S/M**
 
 La "fase 2b" que quedó pendiente desde el principio: texto libre, cadencia y
 fase de anclaje (focus/descanso), con su propia pantalla de edición —
 separada de los packs con switches que ya existen.
 
-**Toca:** `src/core/reminders.ts`, `settings-panel.ts` (sub-pantalla nueva),
+- **El scheduler se generalizó en vez de duplicarse.** `SchedulableReminder`
+  es la forma común que ya usaban los packs; un recordatorio propio se
+  convierte a esa misma forma (`customReminderPacks()`) y pasa por
+  `accrueReminders`/`takeReminder` sin ningún camino paralelo — reusa el
+  cooldown, el modo silencio y el `utter()` central automáticamente.
+- Persistencia defensiva con deduplicación por id, e inclusión automática en
+  los backups de la fase 11 sin tocar `backup.ts`, porque `customReminders`
+  vive dentro de `Preferences`.
+
+**Un bug real, encontrado en auditoría y ya corregido:** al subscreen nuevo
+(`custom-reminder-screen`) le faltaba `[hidden] { display: none; }` — el
+mismo patrón que ya existía en este archivo para `.panel[hidden]` y
+`.mini-checklist[hidden]`, pero no se aplicó al elemento nuevo. Sin esa
+regla, `.panel__body` con su propio `display: flex` le ganaba en cascada al
+atributo `hidden`: el subscreen tapaba **todo** el panel de ajustes desde la
+primera vez que se abría, no solo al activarlo. Arreglado agregando la
+regla que faltaba.
+
+**Toca:** `src/core/reminders.ts` (`SchedulableReminder`,
+`customReminderPacks()`), `settings-panel.ts` (sub-pantalla nueva),
 `store/preferences.ts`.
 
 ---
