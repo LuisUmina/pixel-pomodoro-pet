@@ -15,6 +15,7 @@ import bug from "./characters/bug.json";
 import coffee from "./characters/coffee.json";
 import duck from "./characters/duck.json";
 import ninja from "./characters/ninja.json";
+import pill from "./characters/pill.json";
 import spark from "./characters/spark.json";
 import tentacat from "./characters/tentacat.json";
 import terminal from "./characters/terminal.json";
@@ -56,6 +57,7 @@ export interface Character {
 export const CHARACTERS: readonly Character[] = parseRegistry([
   duck,
   ninja,
+  pill,
   terminal,
   spark,
   tentacat,

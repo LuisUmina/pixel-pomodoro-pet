@@ -26,7 +26,7 @@ export const AMBIENT_TRIGGERS: ReadonlySet<Trigger> = new Set<Trigger>([
 ]);
 
 /** Personalities the catalogue is written in. */
-export const TONES = ["dev", "hype", "plain"] as const;
+export const TONES = ["dev", "hype", "plain", "medic"] as const;
 
 export type Tone = (typeof TONES)[number];
 

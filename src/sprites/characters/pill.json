@@ -1,0 +1,49 @@
+{
+  "id": "pill",
+  "name": "Pip",
+  "label": "PIP",
+  "hint": "A little dose of cheer",
+  "size": 32,
+  "base": [
+    "................................", "................................", "................................", "................................",
+    "................................", "................................", "............oooooooo............", "..........oocccccccwwwoo........",
+    ".........occccccccwwwwwwo.......", "........occcccccccwwwwwwwo......", ".......occccccccccwwwwwwwwo.....", ".......occccccccccwwwwwwwwo.....",
+    "......occcccccccccwwwwwwwwwo....", "......occcccccccccwweewwwwwo....", "......occcccccccccwweewwwwwo....", "......occcccccccccwwwwwwwwwo....",
+    "......occcccccccccwwcwwwwwwo....", "......occcccccccccwwwwwwwwwo....", ".......occccccccccwwwwwwwwo.....", ".......occccccccccwwwwwwwwo.....",
+    "........occcccccccwwwwwwwo......", ".........occccccccwwwwwwo.......", "..........oocccccccwwwoo........", "............oooooooo............",
+    ".............oo....oo...........", "............oo......oo..........", "............oo......oo..........", "...........oo........oo.........",
+    "................................", "................................", "................................", "................................"
+  ],
+  "patches": {
+    "blink": { "x": 19, "y": 13, "rows": ["wwww", "wwww"] },
+    "focusEyes": { "x": 19, "y": 13, "rows": ["ewee", "wwww"] },
+    "happyEyes": { "x": 19, "y": 13, "rows": ["owwo", "wwww"] },
+    "lookLeft": { "x": 19, "y": 13, "rows": ["eeww", "wwww"] },
+    "lookDown": { "x": 19, "y": 13, "rows": ["wwww", "ewee"] },
+    "smile": { "x": 19, "y": 16, "rows": ["wocw"] },
+    "wave": { "x": 25, "y": 15, "rows": [".o.", "oo.", ".oo", "..o"] },
+    "armDown": { "x": 25, "y": 16, "rows": ["o..", "oo.", ".oo"] },
+    "sparkleLeft": { "x": 3, "y": 10, "rows": [".a.", "aAa", ".a."] },
+    "sparkleRight": { "x": 27, "y": 8, "rows": [".a.", "aAa", ".a."] },
+    "heart": { "x": 26, "y": 13, "rows": ["c.c", "ccc", ".c.", ".c."] },
+    "zNear": { "x": 25, "y": 18, "rows": ["aaa", ".a.", "aaa"] },
+    "zFar": { "x": 27, "y": 13, "rows": ["aaa", ".a.", "aaa"] },
+    "stepLeft": { "x": 11, "y": 26, "rows": ["    ", "    "] },
+    "stepRight": { "x": 18, "y": 26, "rows": ["    ", "    "] }
+  },
+  "behaviors": [
+    { "id": "gentle-bob", "loops": 2, "weights": { "idle": 7, "rest": 2 }, "frames": [{ "patches": [], "offsetY": 0, "durationMs": 1300 }, { "patches": ["blink"], "offsetY": 1, "durationMs": 140 }, { "patches": [], "offsetY": 1, "durationMs": 1200 }] },
+    { "id": "little-wave", "loops": 2, "weights": { "idle": 4 }, "frames": [{ "patches": ["wave", "smile"], "offsetY": 0, "durationMs": 340 }, { "patches": ["armDown", "smile"], "offsetY": 1, "durationMs": 340 }, { "patches": ["wave", "smile"], "offsetY": 0, "durationMs": 340 }, { "patches": ["blink"], "offsetY": 1, "durationMs": 140 }] },
+    { "id": "curious-look", "loops": 1, "weights": { "idle": 2 }, "frames": [{ "patches": ["lookLeft"], "offsetY": 0, "durationMs": 800 }, { "patches": ["lookLeft", "smile"], "offsetY": 1, "durationMs": 900 }, { "patches": ["blink"], "offsetY": 0, "durationMs": 140 }] },
+    { "id": "steady-care", "loops": 3, "weights": { "focus": 7 }, "frames": [{ "patches": ["focusEyes"], "offsetY": 0, "durationMs": 900 }, { "patches": ["focusEyes"], "offsetY": 1, "durationMs": 900 }, { "patches": ["blink"], "offsetY": 0, "durationMs": 140 }] },
+    { "id": "check-in", "loops": 2, "weights": { "focus": 3 }, "frames": [{ "patches": ["focusEyes", "armDown"], "offsetY": 0, "durationMs": 700 }, { "patches": ["lookDown", "armDown"], "offsetY": 1, "durationMs": 620 }, { "patches": ["focusEyes"], "offsetY": 0, "durationMs": 750 }, { "patches": ["blink"], "offsetY": 1, "durationMs": 140 }] },
+    { "id": "brisk-step", "loops": 1, "weights": { "focus": 2 }, "frames": [{ "patches": ["stepLeft", "focusEyes"], "offsetX": -1, "offsetY": 0, "durationMs": 190 }, { "patches": ["stepRight", "focusEyes"], "offsetX": -2, "offsetY": 1, "durationMs": 190 }, { "patches": ["stepLeft"], "offsetX": -1, "offsetY": 0, "durationMs": 190 }, { "patches": ["blink"], "offsetX": 0, "offsetY": 1, "durationMs": 160 }] },
+    { "id": "easy-rest", "loops": 3, "weights": { "rest": 6 }, "frames": [{ "patches": ["happyEyes", "smile"], "offsetY": 1, "durationMs": 650 }, { "patches": ["happyEyes"], "offsetY": 0, "durationMs": 650 }] },
+    { "id": "kind-wave", "loops": 2, "weights": { "rest": 3 }, "frames": [{ "patches": ["happyEyes", "wave"], "offsetY": 0, "durationMs": 400 }, { "patches": ["happyEyes", "armDown"], "offsetY": 1, "durationMs": 400 }, { "patches": ["happyEyes", "smile"], "offsetY": 0, "durationMs": 700 }] },
+    { "id": "warm-glow", "loops": 2, "weights": { "rest": 2 }, "frames": [{ "patches": ["happyEyes", "sparkleRight"], "offsetY": 0, "durationMs": 500 }, { "patches": ["happyEyes", "sparkleLeft"], "offsetY": 1, "durationMs": 500 }, { "patches": ["blink"], "offsetY": 0, "durationMs": 140 }] },
+    { "id": "feel-better", "loops": 4, "weights": { "celebrate": 1 }, "frames": [{ "patches": ["happyEyes", "sparkleLeft"], "offsetY": 0, "durationMs": 160 }, { "patches": ["happyEyes", "heart", "sparkleRight"], "offsetY": 2, "durationMs": 180 }, { "patches": ["happyEyes", "sparkleLeft", "sparkleRight"], "offsetY": 0, "durationMs": 160 }, { "patches": ["smile"], "offsetY": 2, "durationMs": 190 }] },
+    { "id": "soft-snooze", "loops": 3, "weights": { "sleepy": 6 }, "frames": [{ "patches": ["blink", "zNear"], "offsetY": 1, "durationMs": 1100 }, { "patches": ["blink", "zNear", "zFar"], "offsetY": 2, "durationMs": 1100 }] },
+    { "id": "night-shift", "loops": 2, "weights": { "sleepy": 3 }, "frames": [{ "patches": ["lookDown", "zNear"], "offsetY": 1, "durationMs": 1200 }, { "patches": ["blink", "zFar"], "offsetY": 2, "durationMs": 1200 }, { "patches": ["blink"], "offsetY": 1, "durationMs": 900 }] },
+    { "id": "sleepy-stretch", "loops": 1, "weights": { "sleepy": 2 }, "frames": [{ "patches": ["lookDown", "armDown"], "offsetY": 1, "durationMs": 700 }, { "patches": ["blink", "wave"], "offsetY": 2, "durationMs": 850 }, { "patches": ["blink", "zNear"], "offsetY": 1, "durationMs": 1100 }] }
+  ]
+}

@@ -130,5 +130,37 @@
   { "id": "welcome-long-hype-4", "trigger": "welcomeBackLong", "tone": "hype", "text": "Welcome back after all that time away!" },
 
   { "id": "welcome-long-plain-1", "trigger": "welcomeBackLong", "tone": "plain", "text": "Welcome back after a while away." },
-  { "id": "welcome-long-plain-2", "trigger": "welcomeBackLong", "tone": "plain", "text": "Long gap detected. Session ready." }
+  { "id": "welcome-long-plain-2", "trigger": "welcomeBackLong", "tone": "plain", "text": "Long gap detected. Session ready." },
+
+  { "id": "focus-start-medic-1", "trigger": "focusStart", "tone": "medic", "text": "Vitals stable. Beginning the procedure." },
+  { "id": "focus-start-medic-2", "trigger": "focusStart", "tone": "medic", "text": "Scrubbing in. No interruptions until this is done." },
+  { "id": "focus-start-medic-3", "trigger": "focusStart", "tone": "medic", "text": "Chart says focus. Doctor's orders." },
+
+  { "id": "focus-done-medic-1", "trigger": "focusDone", "tone": "medic", "text": "Session complete. The patient may rest now." },
+  { "id": "focus-done-medic-2", "trigger": "focusDone", "tone": "medic", "text": "Discharged from this block. Follow-up shortly." },
+  { "id": "focus-done-medic-3", "trigger": "focusDone", "tone": "medic", "text": "Prescribing a break. Take it as directed." },
+
+  { "id": "break-start-medic-1", "trigger": "breakStart", "tone": "medic", "text": "Break time. Even surgeons scrub out eventually." },
+  { "id": "break-start-medic-2", "trigger": "breakStart", "tone": "medic", "text": "Step away. Rest is part of the treatment plan." },
+  { "id": "break-start-medic-3", "trigger": "breakStart", "tone": "medic", "text": "Time to recover. Coffee doesn't count as rest." },
+
+  { "id": "break-done-medic-1", "trigger": "breakDone", "tone": "medic", "text": "Cleared for the next round. Vitals look good." },
+  { "id": "break-done-medic-2", "trigger": "breakDone", "tone": "medic", "text": "Break's over. Back on the clock, doctor." },
+  { "id": "break-done-medic-3", "trigger": "breakDone", "tone": "medic", "text": "Recovery complete. On to the next task." },
+
+  { "id": "paused-medic-1", "trigger": "paused", "tone": "medic", "text": "On hold. No emergencies here, take your time." },
+  { "id": "paused-medic-2", "trigger": "paused", "tone": "medic", "text": "Timer paused. Even monitors get a quiet moment." },
+  { "id": "paused-medic-3", "trigger": "paused", "tone": "medic", "text": "Standing by. Resume whenever you're ready." },
+
+  { "id": "idle-medic-1", "trigger": "idle", "tone": "medic", "text": "No session running. The waiting room is empty." },
+  { "id": "idle-medic-2", "trigger": "idle", "tone": "medic", "text": "Ready when you are. No appointment needed." },
+  { "id": "idle-medic-3", "trigger": "idle", "tone": "medic", "text": "Idle. Even the on-call duck naps sometimes." },
+
+  { "id": "welcome-medic-1", "trigger": "welcomeBack", "tone": "medic", "text": "Welcome back. Vitals normal, resuming care." },
+  { "id": "welcome-medic-2", "trigger": "welcomeBack", "tone": "medic", "text": "You're back. Let's pick up the chart." },
+  { "id": "welcome-medic-3", "trigger": "welcomeBack", "tone": "medic", "text": "Good to see you. Ready for the next round?" },
+
+  { "id": "welcome-long-medic-1", "trigger": "welcomeBackLong", "tone": "medic", "text": "Long time no checkup. Let's ease back in." },
+  { "id": "welcome-long-medic-2", "trigger": "welcomeBackLong", "tone": "medic", "text": "You were gone a while. Nothing serious, I hope." },
+  { "id": "welcome-long-medic-3", "trigger": "welcomeBackLong", "tone": "medic", "text": "Back after a real break — good, that's healthy." }
 ]
