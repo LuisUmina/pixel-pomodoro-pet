@@ -60,6 +60,15 @@
             <button
               type="button"
               class="iconbtn"
+              data-action="checklist"
+              title="Show task checklist"
+              aria-pressed="false"
+            >
+              ☑
+            </button>
+            <button
+              type="button"
+              class="iconbtn"
               data-action="hide"
               title="Hide — press Ctrl+Alt+H to bring it back"
             >
@@ -84,6 +93,12 @@
           <canvas class="clock" id="clock"></canvas>
           <p class="phase" id="phase">focus</p>
         </section>
+
+        <!-- Optional, mini-mode-only: today's checklist floating under the
+             mascot. Hidden outside mini mode and whenever the toggle above
+             is off; JS drives the `hidden` attribute directly rather than
+             going through `data-mini` in CSS. -->
+        <div class="mini-checklist" id="mini-checklist" hidden></div>
 
         <div class="progress">
           <span class="progress__fill" id="progress"></span>

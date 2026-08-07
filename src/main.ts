@@ -134,6 +134,7 @@ function main(): void {
       render();
     },
     changeMiniMode: (enabled) => applyMiniMode(enabled),
+    changeTaskChecklist: (enabled) => applyTaskChecklist(enabled),
     changeDimOpacity: (value) => applyDimOpacity(value, true),
     changeDailyGoal: (value) => applyDailyGoal(value, true),
     addTask: (text, estimatePomodoros) =>
@@ -483,6 +484,26 @@ function main(): void {
   }
 
   /**
+   * The floating checklist only has a footprint while mini mode is already
+   * on -- `render()` is what actually shows or hides it (off `preferences`,
+   * same as everything else in the model), so this only owes the shell a
+   * fresh `resize_keep_center` when that footprint could have just changed
+   * on screen. Toggling it while still in full mode has nothing to resize:
+   * `applyMiniMode` measures the current preference the next time mini mode
+   * is entered.
+   */
+  function applyTaskChecklist(enabled: boolean): void {
+    preferences = { ...preferences, taskChecklist: enabled };
+    save();
+    render();
+
+    if (preferences.miniMode) {
+      const size = widget.measureFrame();
+      desktop.resizeKeepCenter(size.width, size.height);
+    }
+  }
+
+  /**
    * Keeps the daily tally honest when the widget is left up overnight.
    * Returns whether the day actually turned, since the caller then owes the
    * screen a repaint.
@@ -581,6 +602,7 @@ function main(): void {
       quietMinutesLeft: quietMinutesLeft(preferences.quietUntil, Date.now()),
       characterId: preferences.characterId,
       miniMode: preferences.miniMode,
+      taskChecklist: preferences.taskChecklist,
       dimOpacity: preferences.dimOpacity,
       dailyGoal: preferences.dailyGoal,
     });

@@ -855,12 +855,25 @@ body {
   display: none;
 }
 
-/* Only the mini toggle stays in the titlebar — the rest of settings is a
-   click away in full view, not worth cramming into this width. */
+/* Only the mini toggle (and the checklist toggle right beside it) stays in
+   the titlebar — the rest of settings is a click away in full view, not
+   worth cramming into this width. */
 .widget[data-mini="true"] .titlebar__lights,
 .widget[data-mini="true"] .titlebar__path,
-.widget[data-mini="true"] .titlebar__actions > [data-action]:not([data-action="mini"]) {
+.widget[data-mini="true"] .titlebar__actions
+  > [data-action]:not([data-action="mini"]):not([data-action="checklist"]) {
   display: none;
+}
+
+/* The checklist toggle only means anything in mini mode -- the full task
+   panel already covers this in every other view, so it stays out of the
+   full-mode titlebar entirely instead of sitting there as dead weight. */
+[data-action="checklist"] {
+  display: none;
+}
+
+.widget[data-mini="true"] [data-action="checklist"] {
+  display: inline-block;
 }
 
 /* Chrome nobody asked to see permanently on a widget this small: present
@@ -899,6 +912,30 @@ body {
 .widget[data-mini="true"]:hover .controls {
   opacity: 1;
   pointer-events: auto;
+}
+
+/* The optional checklist under the mascot in mini mode. Rows reuse
+   `.task-item` from the full panel below rather than duplicating that
+   styling; only the container is specific to this compact placement. Fixed
+   width so a long task name truncates instead of stretching the whole
+   mini window; capped height with scrolling so a long list does not either.
+   The bottom margin is not decorative: `.controls` above is `position:
+   absolute; bottom: 0` in mini mode and revealed on hover -- exactly the
+   gesture used to tick a box here -- so the last row(s) need to sit clear
+   of its full height (30px button + 4px padding top and bottom) or hovering
+   to tap a checkbox would hide it under the very overlay that triggered. */
+.mini-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 150px;
+  max-height: 130px;
+  margin: 0 8px 42px;
+  overflow-y: auto;
+}
+
+.mini-checklist[hidden] {
+  display: none;
 }
 
 /* -------------------------------------------------------------------- tasks */

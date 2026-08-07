@@ -34,6 +34,8 @@ export interface Preferences {
   readonly uiScale: number;
   /** Frame shrunk to just the mascot and the clock. */
   readonly miniMode: boolean;
+  /** Floating checklist under the mascot, only shown while `miniMode` is on. */
+  readonly taskChecklist: boolean;
   /** Opacity the widget fades to once a session runs unattended; 0 turns auto-fade off. */
   readonly dimOpacity: number;
   /** Pomodoros that make a good day, shown next to the tally; 0 turns it off. */
@@ -55,6 +57,7 @@ export function defaultPreferences(day: string): Preferences {
     quietUntil: 0,
     uiScale: DEFAULT_UI_SCALE,
     miniMode: false,
+    taskChecklist: false,
     dimOpacity: DEFAULT_DIM_OPACITY,
     dailyGoal: DEFAULT_DAILY_GOAL,
     day,
@@ -88,6 +91,8 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
     uiScale:
       typeof raw["uiScale"] === "number" ? clampUiScale(raw["uiScale"]) : DEFAULT_UI_SCALE,
     miniMode: typeof raw["miniMode"] === "boolean" ? raw["miniMode"] : false,
+    taskChecklist:
+      typeof raw["taskChecklist"] === "boolean" ? raw["taskChecklist"] : false,
     dimOpacity:
       typeof raw["dimOpacity"] === "number"
         ? clampDimOpacity(raw["dimOpacity"])
