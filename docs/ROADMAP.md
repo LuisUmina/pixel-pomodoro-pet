@@ -7,9 +7,9 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 13, 15 y 16 terminadas.**
-Fases 11, 12, 14, 17 y 18 planeadas y aprobadas, a la espera de que se defina
-el orden de arranque. La fase 8 sigue en pausa.
+**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 13, 15, 16 y 17 terminadas.**
+Fases 11, 12, 14 y 18 planeadas y aprobadas, a la espera de que se defina el
+orden de arranque. La fase 8 sigue en pausa.
 
 ---
 
@@ -33,14 +33,14 @@ el orden de arranque. La fase 8 sigue en pausa.
 | 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
 | 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) ✅ | L | 4 |
 | 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) ✅ | M | 3 |
-| 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) | M | 5, 9 |
+| 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) ✅ | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
 
 **Siguiente recomendada:** sin definir todavía entre las que quedan (11, 12,
-14, 17, 18) — el orden de arranque queda a criterio propio. Ninguna depende
-de la 8, que sigue en pausa por decisión propia: sus dependencias (3 y 5)
-están resueltas, pero el riesgo que el roadmap siempre le marcó — mover la
-ventana del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
+14, 18) — el orden de arranque queda a criterio propio. Ninguna depende de
+la 8, que sigue en pausa por decisión propia: sus dependencias (3 y 5) están
+resueltas, pero el riesgo que el roadmap siempre le marcó — mover la ventana
+del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
 
 ---
 
@@ -834,24 +834,36 @@ estallido corto, no necesita variedad.
 
 ---
 
-## Fase 17 — Checklist flotante en modo mascota
+## Fase 17 — Checklist flotante en modo mascota ✅
 
-**Costo: M · Depende de las fases 5 y 9**
+**Terminada · Costo: M**
 
-Un estado opcional y alternable del modo mascota: además de personaje +
-reloj, debajo aparece una lista compacta de las tareas del día (solo lectura
-+ tildar hecha, sin el formulario de alta que tiene el panel completo). Se
-prende y apaga con su propio atajo/botón, igual que el modo mascota mismo se
-prende con `Ctrl+Alt+Z`.
+Un estado opcional del modo mascota: además de personaje + reloj, debajo
+aparece una lista compacta de las tareas del día (solo tildar hecha, sin el
+formulario de alta del panel completo). Vive en el mismo overlay de
+hover-reveal que ya usan los controles del modo mascota — el botón que la
+prende solo existe dentro de `data-mini="true"`, así que no ocupa lugar en
+la vista completa donde el panel entero ya cubre lo mismo.
 
-**El problema técnico:** el modo mascota hoy encoge la ventana para abrazar
-exactamente al sprite (`resize_keep_center`). Sumar una lista debajo cambia
-el alto necesario, así que el toggle de la lista tiene que disparar el mismo
-recálculo de tamaño — y sin repetir el problema ya documentado en la fase 5
-de que un panel abierto y el modo mascota no conviven bien solos.
+- **`src-tauri/src/window.rs` no se tocó.** En vez de un comando Rust nuevo,
+  el toggle mide el DOM ya redibujado (`widget.measureFrame()`) y llama al
+  `resize_keep_center` que la fase 5 ya expone — el mismo patrón que usa la
+  entrada al modo mascota. Verificado en la app nativa: la ventana crece y
+  se centra matemáticamente igual que al entrar en modo mascota.
+- **Dos bugs reales, encontrados por una revisión de Codex que el propio
+  agente pidió antes de avisar** (y ya corregidos): la barra de controles
+  revelada al pasar el mouse podía tapar la última fila del checklist —
+  arreglado ampliando el margen inferior a la altura real de esa barra; y
+  un clic rechazado por el guard de doble-clic dejaba el checkbox nativo
+  desincronizado del dato real hasta el próximo refresco — arreglado
+  revirtiendo el checkbox cuando el guard lo descarta.
+- Confirmé ambos en vivo: la fila queda visible con el overlay revelado, y
+  tildar una casilla en el modo mini reordena y persiste igual que en el
+  panel completo — ambas vistas leen del mismo `viewTasks()`, ninguna queda
+  desactualizada.
 
-**Toca:** `src-tauri/src/window.rs`, `widget.ts`, una vista compacta nueva
-que reusa el modelo de `tasks-panel.ts` pero sin su formulario.
+**Toca:** `src/ui/mini-checklist.ts` (nuevo), `widget.ts`,
+`store/preferences.ts`, `styles.css`, `index.html`. `window.rs` sin tocar.
 
 ---
 

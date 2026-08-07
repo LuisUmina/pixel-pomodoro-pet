@@ -1,9 +1,9 @@
-# Briefs para sub-agentes — fases pendientes (11, 12, 14, 17, 18)
+# Briefs para sub-agentes — fases pendientes (11, 12, 14, 18)
 
-Las fases 10, 13, 15 y 16 ya se implementaron, auditaron y mergearon a
+Las fases 10, 13, 15, 16 y 17 ya se implementaron, auditaron y mergearon a
 `main` — sus briefs se sacaron de este archivo. El detalle de cómo quedaron
-(incluidos dos bugs reales que la auditoría encontró y ya se corrigieron en
-10/13/15) está en `docs/ROADMAP.md`.
+(incluidos varios bugs reales que la auditoría encontró y ya se corrigieron)
+está en `docs/ROADMAP.md`.
 
 ## Preámbulo (pegar antes de CADA fase, a cada sub-agente)
 
@@ -80,27 +80,9 @@ con 11, 12**
 
 ---
 
-## Fase 17 — Checklist flotante en modo mascota
-**Costo: M · Depende de las fases 5 y 9 (ya hechas) · Comparte `widget.ts` y
-puede compartir `tasks-panel.ts` con 18 si se hacen en paralelo**
-
-- En modo mascota, un toggle opcional que agrega debajo del personaje+reloj
-  una lista compacta de tareas del día (solo tildar hecha, SIN el formulario
-  de alta del panel completo).
-- El modo mascota hoy encoge la ventana exacto al sprite
-  (`resize_keep_center` en `window.rs`). Activar/desactivar la lista debe
-  disparar ese mismo recálculo de tamaño.
-- Cuidado: ya hay un caso documentado donde un panel abierto + modo mascota
-  activado desde afuera del propio botón del panel termina con el overlay de
-  hover tapando al personaje — no repetir ese problema con este toggle.
-- Toca: `src-tauri/src/window.rs`, `widget.ts`, vista nueva que reusa el
-  modelo de `tasks-panel.ts` sin su formulario.
-
----
-
 ## Fase 18 — Secciones de tareas
-**Costo: S/M · Depende de la fase 9 (ya hecha) · Comparte `tasks-panel.ts`
-con 17 si se hacen en paralelo**
+**Costo: S/M · Depende de la fase 9 (ya hecha) · Sin conflicto de archivos
+con otras fases pendientes**
 
 - Campo opcional `section` (texto corto) en `Task`, elegible desde un
   desplegable que reusa secciones ya creadas. El panel de tareas agrupa
@@ -109,6 +91,6 @@ con 17 si se hacen en paralelo**
   sistema de etiquetas. Una tarea tiene una sección o ninguna.
 - Necesita migración defensiva en `store/tasks.ts` para tareas guardadas
   antes de este cambio (sin `section`).
-- Si la fase 17 ya existe cuando hagas esta, el checklist flotante también
-  debería agrupar por sección. Si no existe todavía, no es tu
-  responsabilidad — quien la haga después la actualiza.
+- La fase 17 (checklist flotante en modo mascota) ya está en `main` — su
+  vista en `src/ui/mini-checklist.ts` también debería agrupar por sección
+  para no quedar desactualizada frente al panel completo.
