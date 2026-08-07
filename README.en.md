@@ -11,15 +11,31 @@ a pomodoro.
 
 ![The widget floating over the terminal](docs/widget-native.png)
 
-The duck comments on what's happening, in whichever voice you pick:
+The mascot comments on what's happening, in whichever character and voice
+you pick — here's Pip, in `MEDIC`:
 
-![The duck talking during a focus session](docs/widget-speaking.png)
+![Pip talking during a focus session, in the MEDIC voice](docs/widget-speaking.png)
 
-Switching themes repaints the duck too:
+Switching themes repaints the mascot too. Six editor palettes, all on the
+same duck:
 
 | Tokyo Night | Dracula | Gruvbox |
 | --- | --- | --- |
 | ![](docs/theme-tokyo-night.png) | ![](docs/theme-dracula.png) | ![](docs/theme-gruvbox.png) |
+
+| Nord | Catppuccin | Solarized Dark |
+| --- | --- | --- |
+| ![](docs/theme-nord.png) | ![](docs/theme-catppuccin.png) | ![](docs/theme-solarized.png) |
+
+Eight swappable characters from settings, no art recycled between them:
+
+| Duck | Ninja | Terminal | Spark |
+| --- | --- | --- | --- |
+| ![](docs/char-duck.png) | ![](docs/char-ninja.png) | ![](docs/char-terminal.png) | ![](docs/char-spark.png) |
+
+| Cat-octopus | Bug | Coffee | **Pip** |
+| --- | --- | --- | --- |
+| ![](docs/char-tentacat.png) | ![](docs/char-bug.png) | ![](docs/char-coffee.png) | ![](docs/char-pill.png) |
 
 A real checklist behind the same field that was always there: one active
 task, the rest queued, and every pomodoro credits whichever one is active
@@ -35,7 +51,15 @@ the last year.
 Durations, size, idle opacity, character, voice and a daily goal, all behind
 the gear:
 
-![Settings panel with size, opacity, character, voice and daily goal](docs/widget-settings.png)
+![Settings panel with size, opacity and character](docs/widget-settings.png)
+
+And all of the above, in English or in Spanish — one more chip in the same
+panel, no restart needed. Lines, reminders, hotkeys and the whole interface
+switch together:
+
+| English | Español |
+| --- | --- |
+| ![Settings panel in English, Pip selected, MEDIC voice](docs/widget-settings-en.png) | ![Settings panel in Spanish, Pip selected, MEDIC voice](docs/widget-settings-es.png) |
 
 And if you want it to take up as little room as possible, mini mode shrinks
 it down to just the silhouette and the clock — everything else comes back on
@@ -56,19 +80,29 @@ hover:
   occasionally something catches its eye up above, and every so often it
   wanders a couple of pixels for no reason. It focuses during focus, hums
   during breaks, and falls asleep when paused.
-- **Seven swappable characters** from settings, split across two families.
-  *Creatures* — the duck, a ninja, a cat-octopus and a bug — with their own
-  body, blink and walk. *Emblems* — a CRT terminal, a spark and a steaming
-  coffee mug — that can't blink or walk without looking broken, so they
-  animate *effects* instead: the terminal blinks its cursor, types itself
-  out and enters standby; the spark pulses its core, runs a glow along its
-  rays, and settles into an ember when paused; the mug lets off steam that
-  cools down when paused. Switching themes repaints all seven.
-- **The duck talks**: it comments when you start, when you close a session,
-  when you enter a break, and every so often on its own. Four voices —`DEV`
-  with dry humor, `HYPE` for encouragement, `PLAIN` for just the facts, and
-  `OFF` to silence it— with lines that know what phase you're in, how many
-  pomodoros you've done, and what time it is. Click to dismiss.
+- **Eight swappable characters** from settings, split across two families.
+  *Creatures* — the duck, a ninja, a cat-octopus, a bug and **Pip**, a
+  good-humored little capsule — with their own body, blink and walk.
+  *Emblems* — a CRT terminal, a spark and a steaming coffee mug — that can't
+  blink or walk without looking broken, so they animate *effects* instead:
+  the terminal blinks its cursor, types itself out and enters standby; the
+  spark pulses its core, runs a glow along its rays, and settles into an
+  ember when paused; the mug lets off steam that cools down when paused.
+  Switching themes repaints all eight.
+- **The mascot talks**: it comments when you start, when you close a
+  session, when you enter a break, and every so often on its own. Five
+  voices —`DEV` with dry humor, `HYPE` for encouragement, `PLAIN` for just
+  the facts, `MEDIC` with bedside-manner humor (Pip's natural match, though
+  any character can speak in any voice), and `OFF` to silence it— with lines
+  that know what phase you're in, how many pomodoros you've done, and what
+  time it is. Click to dismiss.
+- **The whole app in English or Spanish**, one more chip in settings. Not a
+  half-translation: the interface, the catalogue's 130+ lines and all five
+  reminder packs switch together, no restart. By design, the two languages
+  share a single source of truth for *when* each line fires (trigger, tone,
+  conditions) — a missing or overlong translation fails a test before it
+  ever reaches the bubble, so the two languages can never disagree on which
+  line plays, only on what it says.
 - **A mood that comes from real use, not chance**: four hours straight
   without a real break, or eight pomodoros in one day, and the duck looks and
   sounds tired — it borrows the paused animation instead of needing new art
@@ -101,8 +135,9 @@ hover:
 - **Adjustable size** — four presets (80 / 100 / 125 / 150%) and a grip in
   the corner to resize by dragging. The native window resizes along with the
   interface, and the pixel art stays crisp at every scale.
-- **Editor themes** — Tokyo Night, Dracula and Gruvbox. Switching themes
-  **repaints the duck too**, not just the interface.
+- **Six editor themes** — Tokyo Night, Dracula, Gruvbox, Nord, Catppuccin and
+  Solarized Dark. Switching themes **repaints the mascot too**, not just the
+  interface.
 - **A clock in its own pixel font**, drawn with the same sprite engine as the
   mascot. Crisp at any scale, without a single binary asset.
 - **Auto-fade**: six seconds after a session starts, the widget drops in
@@ -171,6 +206,7 @@ src/
   core/        Timer, phases, lines, reminders, history, mood and tasks. Pure.
   sprites/     Pixel art data (JSON) + canvas renderer + themes.
   messages/    Line catalogue and reminder packs (JSON) + validation.
+  i18n/        Active language, UI string dictionary, and the DOM applier.
   ui/          DOM, mascot and clock canvases, speech bubble, panels.
   platform/    The one boundary with Tauri, behind an interface.
   store/       Preferences, history and tasks, with defensive reads.
@@ -179,7 +215,7 @@ src-tauri/     Window, tray and hotkeys. No domain logic.
 tests/         Vitest over core/, store/, sprites/ and messages/.
 ```
 
-Ten decisions worth explaining:
+Eleven decisions worth explaining:
 
 **The timer is a pure reducer.** `reduce(state, event, settings)` never
 touches the clock or the DOM, so the awkward cases — a long break on the
@@ -215,6 +251,15 @@ future reactions all enter the bubble through `utter()`, which is also what
 starts the cooldown. Without that, the duck could hand you a reminder and
 chain a joke onto it thirty seconds later. Quiet mode is applied at that same
 bottleneck, so there's no way to add a new channel that skips it by accident.
+
+**The two languages can never disagree on *what* the mascot says, only on
+*how* it says it.** Duplicating every content JSON per language would have
+been easy to write and easy to let drift over time. Instead, English stays
+the one structural source of truth — ids, triggers, tones, hour or streak
+conditions — and every additional language is just a flat `id → text` map,
+merged at load time. If a translation is missing an entry or runs past the
+bubble's length limit, `translate()` throws at import — a broken bilingual
+catalogue fails a test, it never ships and goes quietly mute mid-sentence.
 
 **A streak is walked forward, never backward.** Forgiving the weekly rest day
 looks like a calculation you can do by looking backward from today, but it's
@@ -284,10 +329,12 @@ call is a no-op instead of a crash.
 
 ## Roadmap
 
-The direction is to turn this into a **virtual pet that also runs your
+The direction was to turn this into a **virtual pet that also runs your
 pomodoro**: one that moves on its own, that talks, that acts as a reminder,
-that lets you swap its character, and that keeps track of your streaks.
-
-Broken down into nine phases ordered from cheapest to most expensive, each
-one shippable on its own, in **[docs/ROADMAP.md](docs/ROADMAP.md)** (in
-Spanish).
+that lets you swap its character, and that keeps track of your streaks. The
+18 phases that lived there are done; the one that's left, roaming freely
+around the desktop, was **discarded** by deliberate choice — the risk
+(moving the OS window in real time, multi-monitor, mixed DPI) doesn't clear
+the bar against a mostly-cosmetic payoff. The phase-by-phase detail,
+including the decisions that changed along the way, lives in
+**[docs/ROADMAP.md](docs/ROADMAP.md)** (in Spanish).

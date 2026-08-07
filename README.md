@@ -11,15 +11,32 @@ un pomodoro.
 
 ![El widget flotando sobre el terminal](docs/widget-native.png)
 
-El pato comenta lo que va pasando, en la voz que elijas:
+La mascota comenta lo que va pasando, en el personaje y la voz que elijas —
+acá Pip, en tono `MEDIC`:
 
-![El pato hablando durante una sesión de focus](docs/widget-speaking.png)
+![Pip hablando durante una sesión de focus, en tono MEDIC](docs/widget-speaking.png)
 
-Cambiar de tema repinta también al pato:
+Cambiar de tema repinta también a la mascota. Seis paletas de editor, todas
+con el mismo pato:
 
 | Tokyo Night | Dracula | Gruvbox |
 | --- | --- | --- |
 | ![](docs/theme-tokyo-night.png) | ![](docs/theme-dracula.png) | ![](docs/theme-gruvbox.png) |
+
+| Nord | Catppuccin | Solarized Dark |
+| --- | --- | --- |
+| ![](docs/theme-nord.png) | ![](docs/theme-catppuccin.png) | ![](docs/theme-solarized.png) |
+
+Ocho personajes intercambiables desde ajustes, sin arte reciclado entre
+ellos:
+
+| Duck | Ninja | Terminal | Spark |
+| --- | --- | --- | --- |
+| ![](docs/char-duck.png) | ![](docs/char-ninja.png) | ![](docs/char-terminal.png) | ![](docs/char-spark.png) |
+
+| Gato pulpo | Bicho | Café | **Pip** |
+| --- | --- | --- | --- |
+| ![](docs/char-tentacat.png) | ![](docs/char-bug.png) | ![](docs/char-coffee.png) | ![](docs/char-pill.png) |
 
 Un checklist real detrás del mismo campo de siempre: una tarea activa, el
 resto en cola, y cada pomodoro suma solo a la que está activa sin que hagas
@@ -35,7 +52,15 @@ El contador de abajo abre tu historial: racha, récords y un heatmap del
 Duraciones, tamaño, opacidad al desatender, personaje, voz y objetivo diario,
 todo detrás del engrane:
 
-![Panel de ajustes con tamaño, opacidad, personaje, voz y objetivo diario](docs/widget-settings.png)
+![Panel de ajustes con tamaño, opacidad y personaje](docs/widget-settings.png)
+
+Y todo lo anterior, en inglés o en español — un chip más en el mismo panel,
+sin reiniciar la app. Frases, recordatorios, atajos y toda la interfaz
+cambian juntos:
+
+| English | Español |
+| --- | --- |
+| ![Settings panel in English, Pip selected, MEDIC voice](docs/widget-settings-en.png) | ![Panel de ajustes en español, Pip seleccionado, voz MEDIC](docs/widget-settings-es.png) |
 
 Y si querés que ocupe lo mínimo posible, el modo mascota lo reduce a la
 silueta y el reloj — el resto vuelve al pasar el mouse:
@@ -54,19 +79,29 @@ silueta y el reloj — el resto vuelve al pasar el mouse:
   casi siempre respira, a veces mira de reojo, de vez en cuando algo le llama
   la atención arriba y cada tanto se pasea un par de píxeles sin motivo. Se
   concentra en focus, tararea en el descanso y se duerme en pausa.
-- **Siete personajes intercambiables** desde ajustes, repartidos en dos
-  familias. *Criaturas* — el pato, un ninja, un gato pulpo y un bicho — con
-  cuerpo, parpadeo y andar propios. *Emblemas* — una terminal CRT, una chispa
-  y una taza de café — que no pueden parpadear ni caminar sin verse mal, así
-  que animan *efectos* en su lugar: la terminal parpadea su cursor y se
-  tipea sola y entra en standby; la chispa pulsa el núcleo, pasea un brillo
-  por sus rayos y queda en brasa al pausar; la taza suelta vapor que se
-  enfría al pausar. Cambiar de tema repinta a los siete.
-- **El pato habla**: comenta al arrancar, al cerrar una sesión, al entrar al
-  descanso y de vez en cuando por su cuenta. Cuatro voces —`DEV` con humor
-  seco, `HYPE` motivacional, `PLAIN` solo lo funcional y `OFF` para callarlo—
-  y frases que saben en qué fase estás, cuántos pomodoros llevas y qué hora
-  es. Clic para descartar.
+- **Ocho personajes intercambiables** desde ajustes, repartidos en dos
+  familias. *Criaturas* — el pato, un ninja, un gato pulpo, un bicho y
+  **Pip**, una pastillita con cara de buen humor — con cuerpo, parpadeo y
+  andar propios. *Emblemas* — una terminal CRT, una chispa y una taza de
+  café — que no pueden parpadear ni caminar sin verse mal, así que animan
+  *efectos* en su lugar: la terminal parpadea su cursor y se tipea sola y
+  entra en standby; la chispa pulsa el núcleo, pasea un brillo por sus rayos
+  y queda en brasa al pausar; la taza suelta vapor que se enfría al pausar.
+  Cambiar de tema repinta a los ocho.
+- **La mascota habla**: comenta al arrancar, al cerrar una sesión, al entrar
+  al descanso y de vez en cuando por su cuenta. Cinco voces —`DEV` con humor
+  seco, `HYPE` motivacional, `PLAIN` solo lo funcional, `MEDIC` con humor de
+  guardia médica (el compañero natural de Pip, aunque cualquier personaje
+  puede hablar en cualquier voz) y `OFF` para callarla— y frases que saben en
+  qué fase estás, cuántos pomodoros llevas y qué hora es. Clic para
+  descartar.
+- **Toda la app en inglés o en español**, un chip más en ajustes. No es
+  media traducción: interfaz, las más de 130 frases del catálogo y los cinco
+  packs de recordatorios cambian juntos, sin reiniciar. Por diseño, los dos
+  idiomas comparten un único origen de verdad para *cuándo* sale cada frase
+  (disparador, tono, condiciones) — una traducción faltante o demasiado
+  larga rompe un test antes de llegar a la burbuja, así que los dos idiomas
+  nunca pueden divergir en qué frase suena, solo en qué dice.
 - **Un ánimo que sale del uso real, no del azar**: cuatro horas seguidas sin
   un descanso de verdad, u ocho pomodoros en el día, y el pato se ve y suena
   cansado — pide prestadas las animaciones de la pausa en vez de necesitar
@@ -100,8 +135,9 @@ silueta y el reloj — el resto vuelve al pasar el mouse:
 - **Tamaño ajustable** — cuatro presets (80 / 100 / 125 / 150 %) y un grip en
   la esquina para redimensionar arrastrando. La ventana nativa se redimensiona
   con la interfaz, y el pixel art se mantiene nítido en cada escala.
-- **Temas de editor** — Tokyo Night, Dracula y Gruvbox. Cambiar de tema
-  **repinta también al pato**, no solo la interfaz.
+- **Seis temas de editor** — Tokyo Night, Dracula, Gruvbox, Nord, Catppuccin
+  y Solarized Dark. Cambiar de tema **repinta también a la mascota**, no
+  solo la interfaz.
 - **Reloj en fuente pixel propia**, dibujada con el mismo motor de sprites que
   la mascota. Nítida a cualquier escala y sin un solo asset binario.
 - **Auto-fade**: seis segundos después de arrancar una sesión el widget baja de
@@ -168,6 +204,7 @@ src/
   core/        Timer, fases, frases, recordatorios, historial, ánimo y tareas. Puro.
   sprites/     Datos de pixel art (JSON) + renderer a canvas + temas.
   messages/    Catálogo de frases y packs de recordatorios (JSON) + validación.
+  i18n/        Idioma activo, diccionario de interfaz y el aplicador al DOM.
   ui/          DOM, canvas de la mascota y del reloj, burbuja, paneles.
   platform/    Única frontera con Tauri, detrás de una interfaz.
   store/       Preferencias, historial y tareas, con lectura defensiva.
@@ -176,7 +213,7 @@ src-tauri/     Ventana, bandeja y hotkeys. Nada de lógica de dominio.
 tests/         Vitest sobre core/, store/, sprites/ y messages/.
 ```
 
-Diez decisiones que vale la pena explicar:
+Once decisiones que vale la pena explicar:
 
 **El timer es un reducer puro.** `reduce(state, event, settings)` no toca el
 reloj ni el DOM, así que los casos incómodos —descanso largo al cuarto round,
@@ -211,6 +248,16 @@ enfriamiento. Sin eso el pato podría soltarte un recordatorio y encadenarle una
 broma treinta segundos después. Y el modo silencio se aplica en ese mismo
 cuello de botella, así que no hay forma de agregar un canal nuevo que se lo
 salte por descuido.
+
+**Los dos idiomas no pueden divergir en *qué* dice la mascota, solo en
+*cómo* lo dice.** Duplicar cada JSON de contenido por idioma habría sido
+fácil de escribir y fácil de desincronizar con el tiempo. En cambio, inglés
+sigue siendo el único origen de verdad estructural — ids, disparadores,
+tonos, condiciones por hora o por racha — y cada idioma adicional es apenas
+un mapa plano `id → texto`, fusionado al cargar. Si a una traducción le
+falta una entrada o se pasa del límite de la burbuja, `translate()` lanza
+una excepción al importar el módulo, así que un catálogo bilingüe roto
+rompe un test, nunca llega a producción muda a mitad de una frase.
 
 **Una racha se recorre hacia adelante, no hacia atrás.** Perdonar el día de
 descanso semanal parece un cálculo que se puede hacer mirando hacia atrás
@@ -277,9 +324,12 @@ es un no-op en vez de un crash.
 
 ## Roadmap
 
-La dirección es convertirlo en una **mascota virtual que además lleva tu
+La dirección era convertirlo en una **mascota virtual que además lleva tu
 pomodoro**: que se mueva por su cuenta, que hable, que sirva de recordatorio,
-que puedas cambiarle el personaje y que lleve la cuenta de tus rachas.
-
-Está desglosado en nueve fases ordenadas de menos a más costosa, cada una
-lanzable por separado, en **[docs/ROADMAP.md](docs/ROADMAP.md)**.
+que puedas cambiarle el personaje y que lleve la cuenta de tus rachas. Las 18
+fases que llevaban ahí están terminadas; la única que queda, deambular
+libremente por el escritorio, quedó **descartada** por decisión propia — el
+riesgo (mover la ventana del SO en tiempo real, multi-monitor, DPI distinto)
+no compensa un beneficio mayormente cosmético. El detalle fase por fase,
+incluidas las decisiones que cambiaron sobre la marcha, vive en
+**[docs/ROADMAP.md](docs/ROADMAP.md)**.
