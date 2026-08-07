@@ -7,8 +7,8 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 13, 15, 16 y 17 terminadas.**
-Fases 11, 12, 14 y 18 planeadas y aprobadas, a la espera de que se defina el
+**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 11, 13 y 15–17 terminadas.**
+Fases 12, 14 y 18 planeadas y aprobadas, a la espera de que se defina el
 orden de arranque. La fase 8 sigue en pausa.
 
 ---
@@ -27,7 +27,7 @@ orden de arranque. La fase 8 sigue en pausa.
 | 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) ✅ | XL | — |
 | 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) ✅ | S | — |
-| 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) | S/M | — |
+| 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) ✅ | S/M | — |
 | 12 | [Recordatorios propios](#fase-12--recordatorios-propios) | S/M | 2 |
 | 13 | [Atajos configurables](#fase-13--atajos-configurables) ✅ | M | — |
 | 14 | [Vista previa animada y temas nuevos](#fase-14--vista-previa-animada-y-temas-de-color-nuevos) | S/M | 4 |
@@ -36,9 +36,9 @@ orden de arranque. La fase 8 sigue en pausa.
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) ✅ | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
 
-**Siguiente recomendada:** sin definir todavía entre las que quedan (11, 12,
-14, 18) — el orden de arranque queda a criterio propio. Ninguna depende de
-la 8, que sigue en pausa por decisión propia: sus dependencias (3 y 5) están
+**Siguiente recomendada:** sin definir todavía entre las que quedan (12, 14,
+18) — el orden de arranque queda a criterio propio. Ninguna depende de la 8,
+que sigue en pausa por decisión propia: sus dependencias (3 y 5) están
 resueltas, pero el riesgo que el roadmap siempre le marcó — mover la ventana
 del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
 
@@ -691,17 +691,41 @@ presente (en la misma proporción) con la fuente más grande.
 
 ---
 
-## Fase 11 — Exportar e importar datos
+## Fase 11 — Exportar e importar datos ✅
 
-**Costo: S/M · Sin dependencias**
+**Terminada · Costo: S/M**
 
 Un botón en ajustes vuelca historial + tareas + preferencias a un `.json` vía
 el diálogo de guardado nativo, y otro carga uno de vuelta con la misma
-lectura defensiva que ya usan los stores. Sin nube ni cuentas — respeta el
-límite ya fijado en "fuera de alcance".
+lectura defensiva que ya usan los stores — reusando `loadHistory`,
+`loadTasks` y `loadPreferences` de verdad contra un `JsonStore` temporal en
+memoria, en vez de reinventar la sanitización. Sin nube ni cuentas.
 
-**Toca:** nuevo módulo de export/import (`src/store/backup.ts`),
-`settings-panel.ts`, dependencia nueva `@tauri-apps/plugin-dialog`.
+**Tres rondas de auditoría, tres bugs reales encontrados y corregidos —
+ninguno lo hubiera atrapado un test unitario:**
+
+- **Los permisos de Tauri no alcanzaban para escribir ni leer nada.** El
+  primer intento agregó `fs:default`, que en `tauri-plugin-fs` solo otorga
+  crear carpetas propias de la app y leerlas — nada de `read-text-file` ni
+  `write-text-file` en ningún lado. Exportar abría el diálogo, pero el
+  archivo nunca se creaba, en silencio. Confirmado probando el flujo real en
+  la ventana nativa, no solo corriendo los tests de `backup.ts`.
+- **El primer arreglo de permisos sobrecorrigió**: agregó `{ "path": "*" }`
+  y `{ "path": "**" }` al scope, dándole a la app acceso a todo el sistema
+  de archivos por un caso de uso que solo necesitaba las carpetas estándar
+  del usuario. Se acotó a Desktop, Download, Document, Home y AppData
+  nombrados explícitamente — reverificado guardando en Documentos de verdad.
+- **Un stub falso.** La rama se abrió antes de que la fase 13 (atajos
+  configurables) existiera; al pedir que un import re-aplicara los atajos
+  restaurados, el agente no tenía visibilidad de que `updateShortcuts`
+  ya existía con una firma real en `main` — así que inventó una versión
+  vacía, sin parámetros, que no hacía nada. Se resolvió rebaseando la rama
+  contra `main` y llamando a la función real con el mapa de atajos
+  restaurado.
+
+**Toca:** `src/store/backup.ts` (nuevo), `src/platform/desktop.ts`,
+`settings-panel.ts`, `capabilities/default.json`, dependencias nuevas
+`@tauri-apps/plugin-dialog` y `@tauri-apps/plugin-fs`.
 
 ---
 

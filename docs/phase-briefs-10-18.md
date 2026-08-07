@@ -1,6 +1,6 @@
-# Briefs para sub-agentes — fases pendientes (11, 12, 14, 18)
+# Briefs para sub-agentes — fases pendientes (12, 14, 18)
 
-Las fases 10, 13, 15, 16 y 17 ya se implementaron, auditaron y mergearon a
+Las fases 10, 11, 13 y 15–17 ya se implementaron, auditaron y mergearon a
 `main` — sus briefs se sacaron de este archivo. El detalle de cómo quedaron
 (incluidos varios bugs reales que la auditoría encontró y ya se corrigieron)
 está en `docs/ROADMAP.md`.
@@ -38,25 +38,9 @@ Flujo esperado:
 
 ---
 
-## Fase 11 — Exportar e importar datos
-**Costo: S/M · Sin dependencias · Comparte `settings-panel.ts` con 12, 14**
-
-- Botón en ajustes: volcar historial + tareas + preferencias a un `.json`
-  (diálogo de guardado nativo), y otro para cargar uno de vuelta.
-- Sumá `@tauri-apps/plugin-dialog` (revisá si hace falta habilitarlo también
-  en capabilities de `src-tauri/`).
-- El import pasa por la MISMA lectura defensiva que ya usan
-  `store/history.ts` y `store/tasks.ts` — no confíes en el archivo que trae
-  el usuario.
-- Módulo sugerido: `src/store/backup.ts`.
-- **Ojo:** ya existe un worktree en Orca llamado `fase_11` — revisalo antes
-  de arrancar, puede que ya haya trabajo empezado ahí.
-
----
-
 ## Fase 12 — Recordatorios propios
 **Costo: S/M · Depende de la fase 2 (ya hecha) · Comparte `settings-panel.ts`
-y `store/preferences.ts` con 11, 14**
+y `store/preferences.ts` con 14**
 
 - Recordatorio con texto libre + cadencia + fase de anclaje (focus/descanso),
   con su propia pantalla de edición en ajustes — separado de los packs con
@@ -69,7 +53,7 @@ y `store/preferences.ts` con 11, 14**
 
 ## Fase 14 — Vista previa animada y temas de color nuevos
 **Costo: S/M · Depende de la fase 4 (ya hecha) · Comparte `settings-panel.ts`
-con 11, 12**
+con 12**
 
 - El selector de personajes en ajustes muestra un loop animado en miniatura
   en vez de solo el nombre.
