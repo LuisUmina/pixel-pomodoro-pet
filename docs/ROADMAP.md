@@ -7,8 +7,9 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7 y 9–18 terminadas.** Solo queda la 8,
-en pausa por decisión propia.
+**Estado:** v0.1 entregada. **Fases 1–7 y 9–18 terminadas.** La fase 8 queda
+**descartada** por decisión propia: complejidad y riesgo altos frente al
+beneficio, no es viable por ahora.
 
 ---
 
@@ -23,7 +24,7 @@ en pausa por decisión propia.
 | 5 | [Modo mascota (sin marco)](#fase-5--modo-mascota-sin-marco) ✅ | M/L | — |
 | 6 | [Historial, rachas y heatmap](#fase-6--historial-rachas-y-heatmap) ✅ | L | — |
 | 7 | [Ánimo de la mascota](#fase-7--ánimo-de-la-mascota) ✅ | M | 1, 3, 6 |
-| 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) | L | 3, 5 |
+| 8 | [Deambular por el escritorio](#fase-8--deambular-por-el-escritorio) ❌ | L | 3, 5 |
 | 9 | [Objetivos y tareas](#fase-9--objetivos-y-tareas) ✅ | XL | — |
 | 10 | [Legibilidad de la burbuja](#fase-10--legibilidad-de-la-burbuja-de-diálogo) ✅ | S | — |
 | 11 | [Exportar e importar datos](#fase-11--exportar-e-importar-datos) ✅ | S/M | — |
@@ -35,10 +36,12 @@ en pausa por decisión propia.
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) ✅ | M | 5, 9 |
 | 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) ✅ | S/M | 9 |
 
-**Siguiente recomendada:** la **8** (deambular por el escritorio) es lo único
-que queda, y sigue en pausa por decisión propia: sus dependencias (3 y 5)
+**No queda fase pendiente.** La **8** (deambular por el escritorio) es la
+única que no se hizo, y no por falta de tiempo: sus dependencias (3 y 5)
 están resueltas, pero el riesgo que el roadmap siempre le marcó — mover la
-ventana del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
+ventana del SO en tiempo real, multi-monitor y DPI distinto — se evaluó y se
+decidió que no vale la pena por ahora. Ver el cierre en su propia sección más
+abajo.
 
 ---
 
@@ -215,7 +218,8 @@ Lo que el plan no anticipaba:
   alcanzable y que un paseo siempre vuelva al centro — si no, el pato
   derivaría un poco más en cada actuación hasta salirse.
 
-El deambular libre por el escritorio sigue siendo la fase 8, aparte.
+El deambular libre por el escritorio se dejó aparte, para la fase 8 —
+finalmente descartada; ver su sección para el porqué.
 
 ---
 
@@ -363,8 +367,8 @@ personaje y el reloj, con el resto revelado al pasar el mouse. Alternable con
   por encima del pato— termina tapándolo y robándole los clics. La entrada al
   modo mascota ahora cierra cualquier panel abierto de entrada.
 
-El deambular libre y el hit-testing por píxel siguen en la fase 8, tal como
-estaba previsto.
+El deambular libre y el hit-testing por píxel quedaron, tal como estaba
+previsto, para la fase 8 — finalmente descartada.
 
 ---
 
@@ -565,9 +569,9 @@ expresarse.
 
 ---
 
-## Fase 8 — Deambular por el escritorio
+## Fase 8 — Deambular por el escritorio ❌
 
-**Costo: L · Riesgoso · Depende de las fases 3 y 5**
+**Descartada · Costo: L · Riesgoso · Depende de las fases 3 y 5**
 
 El personaje camina por el escritorio de verdad, se sienta en el borde
 superior de una ventana, se asoma desde una esquina.
@@ -579,11 +583,20 @@ click-through, y el costo de CPU de reposicionar una ventana a 60 fps. Y
 "sentarse en el borde de una ventana" implica leer la geometría de ventanas
 ajenas, que es API nativa de Windows y no es portable.
 
-Vale la pena solo si la fase 5 ya quedó bien y de verdad quieres esto. Un
-buen intermedio: que deambule dentro de una ventana ancha y transparente,
-que se ve casi igual y no pelea con nada.
+**Por qué queda descartada, y no solo en pausa.** Sus dependencias (3 y 5) ya
+están resueltas hace rato, así que si esto no se hizo no es porque falte
+algo — es que, evaluado con calma, el costo no cierra: complejidad alta
+(geometría de ventanas ajenas, multi-monitor, DPI distinto, 60 fps de
+reposicionamiento) para un beneficio principalmente cosmético, con riesgo
+real de romper cosas que hoy funcionan bien (posición guardada,
+click-through). No es una tarea a medio camino ni un "todavía no" — es una
+decisión de producto tomada: no es viable por ahora, y el resto de la app no
+la necesita para sentirse completa. El intermedio de bajo riesgo — deambular
+dentro de una ventana ancha y transparente, que se ve casi igual y no pelea
+con nada — sigue siendo la puerta de entrada si esto se retoma alguna vez.
 
-**Toca:** `src-tauri/src/window.rs`, `platform/desktop.ts`, `pet-canvas.ts`.
+**Toca (si se retoma):** `src-tauri/src/window.rs`, `platform/desktop.ts`,
+`pet-canvas.ts`.
 
 ---
 
@@ -963,5 +976,6 @@ Para que el proyecto no se desdibuje:
 - Estadísticas de productividad tipo dashboard corporativo.
 - Gamificación con moneda, tienda y compras — los logros y las rachas sí, el
   casino no.
-- Multiplataforma **verificada**. El código no tiene nada de Windows salvo lo
-  que salga en la fase 8, pero probarlo en macOS y Linux es un proyecto en sí.
+- Multiplataforma **verificada**. El código no tiene nada específico de
+  Windows hoy (la fase 8, que sí lo hubiera necesitado, quedó descartada),
+  pero probarlo en macOS y Linux sigue siendo un proyecto en sí.
