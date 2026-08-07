@@ -8,7 +8,9 @@ import { QUIET_PRESETS, formatQuiet } from "../core/quiet";
 import type { Phase, PomodoroSettings } from "../core/types";
 import { DAILY_GOAL_PRESETS, formatDailyGoal } from "../dailyGoal";
 import { DIM_OPACITY_PRESETS, formatDimOpacity } from "../dim";
-import { REMINDER_PACKS } from "../messages/reminders";
+import { DEFAULT_LANGUAGE, LANGUAGES, type Language } from "../i18n/language";
+import { t, type UiStringKey } from "../i18n/strings";
+import { reminderPacksFor } from "../messages/reminders";
 import { VOICES, type Voice } from "../messages/types";
 import { UI_SCALE_PRESETS, formatScale } from "../scale";
 import { CHARACTERS, getCharacter } from "../sprites/characters";
@@ -28,6 +30,7 @@ export interface SettingsPanelActions {
   changeSettings(settings: PomodoroSettings): void;
   changeScale(scale: number): void;
   changeVoice(voice: Voice): void;
+  changeLanguage(language: Language): void;
   changeReminder(id: string, enabled: boolean): void;
   changeCustomReminders(reminders: readonly CustomReminder[]): void;
   changeShortcuts(shortcuts: ShortcutMap): Promise<{ success: boolean; error?: string }>;
@@ -49,6 +52,7 @@ export interface SettingsModel {
   readonly settings: PomodoroSettings;
   readonly uiScale: number;
   readonly voice: Voice;
+  readonly language: Language;
   readonly reminders: Readonly<Record<string, boolean>>;
   readonly customReminders: readonly CustomReminder[];
   readonly shortcuts: ShortcutMap;
@@ -65,26 +69,43 @@ const MAX_MINUTES = 180;
 const MIN_ROUNDS = 1;
 const MAX_ROUNDS = 12;
 
+// Voice badges read as short codes, the same way a character badge (DUCK,
+// PULPO...) does, so they stay untranslated on purpose — see
+// `i18n/strings.ts`'s own note on that choice.
 const VOICE_LABELS: Readonly<Record<Voice, string>> = {
   dev: "DEV",
   hype: "HYPE",
   plain: "PLAIN",
+  medic: "MEDIC",
   off: "OFF",
 };
 
-const VOICE_HINTS: Readonly<Record<Voice, string>> = {
-  dev: "Dry developer humour",
-  hype: "Encouraging",
-  plain: "Just the facts",
-  // Reminders ride on the same bubble, so OFF has to take them with it —
-  // anything else makes the label a lie. PLAIN is the useful-but-quiet one.
-  off: "Nothing at all, reminders included",
+const VOICE_HINT_KEYS: Readonly<Record<Voice, UiStringKey>> = {
+  dev: "voice.dev.hint",
+  hype: "voice.hype.hint",
+  plain: "voice.plain.hint",
+  medic: "voice.medic.hint",
+  off: "voice.off.hint",
 };
 
-const PHASE_WORDS: Readonly<Record<Phase, string>> = {
-  focus: "focus",
-  shortBreak: "breaks",
-  longBreak: "breaks",
+const LANGUAGE_LABEL_KEYS: Readonly<Record<Language, UiStringKey>> = {
+  en: "language.en",
+  es: "language.es",
+};
+
+const PHASE_WORD_KEYS: Readonly<Record<Phase, UiStringKey>> = {
+  focus: "phase.focus",
+  shortBreak: "phase.breaks",
+  longBreak: "phase.breaks",
+};
+
+const SHORTCUT_LABEL_KEYS: Readonly<Record<ShortcutAction, UiStringKey>> = {
+  toggle: "shortcuts.toggle",
+  skip: "shortcuts.skip",
+  reset: "shortcuts.reset",
+  ghost: "shortcuts.ghost",
+  mini: "shortcuts.mini",
+  hide: "shortcuts.hide",
 };
 
 /** The durations and widget size, behind the gear button. */
@@ -99,6 +120,7 @@ export class SettingsPanel {
   readonly #mini: HTMLInputElement;
   readonly #sizes: HTMLElement;
   readonly #voices: HTMLElement;
+  readonly #languages: HTMLElement;
   readonly #reminders: HTMLElement;
   readonly #customReminders: HTMLElement;
   readonly #customReminderScreen: HTMLElement;
@@ -112,6 +134,7 @@ export class SettingsPanel {
 
   readonly #sizeButtons = new Map<number, HTMLButtonElement>();
   readonly #voiceButtons = new Map<Voice, HTMLButtonElement>();
+  readonly #languageButtons = new Map<Language, HTMLButtonElement>();
   readonly #reminderBoxes = new Map<string, HTMLInputElement>();
   readonly #shortcutInputs = new Map<ShortcutAction, HTMLInputElement>();
   readonly #quietButtons = new Map<number, HTMLButtonElement>();
@@ -121,6 +144,7 @@ export class SettingsPanel {
 
   #settings: PomodoroSettings = DEFAULT_SETTINGS;
   #scale = 1;
+  #language: Language = DEFAULT_LANGUAGE;
   #lastShortcuts: ShortcutMap | null = null;
 
   constructor(private readonly actions: SettingsPanelActions) {
@@ -134,6 +158,7 @@ export class SettingsPanel {
     this.#mini = element<HTMLInputElement>("set-mini");
     this.#sizes = element("set-sizes");
     this.#voices = element("set-voice");
+    this.#languages = element("set-language");
     this.#reminders = element("set-reminders");
     this.#customReminders = element("set-custom-reminders");
     this.#customReminderScreen = element("custom-reminder-screen");
@@ -175,6 +200,7 @@ export class SettingsPanel {
 
     this.#buildSizeButtons();
     this.#buildVoiceButtons();
+    this.#buildLanguageButtons();
     this.#buildReminderRows();
     this.#buildCustomReminderEditor();
     this.#buildShortcutRows();
@@ -217,12 +243,28 @@ export class SettingsPanel {
     this.#lastShortcuts = model.shortcuts;
     this.#writeSettings();
 
+    if (model.language !== this.#language) {
+      this.#language = model.language;
+      // These are built once and only ever carry the words a language
+      // change would touch -- rebuilding them beats threading a relabel
+      // path through every row just for the rare moment the toggle is hit.
+      this.#buildReminderRows();
+      this.#buildShortcutRows();
+      for (const [voice, button] of this.#voiceButtons) {
+        button.title = t(VOICE_HINT_KEYS[voice], this.#language);
+      }
+    }
+
     for (const [preset, button] of this.#sizeButtons) {
       button.setAttribute("aria-pressed", String(Math.abs(preset - model.uiScale) < 0.005));
     }
 
     for (const [candidate, button] of this.#voiceButtons) {
       button.setAttribute("aria-pressed", String(candidate === model.voice));
+    }
+
+    for (const [candidate, button] of this.#languageButtons) {
+      button.setAttribute("aria-pressed", String(candidate === model.language));
     }
 
     for (const [id, box] of this.#reminderBoxes) {
@@ -317,15 +359,34 @@ export class SettingsPanel {
   #buildVoiceButtons(): void {
     for (const voice of VOICES) {
       const button = chip(VOICE_LABELS[voice], () => this.actions.changeVoice(voice));
-      button.title = VOICE_HINTS[voice];
+      button.title = t(VOICE_HINT_KEYS[voice], this.#language);
 
       this.#voiceButtons.set(voice, button);
       this.#voices.append(button);
     }
   }
 
+  #buildLanguageButtons(): void {
+    for (const language of LANGUAGES) {
+      const button = chip(t(LANGUAGE_LABEL_KEYS[language], this.#language), () =>
+        this.actions.changeLanguage(language),
+      );
+
+      this.#languageButtons.set(language, button);
+      this.#languages.append(button);
+    }
+  }
+
+  /**
+   * Rebuildable, not just buildable: a language change swaps every pack's
+   * label and hint, so this runs again on the toggle rather than only once
+   * from the constructor.
+   */
   #buildReminderRows(): void {
-    for (const pack of REMINDER_PACKS) {
+    this.#reminderBoxes.clear();
+    this.#reminders.replaceChildren();
+
+    for (const pack of reminderPacksFor(this.#language)) {
       const row = document.createElement("label");
       row.className = "reminder";
       row.title = pack.hint;
@@ -342,7 +403,7 @@ export class SettingsPanel {
 
       const when = document.createElement("span");
       when.className = "reminder__when";
-      when.textContent = `${pack.everyMinutes}m · ${phaseWord(pack.phases)}`;
+      when.textContent = `${pack.everyMinutes}m · ${phaseWord(pack.phases, this.#language)}`;
 
       row.append(box, label, when);
       this.#reminderBoxes.set(pack.id, box);
@@ -393,13 +454,14 @@ export class SettingsPanel {
         text.title = reminder.text;
 
         const detail = document.createElement("span");
-        detail.textContent = `${reminder.everyMinutes}m · ${reminder.anchor === "focus" ? "focus" : "descanso"}`;
+        const anchorKey = reminder.anchor === "focus" ? "customReminder.focus" : "customReminder.break";
+        detail.textContent = `${reminder.everyMinutes}m · ${t(anchorKey, this.#language)}`;
 
         const remove = document.createElement("button");
         remove.type = "button";
         remove.className = "custom-reminder__remove";
         remove.textContent = "×";
-        remove.title = "Eliminar recordatorio";
+        remove.title = t("customReminder.remove", this.#language);
         remove.disabled = disabled;
         remove.addEventListener("click", () =>
           this.actions.changeCustomReminders(reminders.filter((item) => item.id !== reminder.id)),
@@ -410,14 +472,18 @@ export class SettingsPanel {
     );
   }
 
+  /** Rebuildable: a language change relabels every row, same as reminders. */
   #buildShortcutRows(): void {
+    this.#shortcutInputs.clear();
+    this.#shortcuts.replaceChildren();
+
     for (const def of SHORTCUT_DEFINITIONS) {
       const row = document.createElement("div");
       row.className = "shortcut-row";
 
       const label = document.createElement("span");
       label.className = "shortcut__label";
-      label.textContent = def.label;
+      label.textContent = t(SHORTCUT_LABEL_KEYS[def.id], this.#language);
 
       const input = document.createElement("input");
       input.type = "text";
@@ -506,7 +572,7 @@ export class SettingsPanel {
     }
 
     if (hasConflict) {
-      this.#shortcutsError.textContent = "Conflicto: atajo duplicado entre funciones.";
+      this.#shortcutsError.textContent = t("shortcuts.conflict", this.#language);
       this.#shortcutsError.hidden = false;
       return;
     }
@@ -514,7 +580,7 @@ export class SettingsPanel {
     this.#shortcutsError.hidden = true;
     const res = await this.actions.changeShortcuts(current as ShortcutMap);
     if (!res.success) {
-      this.#shortcutsError.textContent = res.error ?? "No se pudo actualizar el atajo.";
+      this.#shortcutsError.textContent = res.error ?? t("shortcuts.updateFailed", this.#language);
       this.#shortcutsError.hidden = false;
       for (const input of this.#shortcutInputs.values()) {
         input.classList.add("shortcut__input--error");
@@ -562,8 +628,9 @@ export class SettingsPanel {
 }
 
 /** Packs anchored to both breaks read as one word, not two. */
-function phaseWord(phases: readonly Phase[]): string {
-  return [...new Set(phases.map((phase) => PHASE_WORDS[phase]))].join(" + ");
+function phaseWord(phases: readonly Phase[], language: Language): string {
+  const words = phases.map((phase) => t(PHASE_WORD_KEYS[phase], language));
+  return [...new Set(words)].join(" + ");
 }
 
 /**

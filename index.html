@@ -22,18 +22,26 @@
               type="button"
               class="iconbtn"
               data-action="settings"
+              data-i18n-title="titlebar.settings"
               title="Settings"
               aria-pressed="false"
             >
               ⚙
             </button>
-            <button type="button" class="iconbtn" data-action="theme" title="Cycle theme">
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="theme"
+              data-i18n-title="titlebar.theme"
+              title="Cycle theme"
+            >
               ◑
             </button>
             <button
               type="button"
               class="iconbtn"
               data-action="sound"
+              data-i18n-title="titlebar.sound"
               title="Toggle sound"
               aria-pressed="true"
             >
@@ -43,6 +51,7 @@
               type="button"
               class="iconbtn"
               data-action="ghost"
+              data-i18n-title="titlebar.ghost"
               title="Click-through — press Ctrl+Alt+G to turn it back off"
               aria-pressed="false"
             >
@@ -52,6 +61,7 @@
               type="button"
               class="iconbtn"
               data-action="mini"
+              data-i18n-title="titlebar.mini"
               title="Mini mode — press Ctrl+Alt+Z to switch back"
               aria-pressed="false"
             >
@@ -61,6 +71,7 @@
               type="button"
               class="iconbtn"
               data-action="checklist"
+              data-i18n-title="titlebar.checklist"
               title="Show task checklist"
               aria-pressed="false"
             >
@@ -70,6 +81,7 @@
               type="button"
               class="iconbtn"
               data-action="hide"
+              data-i18n-title="titlebar.hide"
               title="Hide — press Ctrl+Alt+H to bring it back"
             >
               ─
@@ -114,6 +126,7 @@
               maxlength="48"
               spellcheck="false"
               autocomplete="off"
+              data-i18n-placeholder="task.placeholder"
               placeholder="what are you working on?"
             />
           </label>
@@ -121,6 +134,7 @@
             type="button"
             class="iconbtn"
             data-action="tasks"
+            data-i18n-title="task.list"
             title="Task list"
           >
             ☰
@@ -131,10 +145,22 @@
           <button type="button" class="btn btn--primary" data-action="toggle" id="toggle">
             START
           </button>
-          <button type="button" class="btn" data-action="skip" title="Skip (Ctrl+Alt+N)">
+          <button
+            type="button"
+            class="btn"
+            data-action="skip"
+            data-i18n-title="controls.skipHint"
+            title="Skip (Ctrl+Alt+N)"
+          >
             SKIP
           </button>
-          <button type="button" class="btn" data-action="reset" title="Reset (Ctrl+Alt+R)">
+          <button
+            type="button"
+            class="btn"
+            data-action="reset"
+            data-i18n-title="controls.resetHint"
+            title="Reset (Ctrl+Alt+R)"
+          >
             RESET
           </button>
         </div>
@@ -147,11 +173,17 @@
               class="tally"
               id="tally"
               data-action="history"
+              data-i18n-title="status.viewHistory"
               title="View history"
             >
               0 today
             </button>
-            <span class="grip" id="grip" title="Drag to resize"></span>
+            <span
+              class="grip"
+              id="grip"
+              data-i18n-title="status.resize"
+              title="Drag to resize"
+            ></span>
           </span>
         </footer>
 
@@ -159,114 +191,139 @@
              never a function of whether settings happen to be open. -->
         <section class="panel" id="settings" hidden>
           <header class="panel__bar">
-            <span class="panel__title">settings</span>
-            <button type="button" class="iconbtn" data-action="settings" title="Close">
+            <span class="panel__title" data-i18n="settings.title">settings</span>
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="settings"
+              data-i18n-title="titlebar.close"
+              title="Close"
+            >
               ✕
             </button>
           </header>
 
           <div class="panel__body">
             <label class="field">
-              <span class="field__label">focus</span>
+              <span class="field__label" data-i18n="settings.focus">focus</span>
               <input type="number" id="set-focus" min="1" max="180" step="1" />
               <span class="field__unit">min</span>
             </label>
             <label class="field">
-              <span class="field__label">break</span>
+              <span class="field__label" data-i18n="settings.break">break</span>
               <input type="number" id="set-short" min="1" max="180" step="1" />
               <span class="field__unit">min</span>
             </label>
             <label class="field">
-              <span class="field__label">long break</span>
+              <span class="field__label" data-i18n="settings.longBreak">long break</span>
               <input type="number" id="set-long" min="1" max="180" step="1" />
               <span class="field__unit">min</span>
             </label>
             <label class="field">
-              <span class="field__label">rounds</span>
+              <span class="field__label" data-i18n="settings.rounds">rounds</span>
               <input type="number" id="set-rounds" min="1" max="12" step="1" />
-              <span class="field__unit">/cycle</span>
+              <span class="field__unit" data-i18n="settings.roundsUnit">/cycle</span>
             </label>
 
             <label class="check">
               <input type="checkbox" id="set-auto-breaks" />
-              <span>auto-start breaks</span>
+              <span data-i18n="settings.autoBreaks">auto-start breaks</span>
             </label>
             <label class="check">
               <input type="checkbox" id="set-auto-focus" />
-              <span>auto-start focus</span>
+              <span data-i18n="settings.autoFocus">auto-start focus</span>
             </label>
             <label
               class="check"
+              data-i18n-title="settings.miniModeHint"
               title="Shrink the frame down to just the mascot and the clock"
             >
               <input type="checkbox" id="set-mini" />
-              <span>mini mode</span>
+              <span data-i18n="settings.miniMode">mini mode</span>
             </label>
 
             <div class="field field--chips">
-              <span class="field__label">size</span>
+              <span class="field__label" data-i18n="settings.size">size</span>
               <span class="chips" id="set-sizes"></span>
             </div>
 
             <div
               class="field field--chips"
+              data-i18n-title="settings.dimHint"
               title="How opaque the widget stays once a session has been running for a while, unattended"
             >
-              <span class="field__label">dim</span>
+              <span class="field__label" data-i18n="settings.dim">dim</span>
               <span class="chips" id="set-dim"></span>
             </div>
 
             <div class="field field--chips">
-              <span class="field__label">pet</span>
+              <span class="field__label" data-i18n="settings.pet">pet</span>
               <span class="pet-picker">
                 <canvas
                   class="pet-preview"
                   id="set-pet-preview"
-                  aria-label="Vista previa animada del personaje seleccionado"
+                  data-i18n-aria-label="settings.petPreview"
+                  aria-label="Animated preview of the selected character"
                 ></canvas>
                 <span class="chips" id="set-pet"></span>
               </span>
             </div>
 
             <div class="field field--chips">
-              <span class="field__label">voice</span>
+              <span class="field__label" data-i18n="settings.voice">voice</span>
               <span class="chips" id="set-voice"></span>
+            </div>
+
+            <div class="field field--chips">
+              <span class="field__label" data-i18n="settings.language">language</span>
+              <span class="chips" id="set-language"></span>
             </div>
 
             <div
               class="field field--chips"
+              data-i18n-title="settings.goalHint"
               title="Pomodoros that make a good day, shown next to the tally"
             >
-              <span class="field__label">goal</span>
+              <span class="field__label" data-i18n="settings.goal">goal</span>
               <span class="chips" id="set-goal"></span>
             </div>
 
-            <p class="panel__heading">reminders</p>
+            <p class="panel__heading" data-i18n="settings.reminders">reminders</p>
             <div class="reminders" id="set-reminders"></div>
 
-            <p class="panel__heading">recordatorios propios</p>
-            <button type="button" class="btn" id="custom-reminder-open">GESTIONAR</button>
+            <p class="panel__heading" data-i18n="settings.customReminders">custom reminders</p>
+            <button type="button" class="btn" id="custom-reminder-open" data-i18n="settings.manage">
+              MANAGE
+            </button>
 
-            <p class="panel__heading">shortcuts</p>
+            <p class="panel__heading" data-i18n="settings.shortcuts">shortcuts</p>
             <div class="shortcuts" id="set-shortcuts"></div>
             <p class="shortcuts__error" id="set-shortcuts-error" hidden></p>
 
             <div
               class="field field--chips"
+              data-i18n-title="settings.quietHint"
               title="Silence everything for a while"
             >
-              <span class="field__label" title="Silence everything for a while">
+              <span
+                class="field__label"
+                data-i18n-title="settings.quietHint"
+                data-i18n="settings.quiet"
+                title="Silence everything for a while"
+              >
                 quiet
               </span>
               <span class="chips" id="set-quiet"></span>
             </div>
 
-            <p class="panel__heading">backup</p>
+            <p class="panel__heading" data-i18n="settings.backup">backup</p>
             <div class="backup-actions">
               <button
                 type="button"
                 class="btn"
                 data-action="export-data"
+                data-i18n="settings.exportData"
+                data-i18n-title="settings.exportDataHint"
                 title="Export all app data to a JSON file"
               >
                 EXPORT DATA
@@ -275,26 +332,49 @@
                 type="button"
                 class="btn"
                 data-action="import-data"
+                data-i18n="settings.importData"
+                data-i18n-title="settings.importDataHint"
                 title="Import app data from a JSON file"
               >
                 IMPORT DATA
               </button>
             </div>
 
-            <button type="button" class="btn" data-action="defaults">
+            <button type="button" class="btn" data-action="defaults" data-i18n="settings.restoreDefaults">
               RESTORE DEFAULTS
             </button>
           </div>
 
           <div class="panel__body custom-reminder-screen" id="custom-reminder-screen" hidden>
-            <button type="button" class="btn" id="custom-reminder-back">← VOLVER</button>
-            <p class="panel__heading">recordatorios propios</p>
+            <button type="button" class="btn" id="custom-reminder-back" data-i18n="settings.back">
+              ← BACK
+            </button>
+            <p class="panel__heading" data-i18n="settings.customReminders">custom reminders</p>
             <div class="custom-reminder-add">
-              <input id="custom-reminder-text" type="text" maxlength="58" placeholder="mensaje" />
-              <input id="custom-reminder-cadence" type="number" min="1" max="180" step="1" value="30" title="Cada cuántos minutos" />
-              <select id="custom-reminder-anchor" title="Cuándo recordarlo">
-                <option value="focus">focus</option>
-                <option value="break">descanso</option>
+              <input
+                id="custom-reminder-text"
+                type="text"
+                maxlength="58"
+                data-i18n-placeholder="customReminder.message"
+                placeholder="message"
+              />
+              <input
+                id="custom-reminder-cadence"
+                type="number"
+                min="1"
+                max="180"
+                step="1"
+                value="30"
+                data-i18n-title="customReminder.cadenceHint"
+                title="Every how many minutes"
+              />
+              <select
+                id="custom-reminder-anchor"
+                data-i18n-title="customReminder.anchorHint"
+                title="When to remind you"
+              >
+                <option value="focus" data-i18n="customReminder.focus">focus</option>
+                <option value="break" data-i18n="customReminder.break">break</option>
               </select>
               <button type="button" class="btn" id="custom-reminder-add">+</button>
             </div>
@@ -307,8 +387,14 @@
              second while it stays hidden behind a closed panel. -->
         <section class="panel" id="history" hidden>
           <header class="panel__bar">
-            <span class="panel__title">history</span>
-            <button type="button" class="iconbtn" data-action="history" title="Close">
+            <span class="panel__title" data-i18n="history.title">history</span>
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="history"
+              data-i18n-title="titlebar.close"
+              title="Close"
+            >
               ✕
             </button>
           </header>
@@ -317,26 +403,39 @@
             <div class="stats">
               <div
                 class="stat"
+                data-i18n-title="history.streakHint"
                 title="Days in a row with a session. One missed day a week does not break it."
               >
                 <span class="stat__value" id="hist-streak">0</span>
-                <span class="stat__label">streak</span>
+                <span class="stat__label" data-i18n="history.streak">streak</span>
               </div>
-              <div class="stat" title="Longest streak ever">
+              <div
+                class="stat"
+                data-i18n-title="history.bestStreakHint"
+                title="Longest streak ever"
+              >
                 <span class="stat__value" id="hist-best-streak">0</span>
-                <span class="stat__label">best streak</span>
+                <span class="stat__label" data-i18n="history.bestStreak">best streak</span>
               </div>
-              <div class="stat" title="Focus sessions completed, all time">
+              <div
+                class="stat"
+                data-i18n-title="history.totalHint"
+                title="Focus sessions completed, all time"
+              >
                 <span class="stat__value" id="hist-total">0</span>
-                <span class="stat__label">total</span>
+                <span class="stat__label" data-i18n="history.total">total</span>
               </div>
-              <div class="stat" title="Best 7-day total ever">
+              <div
+                class="stat"
+                data-i18n-title="history.bestWeekHint"
+                title="Best 7-day total ever"
+              >
                 <span class="stat__value" id="hist-best-week">0</span>
-                <span class="stat__label">best week</span>
+                <span class="stat__label" data-i18n="history.bestWeek">best week</span>
               </div>
             </div>
 
-            <p class="panel__heading">last year</p>
+            <p class="panel__heading" data-i18n="history.lastYear">last year</p>
             <div class="heatmap" id="hist-heatmap"></div>
             <p class="history__caption" id="hist-caption"></p>
           </div>
@@ -347,8 +446,14 @@
              from here, deliberately. -->
         <section class="panel" id="tasks" hidden>
           <header class="panel__bar">
-            <span class="panel__title">tasks</span>
-            <button type="button" class="iconbtn" data-action="tasks" title="Close">
+            <span class="panel__title" data-i18n="tasks.title">tasks</span>
+            <button
+              type="button"
+              class="iconbtn"
+              data-action="tasks"
+              data-i18n-title="titlebar.close"
+              title="Close"
+            >
               ✕
             </button>
           </header>
@@ -361,6 +466,7 @@
                 maxlength="48"
                 spellcheck="false"
                 autocomplete="off"
+                data-i18n-placeholder="task.new"
                 placeholder="new task"
               />
               <input
@@ -369,6 +475,7 @@
                 min="0"
                 max="20"
                 step="1"
+                data-i18n-title="task.estimate"
                 title="Estimated pomodoros"
                 placeholder="🍅"
               />
@@ -379,8 +486,10 @@
                 maxlength="24"
                 spellcheck="false"
                 autocomplete="off"
-                placeholder="sección"
-                title="Sección opcional"
+                data-i18n-placeholder="task.section"
+                data-i18n-title="task.sectionHint"
+                placeholder="section"
+                title="Optional section"
               />
               <datalist id="task-section-choices"></datalist>
               <button type="button" class="btn" id="task-add-btn">+</button>

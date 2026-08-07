@@ -93,7 +93,7 @@ describe("backup store", () => {
     const backupJson = exportBackupJson(sourceStore, TODAY);
 
     const targetStore = memoryStore();
-    const result = restoreBackupJson(targetStore, backupJson, TODAY);
+    const result = restoreBackupJson(targetStore, backupJson, TODAY, "en");
 
     expect(result.success).toBe(true);
 
@@ -108,18 +108,26 @@ describe("backup store", () => {
 
   it("handles malformed JSON gracefully", () => {
     const store = memoryStore();
-    const result = restoreBackupJson(store, "{ invalid json ...", TODAY);
+    const result = restoreBackupJson(store, "{ invalid json ...", TODAY, "en");
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("Formato JSON inválido.");
+    expect(result.error).toBe("Invalid JSON file.");
   });
 
   it("handles non-object JSON gracefully", () => {
     const store = memoryStore();
-    const result = restoreBackupJson(store, "12345", TODAY);
+    const result = restoreBackupJson(store, "12345", TODAY, "en");
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("El contenido del archivo no es un objeto válido.");
+    expect(result.error).toBe("That file's contents are not a valid object.");
+  });
+
+  it("translates its error messages when restoring in Spanish", () => {
+    const store = memoryStore();
+    const result = restoreBackupJson(store, "{ invalid json ...", TODAY, "es");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Formato JSON inválido.");
   });
 
   it("sanitizes corrupt fields upon restoration using defensive store loaders", () => {
@@ -140,7 +148,7 @@ describe("backup store", () => {
       },
     });
 
-    const result = restoreBackupJson(store, corruptBackup, TODAY);
+    const result = restoreBackupJson(store, corruptBackup, TODAY, "en");
     expect(result.success).toBe(true);
 
     const history = loadHistory(store);

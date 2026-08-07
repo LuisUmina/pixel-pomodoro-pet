@@ -1,4 +1,6 @@
 import { heatLevel, type HeatmapCell } from "../core/history";
+import type { Language } from "../i18n/language";
+import { t } from "../i18n/strings";
 import { element } from "./dom";
 
 export interface HistoryModel {
@@ -54,12 +56,12 @@ export class HistoryPanel {
     this.#root.hidden = true;
   }
 
-  render(model: HistoryModel): void {
+  render(model: HistoryModel, language: Language): void {
     this.#streak.textContent = String(model.streak);
     this.#bestStreak.textContent = String(model.bestStreak);
     this.#total.textContent = String(model.totalSessions);
     this.#bestWeek.textContent = String(model.bestWeekCount);
-    this.#caption.textContent = caption(model.bestDayCount);
+    this.#caption.textContent = caption(model.bestDayCount, language);
 
     // Rebuilt in full on every render rather than diffed: this only ever
     // runs when the panel opens or a session lands while it is already
@@ -69,17 +71,19 @@ export class HistoryPanel {
         const node = document.createElement("i");
         node.className = "heatmap__cell";
         node.dataset["level"] = String(heatLevel(cell.count));
-        node.title = `${cell.day} · ${sessions(cell.count)}`;
+        node.title = `${cell.day} · ${sessions(cell.count, language)}`;
         return node;
       }),
     );
   }
 }
 
-function caption(bestDayCount: number): string {
-  return bestDayCount > 0 ? `Best day: ${sessions(bestDayCount)}` : "No sessions logged yet.";
+function caption(bestDayCount: number, language: Language): string {
+  return bestDayCount > 0
+    ? `${t("history.bestDay", language)}: ${sessions(bestDayCount, language)}`
+    : t("history.noSessions", language);
 }
 
-function sessions(count: number): string {
-  return `${count} session${count === 1 ? "" : "s"}`;
+function sessions(count: number, language: Language): string {
+  return `${count} ${t(count === 1 ? "history.session" : "history.sessions", language)}`;
 }

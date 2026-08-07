@@ -1,5 +1,7 @@
 import type { Phase } from "../core/types";
+import type { Language } from "../i18n/language";
 import raw from "./reminders.json";
+import esText from "./reminders.es.json";
 import { MAX_LINE_LENGTH } from "./types";
 
 const PHASES: readonly Phase[] = ["focus", "shortBreak", "longBreak"];
@@ -13,6 +15,12 @@ export interface ReminderPack {
   readonly phases: readonly Phase[];
   readonly everyMinutes: number;
   readonly enabledByDefault: boolean;
+  readonly lines: readonly string[];
+}
+
+interface PackTranslation {
+  readonly label: string;
+  readonly hint: string;
   readonly lines: readonly string[];
 }
 
@@ -38,7 +46,54 @@ export function parsePacks(value: unknown): readonly ReminderPack[] {
   });
 }
 
-export const REMINDER_PACKS: readonly ReminderPack[] = parsePacks(raw);
+/** English packs. Also the structural source of truth: ids, phases and
+ * cadence live only here — a translation only ever supplies the words. */
+export const REMINDER_PACKS_EN: readonly ReminderPack[] = parsePacks(raw);
+
+/** Kept for existing call sites that only ever knew one language. */
+export const REMINDER_PACKS: readonly ReminderPack[] = REMINDER_PACKS_EN;
+
+/** Spanish packs, built by swapping the label/hint/lines on every English
+ * pack. Same ids, same phases, same cadence. */
+export const REMINDER_PACKS_ES: readonly ReminderPack[] = translate(
+  REMINDER_PACKS_EN,
+  esText as Readonly<Record<string, PackTranslation>>,
+);
+
+export function reminderPacksFor(language: Language): readonly ReminderPack[] {
+  return language === "es" ? REMINDER_PACKS_ES : REMINDER_PACKS_EN;
+}
+
+function translate(
+  packs: readonly ReminderPack[],
+  translations: Readonly<Record<string, PackTranslation>>,
+): readonly ReminderPack[] {
+  return packs.map((pack) => {
+    const entry = translations[pack.id];
+    if (!entry) {
+      throw new Error(`reminder pack "${pack.id}" has no Spanish translation`);
+    }
+
+    const label = text(entry.label, pack.id, "label");
+    const hint = text(entry.hint, pack.id, "hint");
+
+    if (!Array.isArray(entry.lines) || entry.lines.length !== pack.lines.length) {
+      throw new Error(`Spanish translation for "${pack.id}" needs exactly ${pack.lines.length} lines`);
+    }
+
+    for (const line of entry.lines) {
+      if (typeof line !== "string" || line.trim() === "") {
+        throw new Error(`Spanish translation for "${pack.id}" has an empty line`);
+      }
+
+      if (line.length > MAX_LINE_LENGTH) {
+        throw new Error(`Spanish line in "${pack.id}" is longer than ${MAX_LINE_LENGTH} characters`);
+      }
+    }
+
+    return { ...pack, label, hint, lines: entry.lines };
+  });
+}
 
 function parsePack(value: unknown, index: number): ReminderPack {
   if (!isRecord(value)) {

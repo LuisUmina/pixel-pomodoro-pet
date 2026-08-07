@@ -11,7 +11,7 @@ import {
   type DialogueRequest,
   type DialogueState,
 } from "../src/core/dialogue";
-import { CATALOG, parseCatalog } from "../src/messages/catalog";
+import { CATALOG, CATALOG_ES, catalogFor, parseCatalog } from "../src/messages/catalog";
 import {
   MAX_LINE_LENGTH,
   MOODS,
@@ -312,6 +312,46 @@ describe("the bundled catalogue", () => {
     }
 
     expect(thin).toEqual([]);
+  });
+});
+
+describe("the Spanish catalogue", () => {
+  // `CATALOG_ES` is built by swapping `text` on every `CATALOG_EN` (= `CATALOG`)
+  // line and nothing else, so completeness and per-trigger variety above hold
+  // for it automatically -- this only has to prove that guarantee itself
+  // still holds, not repeat every check that follows from it.
+  it("mirrors the English catalogue id-for-id, trigger-for-trigger, tone-for-tone", () => {
+    expect(CATALOG_ES.length).toBe(CATALOG.length);
+
+    for (const [index, en] of CATALOG.entries()) {
+      const es = CATALOG_ES[index];
+      expect(es?.id).toBe(en.id);
+      expect(es?.trigger).toBe(en.trigger);
+      expect(es?.tone).toBe(en.tone);
+      expect(es?.minCompleted).toBe(en.minCompleted);
+      expect(es?.maxCompleted).toBe(en.maxCompleted);
+      expect(es?.hours).toEqual(en.hours);
+      expect(es?.mood).toBe(en.mood);
+    }
+  });
+
+  it("actually translates every line rather than repeating the English text", () => {
+    const untranslated = CATALOG_ES.filter(
+      (es) => es.text === CATALOG.find((en) => en.id === es.id)?.text,
+    );
+
+    expect(untranslated).toEqual([]);
+  });
+
+  it("keeps every line inside the bubble", () => {
+    const tooLong = CATALOG_ES.filter((entry) => entry.text.length > MAX_LINE_LENGTH);
+
+    expect(tooLong).toEqual([]);
+  });
+
+  it("is what catalogFor picks for Spanish, and English for everything else", () => {
+    expect(catalogFor("es")).toBe(CATALOG_ES);
+    expect(catalogFor("en")).toBe(CATALOG);
   });
 });
 

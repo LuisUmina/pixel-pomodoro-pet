@@ -4,6 +4,7 @@ import { defaultEnabled, readCustomReminder, type CustomReminder } from "../core
 import type { PomodoroSettings } from "../core/types";
 import { DEFAULT_DAILY_GOAL, clampDailyGoal } from "../dailyGoal";
 import { DEFAULT_DIM_OPACITY, clampDimOpacity } from "../dim";
+import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n/language";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
 import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
@@ -20,6 +21,8 @@ export interface Preferences {
   readonly themeId: ThemeId;
   /** Which mascot lives in the widget. */
   readonly characterId: string;
+  /** What the whole app — chrome, dialogue, reminders — is shown in. */
+  readonly language: Language;
   readonly settings: PomodoroSettings;
   readonly soundEnabled: boolean;
   /** Personality the mascot speaks in, or `off` for silence. */
@@ -51,6 +54,7 @@ export function defaultPreferences(day: string): Preferences {
   return {
     themeId: DEFAULT_THEME_ID,
     characterId: DEFAULT_CHARACTER_ID,
+    language: DEFAULT_LANGUAGE,
     settings: DEFAULT_SETTINGS,
     soundEnabled: true,
     voice: DEFAULT_VOICE,
@@ -85,6 +89,7 @@ export function loadPreferences(store: JsonStore, today: string): Preferences {
   return {
     themeId: isThemeId(raw["themeId"]) ? raw["themeId"] : defaults.themeId,
     characterId: isCharacterId(raw["characterId"]) ? raw["characterId"] : defaults.characterId,
+    language: isLanguage(raw["language"]) ? raw["language"] : defaults.language,
     settings: readSettings(raw["settings"]),
     soundEnabled: typeof raw["soundEnabled"] === "boolean" ? raw["soundEnabled"] : true,
     voice: isVoice(raw["voice"]) ? raw["voice"] : defaults.voice,

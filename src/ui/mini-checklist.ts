@@ -1,4 +1,6 @@
 import type { Task } from "../core/tasks";
+import type { Language } from "../i18n/language";
+import { t } from "../i18n/strings";
 import { element } from "./dom";
 import { groupedRows, type TasksModel } from "./tasks-panel";
 
@@ -35,13 +37,13 @@ export class MiniChecklist {
     this.#root.hidden = !value;
   }
 
-  render(model: TasksModel): void {
+  render(model: TasksModel, language: Language): void {
     this.#root.replaceChildren(
-      ...groupedRows(model.tasks, (task) => this.#row(task, model.activeId)),
+      ...groupedRows(model.tasks, language, (task) => this.#row(task, model.activeId, language)),
     );
   }
 
-  #row(task: Task, activeId: string | null): HTMLElement {
+  #row(task: Task, activeId: string | null, language: Language): HTMLElement {
     const row = document.createElement("div");
     row.className = "task-item";
     row.dataset["active"] = String(task.id === activeId);
@@ -51,7 +53,7 @@ export class MiniChecklist {
     box.type = "checkbox";
     box.className = "task-item__done";
     box.checked = task.done;
-    box.title = "Done";
+    box.title = t("task.done", language);
     box.addEventListener("change", () => {
       // The native checkbox has already flipped its own `checked` the moment
       // this fires. A guarded (dropped) action must undo that, or a rapid
@@ -64,7 +66,7 @@ export class MiniChecklist {
 
     const text = document.createElement("span");
     text.className = "task-item__text";
-    text.textContent = task.text === "" ? "(untitled)" : task.text;
+    text.textContent = task.text === "" ? t("task.untitled", language) : task.text;
     text.title = text.textContent;
 
     row.append(box, text);

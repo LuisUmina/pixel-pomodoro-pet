@@ -1,0 +1,166 @@
+{
+  "focus-start-dev-1": "El timer está corriendo. Tratá de no abrir una pestaña nueva.",
+  "focus-start-dev-2": "El bug no se va a arreglar solo. Probablemente.",
+  "focus-start-dev-3": "Modo focus. Voy a estar acá, juzgando en silencio.",
+  "focus-start-dev-4": "Trabajo profundo. Slack puede esperar, siempre puede.",
+  "focus-start-dev-5": "Vamos. Nada de 'una miradita rápida' a nada.",
+  "focus-start-dev-6": "Sesión tardía. Voy a hacer como que esto es normal.",
+  "focus-start-dev-7": "Arranque temprano. Sospechoso, pero lo respeto.",
+
+  "focus-start-hype-1": "Apareciste. Esa era la parte difícil.",
+  "focus-start-hype-2": "Un bloque de trabajo real. Que valga la pena.",
+  "focus-start-hype-3": "Cabeza abajo. El vos del futuro ya te lo agradece.",
+  "focus-start-hype-4": "Esta es la sesión que mueve la aguja.",
+  "focus-start-hype-5": "Nada más existe por el próximo rato.",
+
+  "focus-start-plain-1": "Sesión de focus iniciada.",
+  "focus-start-plain-2": "Timer en marcha.",
+
+  "focus-done-dev-1": "Sesión lista. Parate, no sos un servidor.",
+  "focus-done-dev-2": "Andá a tocar algo que no sea un teclado.",
+  "focus-done-dev-3": "Eso es todo. Hidratate, humano.",
+  "focus-done-dev-4": "Al menos le hiciste commit al timer. Andá a descansar.",
+  "focus-done-dev-5": "La primera lista. El resto vienen más fácil.",
+  "focus-done-dev-6": "Cuatro sesiones. Genuinamente impresionante.",
+  "focus-done-dev-7": "¿Seguís a esta hora? Desconectate en algún momento.",
+
+  "focus-done-hype-1": "Lo lograste. Eso fue progreso real.",
+  "focus-done-hype-2": "Otra más en la cuenta.",
+  "focus-done-hype-3": "Así se hace. Un bloque a la vez.",
+  "focus-done-hype-4": "Primera sesión del día. El impulso arranca acá.",
+  "focus-done-hype-5": "Cuatro sesiones ya. Ese es un día en serio.",
+
+  "focus-done-plain-1": "Sesión de focus completada.",
+  "focus-done-plain-2": "Sesión terminada. Sigue el descanso.",
+
+  "break-start-dev-1": "Hora del descanso. Releer la misma línea no cuenta.",
+  "break-start-dev-2": "Descansá. El build va a seguir lento después.",
+  "break-start-dev-3": "Andá por agua. Estás hecho mayormente de eso.",
+  "break-start-dev-4": "Mirá algo a más de 60cm de distancia.",
+  "break-start-dev-5": "Estirate. Tu columna abrió un ticket.",
+
+  "break-start-hype-1": "Descansar es parte del trabajo. Hacelo bien.",
+  "break-start-hype-2": "Alejate un rato. Te lo ganaste.",
+  "break-start-hype-3": "Respirá. Vas a volver más afilado.",
+  "break-start-hype-4": "Buen momento para parar. Dejá que asiente.",
+
+  "break-start-plain-1": "Descanso iniciado.",
+  "break-start-plain-2": "Descanso en curso.",
+
+  "break-done-dev-1": "Se acabó el descanso. Tratá de parecer entusiasmado.",
+  "break-done-dev-2": "De vuelta a eso. El pato está mirando.",
+  "break-done-dev-3": "Se acabó el tiempo. ¿En qué estábamos?",
+  "break-done-dev-4": "Se acabó el recreo. Abrí el editor.",
+  "break-done-dev-5": "Ya descansaste. No quedan más excusas.",
+
+  "break-done-hype-1": "Recargado. Retomemos.",
+  "break-done-hype-2": "Ronda dos. Vos podés.",
+  "break-done-hype-3": "De vuelta — venías con todo.",
+  "break-done-hype-4": "Reinicio listo. El próximo bloque arranca ahora.",
+
+  "break-done-plain-1": "Descanso terminado.",
+  "break-done-plain-2": "Listo para la próxima sesión.",
+
+  "paused-dev-1": "Pausado. Voy a esperar. No tengo a dónde ir.",
+  "paused-dev-2": "Timer detenido. Sospechoso, pero bueno.",
+  "paused-dev-3": "Acá es donde las sesiones van a morir.",
+  "paused-dev-4": "En espera. Reanudá cuando quieras, supongo.",
+  "paused-dev-5": "Pausa tomada. No la conviertas en estilo de vida.",
+
+  "paused-hype-1": "Pausado. Volvé cuando estés listo.",
+  "paused-hype-2": "Sin juicios. Reanudá cuando sea el momento.",
+  "paused-hype-3": "Tomate el momento. Después lo terminamos.",
+  "paused-hype-4": "Pausado, no terminado. Gran diferencia.",
+
+  "paused-plain-1": "Timer pausado.",
+  "paused-plain-2": "Pausado.",
+
+  "idle-dev-1": "Sigo acá. Sigo esperando. Sigo siendo un pato.",
+  "idle-dev-2": "El timer funciona mejor cuando está corriendo.",
+  "idle-dev-3": "Empezaría una sesión, pero no tengo manos.",
+  "idle-dev-4": "Nada agendado. Estrategia audaz.",
+  "idle-dev-5": "Decime y cuento regresivamente hasta cero.",
+  "idle-dev-6": "Cero sesiones por ahora. El día recién empieza.",
+  "idle-dev-7": "Es tarde. El código va a seguir roto mañana.",
+  "idle-dev-8": "Despierto antes que el café. Audaz.",
+
+  "idle-hype-1": "Listo cuando vos lo estés.",
+  "idle-hype-2": "Con una sesión alcanza para arrancar.",
+  "idle-hype-3": "Lo más difícil es apretar iniciar.",
+  "idle-hype-4": "Elegí una cosa. Solo una.",
+  "idle-hype-5": "Ya fue un gran día. ¿Queda algo en el tanque?",
+
+  "idle-plain-1": "Timer inactivo.",
+  "idle-plain-2": "Ninguna sesión en curso.",
+
+  "idle-weary-dev-1": "Rato largo sin descanso. Hasta los patos parpadean.",
+  "idle-weary-dev-2": "Llevás un rato en esto. Un descanso también cuenta.",
+  "idle-weary-hype-1": "Metiste horas de verdad hoy. Descansar también es progreso.",
+  "idle-weary-hype-2": "Gran esfuerzo hoy. Los campeones descansan entre rondas.",
+  "idle-weary-plain-1": "Sesión larga. Se recomienda un descanso.",
+
+  "idle-energized-dev-1": "Buena racha en marcha. No la gafés hablando de eso.",
+  "idle-energized-dev-2": "Seguís con todo. El pato aprueba, en silencio.",
+  "idle-energized-hype-1": "¡Estás en racha! Sigamos con ese impulso.",
+  "idle-energized-hype-2": "Ya van días seguidos. Ese es el truco real, no un día grande.",
+  "idle-energized-plain-1": "Racha activa. Listo cuando quieras.",
+
+  "welcome-dev-1": "Volviste. Yo no me moví.",
+  "welcome-dev-2": "Ah, qué bien, estás vivo.",
+  "welcome-dev-3": "Bienvenido de nuevo. No pasó nada.",
+  "welcome-dev-4": "Ahí estás. El timer te extrañó.",
+  "welcome-dev-5": "De vuelta del vacío. ¿Vamos?",
+
+  "welcome-hype-1": "Bienvenido de nuevo. Sigamos donde quedaste.",
+  "welcome-hype-2": "Qué bueno verte. ¿Listo para una?",
+  "welcome-hype-3": "De vuelta a eso. Que esta valga la pena.",
+  "welcome-hype-4": "Volviste. Eso ya cuenta.",
+
+  "welcome-plain-1": "Bienvenido de nuevo.",
+  "welcome-plain-2": "Sesión lista.",
+
+  "welcome-long-dev-1": "Pasó un buen rato. ¿Te olvidaste que vivo acá?",
+  "welcome-long-dev-2": "Hueco largo. Supongo que pasó algo más importante.",
+  "welcome-long-dev-3": "Desapareciste un rato. El pato resiste.",
+  "welcome-long-dev-4": "¿De vuelta tras todo eso? Audaz. Vamos de a poco.",
+
+  "welcome-long-hype-1": "¡Pasó un buen rato! Qué bueno tenerte de vuelta.",
+  "welcome-long-hype-2": "Cuando quieras retomar, acá estoy.",
+  "welcome-long-hype-3": "Un descanso de verdad, ¿eh? Bien. Que valga la pena.",
+  "welcome-long-hype-4": "¡Bienvenido de nuevo después de todo ese tiempo!",
+
+  "welcome-long-plain-1": "Bienvenido de nuevo tras un tiempo afuera.",
+  "welcome-long-plain-2": "Se detectó un hueco largo. Sesión lista.",
+
+  "focus-start-medic-1": "Signos vitales estables. Iniciando el procedimiento.",
+  "focus-start-medic-2": "Lavado de manos listo. Sin interrupciones hasta terminar.",
+  "focus-start-medic-3": "La ficha dice focus. Órdenes del doctor.",
+
+  "focus-done-medic-1": "Sesión completa. El paciente puede descansar.",
+  "focus-done-medic-2": "Alta de este bloque. Control en breve.",
+  "focus-done-medic-3": "Te receto un descanso. Tomalo como se indica.",
+
+  "break-start-medic-1": "Hora del descanso. Hasta los cirujanos se lavan y salen.",
+  "break-start-medic-2": "Alejate un rato. Descansar es parte del tratamiento.",
+  "break-start-medic-3": "Hora de recuperarte. El café no cuenta como descanso.",
+
+  "break-done-medic-1": "Autorizado para la próxima ronda. Los signos se ven bien.",
+  "break-done-medic-2": "Se acabó el descanso. De vuelta al reloj, doctor.",
+  "break-done-medic-3": "Recuperación completa. A la próxima tarea.",
+
+  "paused-medic-1": "En espera. Acá no hay emergencias, tomate tu tiempo.",
+  "paused-medic-2": "Timer pausado. Hasta los monitores tienen su calma.",
+  "paused-medic-3": "En guardia. Reanudá cuando estés listo.",
+
+  "idle-medic-1": "Ninguna sesión en curso. La sala de espera está vacía.",
+  "idle-medic-2": "Listo cuando quieras. No hace falta turno.",
+  "idle-medic-3": "Inactivo. Hasta el pato de guardia se echa la siesta.",
+
+  "welcome-medic-1": "Bienvenido de nuevo. Signos normales, retomando todo.",
+  "welcome-medic-2": "Volviste. Retomemos la ficha.",
+  "welcome-medic-3": "Qué bueno verte. ¿Listo para la próxima ronda?",
+
+  "welcome-long-medic-1": "Cuánto tiempo sin control. Vamos de a poco.",
+  "welcome-long-medic-2": "Estuviste ausente un rato. Nada grave, espero.",
+  "welcome-long-medic-3": "De vuelta tras un descanso real — bien, eso es sano."
+}

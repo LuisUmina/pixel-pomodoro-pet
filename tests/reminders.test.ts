@@ -12,7 +12,13 @@ import {
   type ReminderCheck,
   type ReminderState,
 } from "../src/core/reminders";
-import { REMINDER_PACKS, parsePacks, type ReminderPack } from "../src/messages/reminders";
+import {
+  REMINDER_PACKS,
+  REMINDER_PACKS_ES,
+  parsePacks,
+  reminderPacksFor,
+  type ReminderPack,
+} from "../src/messages/reminders";
 import { MAX_LINE_LENGTH } from "../src/messages/types";
 
 const NOW = 1_700_000_000_000;
@@ -339,5 +345,44 @@ describe("the bundled packs", () => {
     expect(() =>
       parsePacks([{ ...valid, lines: ["a", "x".repeat(MAX_LINE_LENGTH + 1)] }]),
     ).toThrow(/longer than/);
+  });
+});
+
+describe("the Spanish packs", () => {
+  // `REMINDER_PACKS_ES` is built by swapping label/hint/lines on every
+  // English pack and nothing else, so ids, phases and cadence have to match
+  // up one for one -- that parity is what makes the two languages
+  // interchangeable to the reminder engine, which only ever keys off `id`.
+  it("mirror the English packs id-for-id, phase-for-phase, cadence-for-cadence", () => {
+    expect(REMINDER_PACKS_ES.length).toBe(REMINDER_PACKS.length);
+
+    for (const en of REMINDER_PACKS) {
+      const es = REMINDER_PACKS_ES.find((pack) => pack.id === en.id);
+      expect(es?.phases).toEqual(en.phases);
+      expect(es?.everyMinutes).toBe(en.everyMinutes);
+      expect(es?.enabledByDefault).toBe(en.enabledByDefault);
+      expect(es?.lines.length).toBe(en.lines.length);
+    }
+  });
+
+  it("actually translate their label, hint and lines", () => {
+    for (const en of REMINDER_PACKS) {
+      const es = REMINDER_PACKS_ES.find((pack) => pack.id === en.id);
+      expect(es?.label).not.toBe(en.label);
+      expect(es?.hint).not.toBe(en.hint);
+    }
+  });
+
+  it("keep every line inside the bubble", () => {
+    const tooLong = REMINDER_PACKS_ES.flatMap((entry) =>
+      entry.lines.filter((line) => line.length > MAX_LINE_LENGTH),
+    );
+
+    expect(tooLong).toEqual([]);
+  });
+
+  it("is what reminderPacksFor picks for Spanish, and English for everything else", () => {
+    expect(reminderPacksFor("es")).toBe(REMINDER_PACKS_ES);
+    expect(reminderPacksFor("en")).toBe(REMINDER_PACKS);
   });
 });

@@ -1,5 +1,7 @@
 import raw from "./catalog.json";
+import esText from "./catalog.es.json";
 import { MAX_LINE_LENGTH, isMood, isTone, isTrigger, type Line, type Mood } from "./types";
+import type { Language } from "../i18n/language";
 
 /**
  * Parses the bundled catalogue, refusing anything malformed.
@@ -26,7 +28,39 @@ export function parseCatalog(value: unknown): readonly Line[] {
   });
 }
 
-export const CATALOG: readonly Line[] = parseCatalog(raw);
+/** The English catalogue. Also the structural source of truth: ids,
+ * triggers, tones and every condition live only here — a translation only
+ * ever supplies the words. */
+export const CATALOG_EN: readonly Line[] = parseCatalog(raw);
+
+/** Kept for existing call sites that only ever knew one language. */
+export const CATALOG: readonly Line[] = CATALOG_EN;
+
+/**
+ * The Spanish catalogue, built by swapping the text on every English line.
+ * Same ids, same triggers, same conditions — so the two languages can never
+ * drift apart on *which* line fires when, only on what it says.
+ */
+export const CATALOG_ES: readonly Line[] = translate(CATALOG_EN, esText);
+
+export function catalogFor(language: Language): readonly Line[] {
+  return language === "es" ? CATALOG_ES : CATALOG_EN;
+}
+
+function translate(lines: readonly Line[], translations: Readonly<Record<string, string>>): readonly Line[] {
+  return lines.map((line) => {
+    const text = translations[line.id];
+    if (typeof text !== "string" || text.trim() === "") {
+      throw new Error(`message "${line.id}" has no Spanish translation`);
+    }
+
+    if (text.length > MAX_LINE_LENGTH) {
+      throw new Error(`Spanish text for "${line.id}" is longer than ${MAX_LINE_LENGTH} characters`);
+    }
+
+    return { ...line, text };
+  });
+}
 
 function parseLine(value: unknown, index: number): Line {
   if (!isRecord(value)) {

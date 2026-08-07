@@ -1,4 +1,6 @@
 import { MAX_ESTIMATE, taskSections, type Task } from "../core/tasks";
+import type { Language } from "../i18n/language";
+import { t } from "../i18n/strings";
 import { element } from "./dom";
 
 export interface TasksPanelActions {
@@ -74,7 +76,7 @@ export class TasksPanel {
     this.#root.hidden = true;
   }
 
-  render(model: TasksModel): void {
+  render(model: TasksModel, language: Language): void {
     this.#sectionChoices.replaceChildren(
       ...taskSections(model.tasks).map((section) => {
         const option = document.createElement("option");
@@ -83,11 +85,11 @@ export class TasksPanel {
       }),
     );
     this.#list.replaceChildren(
-      ...groupedRows(model.tasks, (task) => this.#row(task, model.activeId)),
+      ...groupedRows(model.tasks, language, (task) => this.#row(task, model.activeId, language)),
     );
   }
 
-  #row(task: Task, activeId: string | null): HTMLElement {
+  #row(task: Task, activeId: string | null, language: Language): HTMLElement {
     const row = document.createElement("div");
     // Named `task-item`, not `task-row`: that name already belongs to the
     // static wrapper around the main task field and its list-toggle button.
@@ -99,7 +101,7 @@ export class TasksPanel {
     box.type = "checkbox";
     box.className = "task-item__done";
     box.checked = task.done;
-    box.title = "Done";
+    box.title = t("task.done", language);
     // Otherwise the row's own click, right behind it, would also fire and
     // fight over whether this task ends up active or not.
     box.addEventListener("click", (event) => event.stopPropagation());
@@ -107,7 +109,7 @@ export class TasksPanel {
 
     const text = document.createElement("span");
     text.className = "task-item__text";
-    text.textContent = task.text === "" ? "(untitled)" : task.text;
+    text.textContent = task.text === "" ? t("task.untitled", language) : task.text;
     // The ellipsis dots barely register at 10px, so a long name needs a
     // second way to be read in full without widening the row.
     text.title = text.textContent;
@@ -119,7 +121,7 @@ export class TasksPanel {
     const remove = document.createElement("button");
     remove.type = "button";
     remove.className = "task-item__remove";
-    remove.title = "Delete";
+    remove.title = t("task.delete", language);
     remove.textContent = "✕";
     remove.addEventListener("click", (event) => {
       event.stopPropagation();
@@ -165,6 +167,7 @@ export class TasksPanel {
 /** Shared grouping order: sections first in creation order, then unsectioned. */
 export function groupedRows(
   tasks: readonly Task[],
+  language: Language,
   row: (task: Task) => HTMLElement,
 ): readonly HTMLElement[] {
   const sections = [...taskSections(tasks), ""];
@@ -180,7 +183,7 @@ export function groupedRows(
     group.className = "task-section";
     const heading = document.createElement("p");
     heading.className = "task-section__heading";
-    heading.textContent = section === "" ? "sin sección" : section;
+    heading.textContent = section === "" ? t("task.noSection", language) : section;
     const rows = document.createElement("div");
     rows.className = "task-section__rows";
     rows.append(...members.map(row));

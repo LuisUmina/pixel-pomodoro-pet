@@ -1,0 +1,52 @@
+{
+  "water": {
+    "label": "agua",
+    "hint": "Tomá algo, durante los descansos",
+    "lines": [
+      "Agua. Veniste funcionando a base de vapores de café.",
+      "Un vaso de agua. Lleva veinte segundos.",
+      "Hidratate. Tu cerebro es mayormente agua y se nota.",
+      "Andá a rellenar algo, y traelo de vuelta de verdad."
+    ]
+  },
+  "eyes": {
+    "label": "vista",
+    "hint": "La regla 20-20-20, mientras hacés focus",
+    "lines": [
+      "Veinte segundos mirando algo lejano.",
+      "Ojos fuera de la pantalla. Buscá la pared más lejana.",
+      "Parpadeá a propósito. Habías dejado de hacerlo.",
+      "Mirá por una ventana. Con veinte segundos alcanza."
+    ]
+  },
+  "posture": {
+    "label": "postura",
+    "hint": "Sentate derecho, mientras hacés focus",
+    "lines": [
+      "Sentate derecho. Te volviste a doblar en la silla.",
+      "Hombros abajo, pantalla a la altura de los ojos.",
+      "Descruzá las piernas y apoyá los dos pies.",
+      "Mentón atrás. Te estás inclinando hacia el monitor."
+    ]
+  },
+  "stretch": {
+    "label": "estirar",
+    "hint": "Moveté un poco, durante los descansos",
+    "lines": [
+      "Parate. Estirate hacia el techo. Volvé a sentarte.",
+      "Rotá los hombros hacia atrás. Los dos.",
+      "Estirá las muñecas. Las vas a necesitar después.",
+      "Caminá hasta otra habitación y volvé."
+    ]
+  },
+  "breathe": {
+    "label": "respirar",
+    "hint": "Reseteá tu respiración, durante los descansos",
+    "lines": [
+      "Cuatro inhalando, cuatro reteniendo, cuatro exhalando. Dos veces.",
+      "Una respiración lenta, hasta el final esta vez.",
+      "Aflojá la mandíbula. Sí, estaba apretada.",
+      "Exhalá más tiempo del que inhalás."
+    ]
+  }
+}

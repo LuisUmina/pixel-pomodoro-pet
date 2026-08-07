@@ -1,3 +1,4 @@
+import type { Language } from "../i18n/language";
 import type { Phase } from "./types";
 
 /** `mm:ss`, rounding up so the clock shows 25:00 the instant it starts. */
@@ -32,28 +33,40 @@ function padYear(value: number): string {
   return value.toString().padStart(4, "0");
 }
 
-const PHASE_LABELS: Readonly<Record<Phase, string>> = {
-  focus: "focus",
-  shortBreak: "break",
-  longBreak: "long break",
+const PHASE_LABELS: Readonly<Record<Phase, Readonly<Record<Language, string>>>> = {
+  focus: { en: "focus", es: "focus" },
+  shortBreak: { en: "break", es: "descanso" },
+  longBreak: { en: "long break", es: "descanso largo" },
 };
 
-export function phaseLabel(phase: Phase): string {
-  return PHASE_LABELS[phase];
+export function phaseLabel(phase: Phase, language: Language): string {
+  return PHASE_LABELS[phase][language];
 }
 
-const PHASE_HEADLINES: Readonly<Record<Phase, string>> = {
-  focus: "Focus session complete",
-  shortBreak: "Break over",
-  longBreak: "Long break over",
+const PHASE_HEADLINES: Readonly<Record<Phase, Readonly<Record<Language, string>>>> = {
+  focus: { en: "Focus session complete", es: "Sesión de focus completada" },
+  shortBreak: { en: "Break over", es: "Descanso terminado" },
+  longBreak: { en: "Long break over", es: "Descanso largo terminado" },
 };
 
-const PHASE_MESSAGES: Readonly<Record<Phase, string>> = {
-  focus: "Step away from the keyboard for a bit.",
-  shortBreak: "Back to it — the duck is watching.",
-  longBreak: "Recharged. Time for the next cycle.",
+const PHASE_MESSAGES: Readonly<Record<Phase, Readonly<Record<Language, string>>>> = {
+  focus: {
+    en: "Step away from the keyboard for a bit.",
+    es: "Aléjate del teclado un rato.",
+  },
+  shortBreak: {
+    en: "Back to it — the duck is watching.",
+    es: "De vuelta al trabajo — el pato te vigila.",
+  },
+  longBreak: {
+    en: "Recharged. Time for the next cycle.",
+    es: "Recargado. Hora del siguiente ciclo.",
+  },
 };
 
-export function completionNotice(phase: Phase): { title: string; body: string } {
-  return { title: PHASE_HEADLINES[phase], body: PHASE_MESSAGES[phase] };
+export function completionNotice(
+  phase: Phase,
+  language: Language,
+): { title: string; body: string } {
+  return { title: PHASE_HEADLINES[phase][language], body: PHASE_MESSAGES[phase][language] };
 }

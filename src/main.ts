@@ -32,8 +32,11 @@ import {
 import { Ticker } from "./core/ticker";
 import { DEFAULT_SHORTCUTS, type ShortcutMap } from "./core/shortcuts";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
-import { CATALOG } from "./messages/catalog";
-import { REMINDER_PACKS } from "./messages/reminders";
+import { applyLanguage } from "./i18n/apply";
+import type { Language } from "./i18n/language";
+import { t } from "./i18n/strings";
+import { catalogFor } from "./messages/catalog";
+import { reminderPacksFor } from "./messages/reminders";
 import type { Mood, Trigger, Voice } from "./messages/types";
 import { clampDailyGoal } from "./dailyGoal";
 import { clampDimOpacity } from "./dim";
@@ -59,6 +62,11 @@ const AMBIENT_CHECK_MS = 60_000;
 
 function main(): void {
   let preferences = loadPreferences(browserStore, isoDay(new Date()));
+  // Relabels the static markup before the first paint -- `widget.render()`
+  // would get there too on its own first call, but a language other than
+  // the HTML's own English defaults should never be visible even for one
+  // frame while the rest of boot is still setting up.
+  applyLanguage(preferences.language);
   let theme = getTheme(preferences.themeId);
   let tasks = loadTasks(browserStore);
 
@@ -127,6 +135,7 @@ function main(): void {
     changeSettings: (settings) => applySettings(settings),
     changeScale: (scale, persist) => applyScale(scale, persist),
     changeVoice: (voice) => applyVoice(voice),
+    changeLanguage: (language) => applyLanguageChange(language),
     changeReminder: (id, enabled) => {
       preferences = { ...preferences, reminders: { ...preferences.reminders, [id]: enabled } };
       save();
@@ -227,7 +236,7 @@ function main(): void {
   }
 
   function announce(phase: Phase): void {
-    const notice = completionNotice(phase);
+    const notice = completionNotice(phase, preferences.language);
     desktop.notify(notice.title, notice.body);
 
     if (preferences.soundEnabled) {
@@ -264,7 +273,7 @@ function main(): void {
         hour: new Date(now).getHours(),
         mood,
       },
-      CATALOG,
+      catalogFor(preferences.language),
     );
 
     dialogue = result.state;
@@ -289,7 +298,7 @@ function main(): void {
       ...preferences.reminders,
       ...Object.fromEntries(custom.map((reminder) => [reminder.id, true])),
     };
-    const allReminders = [...REMINDER_PACKS, ...custom];
+    const allReminders = [...reminderPacksFor(preferences.language), ...custom];
     const check = { phase, enabled };
     const delivering =
       preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now);
@@ -341,6 +350,26 @@ function main(): void {
 
     // Demonstrate the choice instead of leaving them to guess what it sounds
     // like; clearing the cooldown is what makes the sample land right away.
+    dialogue = allowAmbient(dialogue);
+    say("idle");
+  }
+
+  /**
+   * Swaps every piece of chrome, dialogue and reminder text over in one go.
+   * `render()` carries the new language into the widget model, which is what
+   * actually relabels static markup and any panel currently open -- this
+   * only owns the preference and, same as a fresh voice, a spoken sample so
+   * the choice is heard, not just read.
+   */
+  function applyLanguageChange(language: Language): void {
+    preferences = { ...preferences, language };
+    save();
+    render();
+
+    if (preferences.voice === "off") {
+      return;
+    }
+
     dialogue = allowAmbient(dialogue);
     say("idle");
   }
@@ -434,7 +463,7 @@ function main(): void {
     const jsonStr = exportBackupJson(browserStore, preferences.day);
     const success = await desktop.exportBackup(jsonStr);
     if (success) {
-      utter("¡Datos exportados correctamente!", Date.now());
+      utter(t("settings.exportSuccess", preferences.language), Date.now());
     }
   }
 
@@ -445,7 +474,7 @@ function main(): void {
     }
 
     const today = isoDay(new Date());
-    const result = restoreBackupJson(browserStore, rawJson, today);
+    const result = restoreBackupJson(browserStore, rawJson, today, preferences.language);
 
     if (result.success) {
       history = loadHistory(browserStore);
@@ -464,9 +493,9 @@ function main(): void {
       applyTasksChange(tasks);
       void desktop.updateShortcuts(preferences.shortcuts);
       render();
-      utter("¡Datos importados correctamente!", Date.now());
+      utter(t("settings.importSuccess", preferences.language), Date.now());
     } else {
-      utter(result.error ?? "Error al importar datos.", Date.now());
+      utter(result.error ?? t("backup.importError", preferences.language), Date.now());
     }
   }
 
@@ -669,6 +698,7 @@ function main(): void {
       taskChecklist: preferences.taskChecklist,
       dimOpacity: preferences.dimOpacity,
       dailyGoal: preferences.dailyGoal,
+      language: preferences.language,
     });
   }
 

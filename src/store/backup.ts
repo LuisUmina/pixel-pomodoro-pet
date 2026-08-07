@@ -1,5 +1,7 @@
 import type { HistoryState } from "../core/history";
 import type { TasksState } from "../core/tasks";
+import type { Language } from "../i18n/language";
+import { t } from "../i18n/strings";
 import { loadHistory, saveHistory } from "./history";
 import type { JsonStore } from "./persistence";
 import { loadPreferences, savePreferences, type Preferences } from "./preferences";
@@ -36,16 +38,17 @@ export function restoreBackupJson(
   store: JsonStore,
   rawJson: string,
   today: string,
+  language: Language,
 ): RestoreResult {
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawJson);
   } catch {
-    return { success: false, error: "Formato JSON inválido." };
+    return { success: false, error: t("settings.importInvalidJson", language) };
   }
 
   if (!isRecord(parsed)) {
-    return { success: false, error: "El contenido del archivo no es un objeto válido." };
+    return { success: false, error: t("settings.importNotAnObject", language) };
   }
 
   const rawHistory = isRecord(parsed["history"])

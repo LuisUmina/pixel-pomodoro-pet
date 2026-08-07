@@ -7,6 +7,9 @@ import { getCharacter, type PetState } from "../sprites/characters";
 import type { ShortcutMap } from "../core/shortcuts";
 import type { CustomReminder } from "../core/reminders";
 import type { Theme } from "../sprites/themes";
+import { DEFAULT_LANGUAGE, type Language } from "../i18n/language";
+import { t, type UiStringKey } from "../i18n/strings";
+import { applyLanguage } from "../i18n/apply";
 import { Bubble } from "./bubble";
 import { ClockCanvas } from "./clock-canvas";
 import { actionElement, element } from "./dom";
@@ -30,6 +33,7 @@ export interface WidgetActions {
   /** `persist` is false while a resize drag is still in flight. */
   changeScale(scale: number, persist: boolean): void;
   changeVoice(voice: Voice): void;
+  changeLanguage(language: Language): void;
   changeReminder(id: string, enabled: boolean): void;
   changeCustomReminders(reminders: readonly CustomReminder[]): void;
   changeShortcuts(shortcuts: ShortcutMap): Promise<{ success: boolean; error?: string }>;
@@ -83,6 +87,8 @@ export interface WidgetModel {
   readonly dimOpacity: number;
   /** Pomodoros that make a good day; 0 means no goal is set. */
   readonly dailyGoal: number;
+  /** What the whole app -- chrome, dialogue, reminders -- is shown in. */
+  readonly language: Language;
 }
 
 export interface FrameSize {
@@ -90,10 +96,10 @@ export interface FrameSize {
   readonly height: number;
 }
 
-const TOGGLE_LABELS: Readonly<Record<TimerStatus, string>> = {
-  idle: "START",
-  running: "PAUSE",
-  paused: "RESUME",
+const TOGGLE_LABEL_KEYS: Readonly<Record<TimerStatus, UiStringKey>> = {
+  idle: "controls.start",
+  running: "controls.pause",
+  paused: "controls.resume",
 };
 
 /** Owns the DOM. Everything it needs arrives through {@link WidgetModel}. */
@@ -129,6 +135,7 @@ export class Widget {
   #roundsSignature = "";
   /** Last rendered model, so opening the panel can fill it in immediately. */
   #model: WidgetModel | null = null;
+  #language: Language = DEFAULT_LANGUAGE;
 
   constructor(actions: WidgetActions) {
     this.frame = element("frame");
@@ -155,6 +162,7 @@ export class Widget {
       changeSettings: (settings) => actions.changeSettings(settings),
       changeScale: (scale) => actions.changeScale(scale, true),
       changeVoice: (voice) => actions.changeVoice(voice),
+      changeLanguage: (language) => actions.changeLanguage(language),
       changeReminder: (id, enabled) => actions.changeReminder(id, enabled),
       changeCustomReminders: (reminders) => actions.changeCustomReminders(reminders),
       changeShortcuts: (shortcuts) => actions.changeShortcuts(shortcuts),
@@ -246,6 +254,24 @@ export class Widget {
     const accent = phaseColor(theme, state);
     this.#model = model;
 
+    if (model.language !== this.#language) {
+      this.#language = model.language;
+      applyLanguage(model.language);
+      // Static chrome is relabelled by the walk above, but rows already
+      // built from data (task list, history heatmap) carry text of their
+      // own and only ever redraw on open or an explicit refresh -- so a
+      // language flip has to force that redraw itself, right here.
+      if (this.#tasksPanel.isOpen) {
+        this.#tasksPanel.render(this.#viewTasks(), this.#language);
+      }
+      if (this.#miniChecklist.visible) {
+        this.#miniChecklist.render(this.#viewTasks(), this.#language);
+      }
+      if (this.#history.isOpen) {
+        this.#history.render(this.#viewHistory(), this.#language);
+      }
+    }
+
     this.#widget.dataset["phase"] = state.phase;
     this.#widget.dataset["status"] = state.status;
     // Click-through and a vow of silence leave no other trace on screen, and
@@ -254,9 +280,9 @@ export class Widget {
 
     this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
-    this.#phase.textContent = `${phaseLabel(state.phase)} · ${state.round}/${settings.roundsPerCycle}`;
+    this.#phase.textContent = `${phaseLabel(state.phase, model.language)} · ${state.round}/${settings.roundsPerCycle}`;
     this.#progress.style.width = `${(progress(state) * 100).toFixed(1)}%`;
-    this.#toggle.textContent = TOGGLE_LABELS[state.status];
+    this.#toggle.textContent = t(TOGGLE_LABEL_KEYS[state.status], model.language);
 
     // Writing unconditionally would fight the caret while the user types.
     if (this.#task.value !== state.task) {
@@ -266,8 +292,8 @@ export class Widget {
     this.#renderRounds(state.round, settings.roundsPerCycle);
     this.#tally.textContent =
       model.dailyGoal > 0
-        ? `${state.completedToday}/${model.dailyGoal} today`
-        : `${state.completedToday} today`;
+        ? `${state.completedToday}/${model.dailyGoal} ${t("status.today", model.language)}`
+        : `${state.completedToday} ${t("status.today", model.language)}`;
 
     this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
@@ -285,7 +311,7 @@ export class Widget {
     if (showChecklist !== this.#miniChecklist.visible) {
       this.#miniChecklist.visible = showChecklist;
       if (showChecklist) {
-        this.#miniChecklist.render(this.#viewTasks());
+        this.#miniChecklist.render(this.#viewTasks(), this.#language);
       }
     }
 
@@ -324,14 +350,14 @@ export class Widget {
     this.#tally.setAttribute("aria-pressed", String(this.#history.isOpen));
 
     if (this.#history.isOpen) {
-      this.#history.render(this.#viewHistory());
+      this.#history.render(this.#viewHistory(), this.#language);
     }
   }
 
   /** Keeps an already-open history panel current when a session lands. */
   refreshHistory(): void {
     if (this.#history.isOpen) {
-      this.#history.render(this.#viewHistory());
+      this.#history.render(this.#viewHistory(), this.#language);
     }
   }
 
@@ -340,7 +366,7 @@ export class Widget {
     this.#tasksButton.setAttribute("aria-pressed", String(this.#tasksPanel.isOpen));
 
     if (this.#tasksPanel.isOpen) {
-      this.#tasksPanel.render(this.#viewTasks());
+      this.#tasksPanel.render(this.#viewTasks(), this.#language);
     }
   }
 
@@ -351,11 +377,11 @@ export class Widget {
    */
   refreshTasks(): void {
     if (this.#tasksPanel.isOpen) {
-      this.#tasksPanel.render(this.#viewTasks());
+      this.#tasksPanel.render(this.#viewTasks(), this.#language);
     }
 
     if (this.#miniChecklist.visible) {
-      this.#miniChecklist.render(this.#viewTasks());
+      this.#miniChecklist.render(this.#viewTasks(), this.#language);
     }
   }
 
@@ -418,7 +444,7 @@ function titlePath(state: PomodoroState, model: WidgetModel): string {
     model.quietMinutesLeft > 0 ? `quiet ${formatQuiet(model.quietMinutesLeft)}` : "",
   ].filter(Boolean);
 
-  const path = `~/${phaseLabel(state.phase).replace(" ", "-")}`;
+  const path = `~/${phaseLabel(state.phase, model.language).replace(" ", "-")}`;
   return markers.length > 0 ? `${path} [${markers.join(" · ")}]` : path;
 }
 
