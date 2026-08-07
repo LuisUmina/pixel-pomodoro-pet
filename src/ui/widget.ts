@@ -40,7 +40,7 @@ export interface WidgetActions {
   changeDimOpacity(value: number): void;
   /** Pomodoros that make a good day; 0 turns the goal off. */
   changeDailyGoal(value: number): void;
-  addTask(text: string, estimatePomodoros: number): void;
+  addTask(text: string, estimatePomodoros: number, section: string): void;
   setActiveTask(id: string): void;
   toggleTaskDone(id: string): void;
   removeTask(id: string): void;
@@ -168,7 +168,7 @@ export class Widget {
     this.#viewHistory = actions.viewHistory;
 
     this.#tasksPanel = new TasksPanel({
-      addTask: (text, estimatePomodoros) => actions.addTask(text, estimatePomodoros),
+      addTask: (text, estimatePomodoros, section) => actions.addTask(text, estimatePomodoros, section),
       setActive: (id) => actions.setActiveTask(id),
       toggleDone: (id) => actions.toggleTaskDone(id),
       removeTask: (id) => actions.removeTask(id),

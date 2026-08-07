@@ -138,8 +138,10 @@ function main(): void {
     changeTaskChecklist: (enabled) => applyTaskChecklist(enabled),
     changeDimOpacity: (value) => applyDimOpacity(value, true),
     changeDailyGoal: (value) => applyDailyGoal(value, true),
-    addTask: (text, estimatePomodoros) =>
-      applyTasksChange(addTaskToState(tasks, text, estimatePomodoros, crypto.randomUUID())),
+    addTask: (text, estimatePomodoros, section) =>
+      applyTasksChange(
+        addTaskToState(tasks, text, estimatePomodoros, crypto.randomUUID(), undefined, section),
+      ),
     setActiveTask: (id) => applyTasksChange(setActive(tasks, id)),
     toggleTaskDone: (id) => applyTasksChange(toggleDone(tasks, id)),
     removeTask: (id) => applyTasksChange(removeTaskFromState(tasks, id)),

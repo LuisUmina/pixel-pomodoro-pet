@@ -1,4 +1,11 @@
-import { INITIAL_TASKS, MAX_ESTIMATE, TASK_TEXT_MAX_LENGTH, type Task, type TasksState } from "../core/tasks";
+import {
+  INITIAL_TASKS,
+  MAX_ESTIMATE,
+  normalizeSection,
+  TASK_TEXT_MAX_LENGTH,
+  type Task,
+  type TasksState,
+} from "../core/tasks";
 import type { JsonStore } from "./persistence";
 
 const STORAGE_KEY = "pixel-pomodoro-pet:tasks";
@@ -66,6 +73,8 @@ function readTask(value: unknown): Task | null {
   return {
     id,
     text: text.slice(0, TASK_TEXT_MAX_LENGTH),
+    // Tasks saved before sections existed simply belong to no section.
+    section: typeof value["section"] === "string" ? normalizeSection(value["section"]) : "",
     estimatePomodoros: readCount(value["estimatePomodoros"], MAX_ESTIMATE),
     completedPomodoros: readCount(value["completedPomodoros"], Number.POSITIVE_INFINITY),
     done: value["done"] === true,

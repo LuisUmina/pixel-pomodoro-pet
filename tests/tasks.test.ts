@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   INITIAL_TASKS,
   MAX_ESTIMATE,
+  TASK_SECTION_MAX_LENGTH,
   TASK_TEXT_MAX_LENGTH,
   activeTaskText,
   addTask,
@@ -10,6 +11,7 @@ import {
   removeTask,
   renameActive,
   setActive,
+  taskSections,
   toggleDone,
   type TasksState,
 } from "../src/core/tasks";
@@ -27,6 +29,7 @@ describe("renameActive", () => {
       {
         id: "t1",
         text: "fix login bug",
+        section: "",
         estimatePomodoros: 0,
         completedPomodoros: 0,
         done: false,
@@ -74,6 +77,7 @@ describe("addTask", () => {
       {
         id: "t1",
         text: "review PR #42",
+        section: "",
         estimatePomodoros: 3,
         completedPomodoros: 0,
         done: false,
@@ -91,6 +95,28 @@ describe("addTask", () => {
     expect(
       addTask(INITIAL_TASKS, "a", MAX_ESTIMATE + 50, "t1", TODAY).tasks[0]?.estimatePomodoros,
     ).toBe(MAX_ESTIMATE);
+  });
+
+  it("stores a trimmed short section", () => {
+    const task = addTask(INITIAL_TASKS, "review", 0, "t1", TODAY, "  Backend  ").tasks[0];
+    expect(task?.section).toBe("Backend");
+  });
+
+  it("caps a section and treats whitespace as unsectioned", () => {
+    expect(addTask(INITIAL_TASKS, "a", 0, "t1", TODAY, " ").tasks[0]?.section).toBe("");
+    expect(
+      addTask(INITIAL_TASKS, "a", 0, "t1", TODAY, "x".repeat(50)).tasks[0]?.section,
+    ).toHaveLength(TASK_SECTION_MAX_LENGTH);
+  });
+});
+
+describe("taskSections", () => {
+  it("returns each non-empty section once in task order", () => {
+    let state = addTask(INITIAL_TASKS, "one", 0, "t1", TODAY, "Trabajo");
+    state = addTask(state, "two", 0, "t2", TODAY, "Casa");
+    state = addTask(state, "three", 0, "t3", TODAY, "Trabajo");
+
+    expect(taskSections(state.tasks)).toEqual(["Trabajo", "Casa"]);
   });
 });
 
@@ -215,6 +241,28 @@ describe("store/tasks", () => {
     });
 
     expect(loadTasks(store).tasks.map((task) => task.id)).toEqual(["t1"]);
+  });
+
+  it("migrates an old task with no section to the unsectioned group", () => {
+    const store = memoryStore();
+    store.set("pixel-pomodoro-pet:tasks", {
+      tasks: [{ id: "t1", text: "old task" }],
+      activeId: "t1",
+    });
+
+    expect(loadTasks(store).tasks[0]?.section).toBe("");
+  });
+
+  it("sanitizes a malformed saved section", () => {
+    const store = memoryStore();
+    store.set("pixel-pomodoro-pet:tasks", {
+      tasks: [{ id: "t1", text: "task", section: "  x".repeat(30) }],
+      activeId: null,
+    });
+
+    const section = loadTasks(store).tasks[0]?.section ?? "";
+    expect(section).toHaveLength(TASK_SECTION_MAX_LENGTH);
+    expect(section.startsWith(" ")).toBe(false);
   });
 
   it("falls back activeId to null when it points at no real task", () => {

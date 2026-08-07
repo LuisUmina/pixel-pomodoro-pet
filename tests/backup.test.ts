@@ -30,6 +30,7 @@ describe("backup store", () => {
         {
           id: "task-1",
           text: "Write tests",
+          section: "",
           estimatePomodoros: 2,
           completedPomodoros: 1,
           done: false,
@@ -74,6 +75,7 @@ describe("backup store", () => {
         {
           id: "t-100",
           text: "Task from backup",
+          section: "",
           estimatePomodoros: 3,
           completedPomodoros: 3,
           done: true,

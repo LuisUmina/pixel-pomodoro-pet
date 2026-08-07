@@ -15,12 +15,17 @@ import { isoDay } from "./format";
 /** Caps a task's name the same way the old free-text field capped itself. */
 export const TASK_TEXT_MAX_LENGTH = 48;
 
+/** A section is a short, single bucket -- deliberately not a tag system. */
+export const TASK_SECTION_MAX_LENGTH = 24;
+
 /** Nobody is estimating a task at three digits of pomodoros. */
 export const MAX_ESTIMATE = 20;
 
 export interface Task {
   readonly id: string;
   readonly text: string;
+  /** Optional lightweight grouping label. An empty string means unsectioned. */
+  readonly section: string;
   /** 0 means no estimate was given -- shown as a plain count, not `x/0`. */
   readonly estimatePomodoros: number;
   readonly completedPomodoros: number;
@@ -60,6 +65,7 @@ export function renameActive(
     const task: Task = {
       id: newId,
       text: capped,
+      section: "",
       estimatePomodoros: 0,
       completedPomodoros: 0,
       done: false,
@@ -84,6 +90,7 @@ export function addTask(
   estimatePomodoros: number,
   newId: string,
   today: string = isoDay(new Date()),
+  section: string = "",
 ): TasksState {
   const capped = text.trim().slice(0, TASK_TEXT_MAX_LENGTH);
   if (capped === "") {
@@ -93,6 +100,7 @@ export function addTask(
   const task: Task = {
     id: newId,
     text: capped,
+    section: normalizeSection(section),
     estimatePomodoros: clampEstimate(estimatePomodoros),
     completedPomodoros: 0,
     done: false,
@@ -100,6 +108,26 @@ export function addTask(
   };
 
   return { ...state, tasks: [...state.tasks, task] };
+}
+
+/** Existing sections, once each and in their first-created order. */
+export function taskSections(tasks: readonly Task[]): readonly string[] {
+  const seen = new Set<string>();
+  const sections: string[] = [];
+
+  for (const task of tasks) {
+    if (task.section !== "" && !seen.has(task.section)) {
+      seen.add(task.section);
+      sections.push(task.section);
+    }
+  }
+
+  return sections;
+}
+
+/** Keeps section labels compact and prevents whitespace-only groups. */
+export function normalizeSection(value: string): string {
+  return value.trim().slice(0, TASK_SECTION_MAX_LENGTH);
 }
 
 /**

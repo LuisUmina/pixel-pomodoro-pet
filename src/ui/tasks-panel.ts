@@ -1,8 +1,8 @@
-import { MAX_ESTIMATE, type Task } from "../core/tasks";
+import { MAX_ESTIMATE, taskSections, type Task } from "../core/tasks";
 import { element } from "./dom";
 
 export interface TasksPanelActions {
-  addTask(text: string, estimatePomodoros: number): void;
+  addTask(text: string, estimatePomodoros: number, section: string): void;
   setActive(id: string): void;
   toggleDone(id: string): void;
   removeTask(id: string): void;
@@ -33,6 +33,8 @@ export class TasksPanel {
   readonly #list: HTMLElement;
   readonly #newText: HTMLInputElement;
   readonly #newEstimate: HTMLInputElement;
+  readonly #newSection: HTMLInputElement;
+  readonly #sectionChoices: HTMLDataListElement;
 
   #lastActionAt = 0;
 
@@ -41,6 +43,8 @@ export class TasksPanel {
     this.#list = element("task-list");
     this.#newText = element<HTMLInputElement>("task-new-text");
     this.#newEstimate = element<HTMLInputElement>("task-new-estimate");
+    this.#newSection = element<HTMLInputElement>("task-new-section");
+    this.#sectionChoices = element<HTMLDataListElement>("task-section-choices");
 
     element("task-add-btn").addEventListener("click", () => this.#submitNew());
     this.#newText.addEventListener("keydown", (event) => {
@@ -71,11 +75,16 @@ export class TasksPanel {
   }
 
   render(model: TasksModel): void {
-    // Done tasks sink to the bottom rather than disappearing -- today's
-    // progress stays visible, just out of the way of what's still open.
-    const ordered = [...model.tasks].sort((a, b) => Number(a.done) - Number(b.done));
-
-    this.#list.replaceChildren(...ordered.map((task) => this.#row(task, model.activeId)));
+    this.#sectionChoices.replaceChildren(
+      ...taskSections(model.tasks).map((section) => {
+        const option = document.createElement("option");
+        option.value = section;
+        return option;
+      }),
+    );
+    this.#list.replaceChildren(
+      ...groupedRows(model.tasks, (task) => this.#row(task, model.activeId)),
+    );
   }
 
   #row(task: Task, activeId: string | null): HTMLElement {
@@ -145,12 +154,40 @@ export class TasksPanel {
     }
 
     const estimate = this.#newEstimate.valueAsNumber;
-    this.actions.addTask(text, Number.isFinite(estimate) ? estimate : 0);
+    this.actions.addTask(text, Number.isFinite(estimate) ? estimate : 0, this.#newSection.value);
 
     this.#newText.value = "";
     this.#newEstimate.value = "";
     this.#newText.focus();
   }
+}
+
+/** Shared grouping order: sections first in creation order, then unsectioned. */
+export function groupedRows(
+  tasks: readonly Task[],
+  row: (task: Task) => HTMLElement,
+): readonly HTMLElement[] {
+  const sections = [...taskSections(tasks), ""];
+  const groups: HTMLElement[] = [];
+  for (const section of sections) {
+    const members = tasks
+      .filter((task) => task.section === section)
+      .sort((a, b) => Number(a.done) - Number(b.done));
+    if (members.length === 0) {
+      continue;
+    }
+    const group = document.createElement("section");
+    group.className = "task-section";
+    const heading = document.createElement("p");
+    heading.className = "task-section__heading";
+    heading.textContent = section === "" ? "sin sección" : section;
+    const rows = document.createElement("div");
+    rows.className = "task-section__rows";
+    rows.append(...members.map(row));
+    group.append(heading, rows);
+    groups.push(group);
+  }
+  return groups;
 }
 
 function formatCount(task: Task): string {

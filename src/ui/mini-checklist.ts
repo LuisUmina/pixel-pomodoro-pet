@@ -1,6 +1,6 @@
 import type { Task } from "../core/tasks";
 import { element } from "./dom";
-import type { TasksModel } from "./tasks-panel";
+import { groupedRows, type TasksModel } from "./tasks-panel";
 
 export interface MiniChecklistActions {
   toggleDone(id: string): void;
@@ -36,10 +36,9 @@ export class MiniChecklist {
   }
 
   render(model: TasksModel): void {
-    // Same ordering as the full panel: done work sinks to the bottom rather
-    // than disappearing, so today's progress stays visible in the glance.
-    const ordered = [...model.tasks].sort((a, b) => Number(a.done) - Number(b.done));
-    this.#root.replaceChildren(...ordered.map((task) => this.#row(task, model.activeId)));
+    this.#root.replaceChildren(
+      ...groupedRows(model.tasks, (task) => this.#row(task, model.activeId)),
+    );
   }
 
   #row(task: Task, activeId: string | null): HTMLElement {

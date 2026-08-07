@@ -966,6 +966,10 @@ body {
   outline: none;
 }
 
+.task-add #task-new-section {
+  flex: 0 1 76px;
+}
+
 .task-add input[type="text"]:focus,
 .task-add input[type="number"]:focus {
   border-color: var(--phase);
@@ -990,6 +994,26 @@ body {
 }
 
 .task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.task-section {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.task-section__heading {
+  margin: 5px 1px 0;
+  color: var(--text-dim);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.task-section__rows {
   display: flex;
   flex-direction: column;
   gap: 4px;
