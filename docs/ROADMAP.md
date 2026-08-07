@@ -7,9 +7,9 @@ que se puede lanzar solo: al terminar cualquiera, la app sigue siendo usable y
 tiene sentido. No hay que hacerlas todas ni en este orden, pero las
 dependencias sí se respetan.
 
-**Estado:** v0.1 entregada. **Fases 1–7, 9, 10, 11, 13 y 15–17 terminadas.**
-Fases 12, 14 y 18 planeadas y aprobadas, a la espera de que se defina el
-orden de arranque. La fase 8 sigue en pausa.
+**Estado:** v0.1 entregada. **Fases 1–7, 9–11, 13 y 15–18 terminadas.** Fases
+12 y 14 en revisión (con feedback de auditoría ya enviado). La fase 8 sigue
+en pausa.
 
 ---
 
@@ -34,10 +34,10 @@ orden de arranque. La fase 8 sigue en pausa.
 | 15 | [Personajes nuevos](#fase-15--tres-personajes-nuevos) ✅ | L | 4 |
 | 16 | [Comportamientos más vivos](#fase-16--comportamientos-más-vivos) ✅ | M | 3 |
 | 17 | [Checklist flotante en modo mascota](#fase-17--checklist-flotante-en-modo-mascota) ✅ | M | 5, 9 |
-| 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) | S/M | 9 |
+| 18 | [Secciones de tareas](#fase-18--secciones-de-tareas) ✅ | S/M | 9 |
 
-**Siguiente recomendada:** sin definir todavía entre las que quedan (12, 14,
-18) — el orden de arranque queda a criterio propio. Ninguna depende de la 8,
+**Siguiente recomendada:** ninguna — solo quedan 12 y 14, ambas con feedback
+de auditoría ya enviado al agente correspondiente. Ninguna depende de la 8,
 que sigue en pausa por decisión propia: sus dependencias (3 y 5) están
 resueltas, pero el riesgo que el roadmap siempre le marcó — mover la ventana
 del SO en tiempo real, multi-monitor y DPI distinto — sigue en pie.
@@ -891,24 +891,29 @@ la vista completa donde el panel entero ya cubre lo mismo.
 
 ---
 
-## Fase 18 — Secciones de tareas
+## Fase 18 — Secciones de tareas ✅
 
-**Costo: S/M · Depende de la fase 9**
+**Terminada · Costo: S/M**
 
 Una forma liviana de dividir la lista, no un sistema de etiquetas: cada tarea
 gana un campo opcional de "sección" (texto corto, se escribe una vez y las
 siguientes tareas la reusan de una lista desplegable), y el panel — y el
-checklist de la fase 17, si ya existe — agrupan visualmente por esa sección
-en vez de mostrar todo en una sola lista plana. Sin colores, sin filtros, sin
+checklist de la fase 17 — agrupan visualmente por esa sección en vez de
+mostrar todo en una sola lista plana. Sin colores, sin filtros, sin
 jerarquía: una tarea pertenece a una sección o a ninguna.
 
-Conviene resolverla antes o junto con la fase 17, porque así el checklist
-flotante nace ya sabiendo agrupar en vez de necesitar un segundo cambio
-después — pero no hay una dependencia dura entre ambas; se pueden hacer en
-cualquier orden.
+- **`groupedRows()` se comparte de verdad** entre `tasks-panel.ts` y
+  `mini-checklist.ts` — ninguna de las dos vistas reimplementa el
+  agrupamiento por su cuenta, así que no pueden desalinearse entre sí.
+- Migración defensiva en `store/tasks.ts`: una tarea guardada antes de esta
+  fase simplemente no tiene sección, no rompe la carga.
+- Sin bugs encontrados en la auditoría — verificado agregando tareas a
+  secciones distintas en vivo (panel completo y checklist mini), sin
+  desborde en la fila del formulario.
 
-**Toca:** `src/core/tasks.ts` (campo nuevo en `Task`), `src/store/tasks.ts`
-(migración defensiva), `tasks-panel.ts`.
+**Toca:** `src/core/tasks.ts` (campo nuevo en `Task`, `taskSections()`,
+`normalizeSection()`), `src/store/tasks.ts` (migración defensiva),
+`tasks-panel.ts` (`groupedRows()`), `mini-checklist.ts`.
 
 ---
 

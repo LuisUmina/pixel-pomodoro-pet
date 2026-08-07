@@ -1,9 +1,13 @@
-# Briefs para sub-agentes — fases pendientes (12, 14, 18)
+# Briefs para sub-agentes — fases en curso (12, 14)
 
-Las fases 10, 11, 13 y 15–17 ya se implementaron, auditaron y mergearon a
+Las fases 10, 11, 13 y 15–18 ya se implementaron, auditaron y mergearon a
 `main` — sus briefs se sacaron de este archivo. El detalle de cómo quedaron
 (incluidos varios bugs reales que la auditoría encontró y ya se corrigieron)
 está en `docs/ROADMAP.md`.
+
+Las dos que quedan (12 y 14) ya tienen agente asignado y están en revisión
+tras la primera vuelta de auditoría — sus briefs se dejan abajo como
+referencia del alcance original, no como algo por asignar.
 
 ## Preámbulo (pegar antes de CADA fase, a cada sub-agente)
 
@@ -61,20 +65,3 @@ con 12**
   puro en `themes.ts`, sin lógica nueva).
 - Cuidado con instanciar un canvas de más por cada personaje listado —
   pensá el costo de render si son varios a la vez.
-
----
-
-## Fase 18 — Secciones de tareas
-**Costo: S/M · Depende de la fase 9 (ya hecha) · Sin conflicto de archivos
-con otras fases pendientes**
-
-- Campo opcional `section` (texto corto) en `Task`, elegible desde un
-  desplegable que reusa secciones ya creadas. El panel de tareas agrupa
-  visualmente por sección en vez de lista plana.
-- Explícitamente NO: colores, filtros, jerarquía, ni convertir esto en un
-  sistema de etiquetas. Una tarea tiene una sección o ninguna.
-- Necesita migración defensiva en `store/tasks.ts` para tareas guardadas
-  antes de este cambio (sin `section`).
-- La fase 17 (checklist flotante en modo mascota) ya está en `main` — su
-  vista en `src/ui/mini-checklist.ts` también debería agrupar por sección
-  para no quedar desactualizada frente al panel completo.
