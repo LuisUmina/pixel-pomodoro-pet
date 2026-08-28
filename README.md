@@ -114,7 +114,12 @@ silueta y el reloj — el resto vuelve al pasar el mouse:
   parar; los de vista durante el focus, que es cuando llevas veinte minutos
   sin parpadear. Cuentan **tiempo de sesión, no tiempo de reloj** — dejar el
   widget abierto sin usarlo no acerca ningún recordatorio. Agua y vista vienen
-  encendidos; el resto los prendés vos.
+  encendidos; el resto los prendés vos. Y si necesitas algo más específico,
+  puedes agregar **recordatorios personalizados** que siguen las mismas reglas
+  (por fase y cada X minutos).
+- **Efectos de Sonido**: La mascota cuenta con sonidos que la acompañan, que
+  pueden desactivarse fácilmente desde los ajustes si prefieres trabajar en
+  silencio absoluto.
 - **Modo silencio** de 30 min, 1 h o 2 h para llamadas y presentaciones. Se
   anuncia en la barra de título con lo que le queda y se apaga solo.
 - **Checklist del día**: el mismo campo de siempre, pero ahora respaldado por
@@ -188,7 +193,10 @@ Mientras el click-through está activo, la barra de título lo dice —
 npm install
 npm run app:dev      # app nativa con hot reload
 npm run dev          # solo el frontend, en el navegador
+npm run build        # build de frontend y typecheck
+npm run preview      # previsualiza el frontend compilado
 npm test             # tests del núcleo y de los sprites
+npm run test:watch   # correr los tests en modo watch
 npm run typecheck    # app + tooling de build
 npm run app:build    # instalador NSIS para Windows
 npm run icons        # regenera los iconos desde el sprite del pato
