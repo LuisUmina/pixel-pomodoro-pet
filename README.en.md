@@ -115,7 +115,11 @@ hover:
   can actually stand up; the eye ones during focus, which is when you've gone
   twenty minutes without blinking. They count **session time, not clock
   time** — leaving the widget open without using it never brings a reminder
-  closer. Water and eyes ship on; the rest you turn on yourself.
+  closer. Water and eyes ship on; the rest you turn on yourself. And if you
+  need something more specific, you can add **custom reminders** that follow
+  the same rules (by phase and every X minutes).
+- **Sound Effects**: The mascot has accompanying sounds that can easily be
+  toggled off from the settings if you prefer to work in absolute silence.
 - **Quiet mode** for 30 min, 1 h or 2 h, for calls and presentations.
   Announced in the title bar with how much is left, and turns itself off.
 - **A checklist for the day**: the same field as always, now backed by real
@@ -190,7 +194,10 @@ While click-through is active, the title bar says so —
 npm install
 npm run app:dev      # native app with hot reload
 npm run dev          # frontend only, in the browser
+npm run build        # build frontend and typecheck
+npm run preview      # preview the built frontend
 npm test             # core and sprite tests
+npm run test:watch   # run tests in watch mode
 npm run typecheck    # app + build tooling
 npm run app:build    # NSIS installer for Windows
 npm run icons        # regenerates icons from the duck's sprite
