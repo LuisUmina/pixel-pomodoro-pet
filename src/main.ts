@@ -774,7 +774,7 @@ function main(): void {
 
   widget.start();
   if (JSON.stringify(preferences.shortcuts) !== JSON.stringify(DEFAULT_SHORTCUTS)) {
-    void desktop.updateShortcuts(preferences.shortcuts);
+    void desktop.updateShortcuts(preferences.shortcuts, { bestEffort: true });
   }
   // Restores the size the widget was left at, window included -- unless
   // mini mode is about to override it right below. The native window
