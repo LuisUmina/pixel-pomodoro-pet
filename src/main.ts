@@ -48,7 +48,12 @@ import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { exportBackupJson, restoreBackupJson } from "./store/backup";
 import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
-import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
+import {
+  defaultPreferences,
+  loadPreferences,
+  savePreferences,
+  type Preferences,
+} from "./store/preferences";
 import { loadTasks, readLegacyTaskText, saveTasks } from "./store/tasks";
 import { AutoDim } from "./ui/auto-dim";
 import type { HistoryModel } from "./ui/history-panel";
@@ -88,6 +93,7 @@ function main(): void {
   });
 
   let uiScale = preferences.uiScale;
+  let savedPreferences = preferences;
   let savedSignature = JSON.stringify(preferences);
   let ghost = false;
   let celebrating = false;
@@ -291,14 +297,47 @@ function main(): void {
    * which phase. A poll would have to attribute a whole minute to whatever
    * the state happened to be when it woke up.
    */
-  function trackReminders(elapsedMs: number, phase: Phase, alreadySpoke: boolean): void {
-    const now = Date.now();
+  let cachedReminderConfig: {
+    reminders: Preferences["reminders"];
+    customReminders: Preferences["customReminders"];
+    language: Language;
+    enabled: Readonly<Record<string, boolean>>;
+    allReminders: ReturnType<typeof customReminderPacks>;
+  } | null = null;
+
+  function getReminderConfig(): {
+    enabled: Readonly<Record<string, boolean>>;
+    allReminders: ReturnType<typeof customReminderPacks>;
+  } {
+    if (
+      cachedReminderConfig !== null &&
+      cachedReminderConfig.reminders === preferences.reminders &&
+      cachedReminderConfig.customReminders === preferences.customReminders &&
+      cachedReminderConfig.language === preferences.language
+    ) {
+      return cachedReminderConfig;
+    }
+
     const custom = customReminderPacks(preferences.customReminders);
     const enabled = {
       ...preferences.reminders,
       ...Object.fromEntries(custom.map((reminder) => [reminder.id, true])),
     };
     const allReminders = [...reminderPacksFor(preferences.language), ...custom];
+    const next = {
+      reminders: preferences.reminders,
+      customReminders: preferences.customReminders,
+      language: preferences.language,
+      enabled,
+      allReminders,
+    };
+    cachedReminderConfig = next;
+    return next;
+  }
+
+  function trackReminders(elapsedMs: number, phase: Phase, alreadySpoke: boolean): void {
+    const now = Date.now();
+    const { enabled, allReminders } = getReminderConfig();
     const check = { phase, enabled };
     const delivering =
       preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now);
@@ -663,14 +702,21 @@ function main(): void {
   }
 
   function save(): void {
-    preferences = {
-      ...preferences,
-      completedToday: state.completedToday,
-    };
+    if (preferences.completedToday !== state.completedToday) {
+      preferences = {
+        ...preferences,
+        completedToday: state.completedToday,
+      };
+    }
+
+    if (preferences === savedPreferences) {
+      return;
+    }
 
     // `save` runs on every tick — four times a second for hours. Comparing
     // first keeps that from becoming four synchronous disk writes a second.
     const signature = JSON.stringify(preferences);
+    savedPreferences = preferences;
     if (signature === savedSignature) {
       return;
     }
