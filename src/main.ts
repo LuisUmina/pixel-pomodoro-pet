@@ -426,6 +426,7 @@ function main(): void {
    */
   function restoreDefaults(): void {
     const shipped = defaultPreferences(preferences.day);
+    const previousShortcuts = preferences.shortcuts;
 
     preferences = {
       ...preferences,
@@ -436,6 +437,7 @@ function main(): void {
       shortcuts: shipped.shortcuts,
       quietUntil: shipped.quietUntil,
       characterId: shipped.characterId,
+      taskChecklist: shipped.taskChecklist,
     };
 
     state = withSettings(state, shipped.settings);
@@ -444,7 +446,13 @@ function main(): void {
     applyMiniMode(shipped.miniMode);
     applyDimOpacity(shipped.dimOpacity, true);
     applyDailyGoal(shipped.dailyGoal, true);
-    void desktop.updateShortcuts(shipped.shortcuts);
+    void desktop.updateShortcuts(shipped.shortcuts).then((res) => {
+      if (!res.success) {
+        preferences = { ...preferences, shortcuts: previousShortcuts };
+        save();
+        render();
+      }
+    });
   }
 
   async function applyShortcuts(
