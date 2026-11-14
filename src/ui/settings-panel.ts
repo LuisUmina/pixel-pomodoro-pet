@@ -108,6 +108,17 @@ const SHORTCUT_LABEL_KEYS: Readonly<Record<ShortcutAction, UiStringKey>> = {
   hide: "shortcuts.hide",
 };
 
+const PET_HINT_KEYS: Readonly<Record<string, UiStringKey>> = {
+  duck: "pet.duck.hint",
+  tentacat: "pet.tentacat.hint",
+  bug: "pet.bug.hint",
+  coffee: "pet.coffee.hint",
+  ninja: "pet.ninja.hint",
+  pill: "pet.pill.hint",
+  terminal: "pet.terminal.hint",
+  spark: "pet.spark.hint",
+};
+
 /** The durations and widget size, behind the gear button. */
 export class SettingsPanel {
   readonly #root: HTMLElement;
@@ -252,6 +263,12 @@ export class SettingsPanel {
       this.#buildShortcutRows();
       for (const [voice, button] of this.#voiceButtons) {
         button.title = t(VOICE_HINT_KEYS[voice], this.#language);
+      }
+      for (const [id, button] of this.#petButtons) {
+        const key = PET_HINT_KEYS[id];
+        if (key) {
+          button.title = t(key, this.#language);
+        }
       }
     }
 
@@ -580,7 +597,7 @@ export class SettingsPanel {
     this.#shortcutsError.hidden = true;
     const res = await this.actions.changeShortcuts(current as ShortcutMap);
     if (!res.success) {
-      this.#shortcutsError.textContent = res.error ?? t("shortcuts.updateFailed", this.#language);
+      this.#shortcutsError.textContent = t("shortcuts.updateFailed", this.#language);
       this.#shortcutsError.hidden = false;
       for (const input of this.#shortcutInputs.values()) {
         input.classList.add("shortcut__input--error");
@@ -601,7 +618,8 @@ export class SettingsPanel {
   #buildPetButtons(): void {
     for (const character of CHARACTERS) {
       const button = chip(character.label, () => this.actions.changeCharacter(character.id));
-      button.title = character.hint;
+      const hintKey = PET_HINT_KEYS[character.id];
+      button.title = hintKey ? t(hintKey, this.#language) : character.hint;
 
       this.#petButtons.set(character.id, button);
       this.#pets.append(button);

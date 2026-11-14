@@ -127,12 +127,16 @@ export class Widget {
   readonly #ghostButton: HTMLElement;
   readonly #settingsButton: HTMLElement;
   readonly #miniButton: HTMLElement;
+  readonly #hideButton: HTMLElement;
+  readonly #skipButton: HTMLElement;
+  readonly #resetButton: HTMLElement;
   readonly #tasksButton: HTMLElement;
   readonly #checklistButton: HTMLElement;
   readonly #viewHistory: () => HistoryModel;
   readonly #viewTasks: () => TasksModel;
 
   #roundsSignature = "";
+  #shortcutsSignature = "";
   /** Last rendered model, so opening the panel can fill it in immediately. */
   #model: WidgetModel | null = null;
   #language: Language = DEFAULT_LANGUAGE;
@@ -224,6 +228,9 @@ export class Widget {
     this.#ghostButton = actionElement("ghost");
     this.#settingsButton = actionElement("settings");
     this.#miniButton = actionElement("mini");
+    this.#hideButton = actionElement("hide");
+    this.#skipButton = actionElement("skip");
+    this.#resetButton = actionElement("reset");
     this.#tasksButton = actionElement("tasks");
     this.#checklistButton = actionElement("checklist");
 
@@ -270,6 +277,32 @@ export class Widget {
       if (this.#history.isOpen) {
         this.#history.render(this.#viewHistory(), this.#language);
       }
+      this.#shortcutsSignature = "";
+    }
+
+    const shortcutsSignature = JSON.stringify(model.shortcuts);
+    if (shortcutsSignature !== this.#shortcutsSignature) {
+      this.#shortcutsSignature = shortcutsSignature;
+      this.#ghostButton.title = t("titlebar.ghost", model.language).replace(
+        "Ctrl+Alt+G",
+        model.shortcuts.ghost,
+      );
+      this.#miniButton.title = t("titlebar.mini", model.language).replace(
+        "Ctrl+Alt+Z",
+        model.shortcuts.mini,
+      );
+      this.#hideButton.title = t("titlebar.hide", model.language).replace(
+        "Ctrl+Alt+H",
+        model.shortcuts.hide,
+      );
+      this.#skipButton.title = t("controls.skipHint", model.language).replace(
+        "Ctrl+Alt+N",
+        model.shortcuts.skip,
+      );
+      this.#resetButton.title = t("controls.resetHint", model.language).replace(
+        "Ctrl+Alt+R",
+        model.shortcuts.reset,
+      );
     }
 
     this.#widget.dataset["phase"] = state.phase;
