@@ -23,12 +23,12 @@ export class PetCanvas {
   #state: PetState = "idle";
   #behavior: Behavior | null = null;
   #frameIndex = 0;
-  #frameElapsed = 0;
   #loopsDone = 0;
-  #lastTimestamp = 0;
   #pixel: number;
   #resolution = 1;
-  #handle: number | null = null;
+  #running = false;
+  #rafHandle: number | null = null;
+  #timerHandle: ReturnType<typeof setTimeout> | null = null;
   #dirty = true;
 
   constructor(
@@ -59,6 +59,8 @@ export class PetCanvas {
     this.#nextBehavior();
     this.#resize();
     this.#dirty = true;
+    this.#requestPaint();
+    this.#scheduleNextFrame();
   }
 
   setPalette(palette: SpritePalette): void {
@@ -69,6 +71,7 @@ export class PetCanvas {
 
     this.#palette = palette;
     this.#dirty = true;
+    this.#requestPaint();
   }
 
   /**
@@ -83,6 +86,7 @@ export class PetCanvas {
     this.#resolution = multiplier;
     this.#resize();
     this.#dirty = true;
+    this.#requestPaint();
   }
 
   setState(state: PetState): void {
@@ -95,6 +99,8 @@ export class PetCanvas {
     // the current performance to finish — the duck reacts to you, not later.
     this.#nextBehavior();
     this.#dirty = true;
+    this.#requestPaint();
+    this.#scheduleNextFrame();
   }
 
   #nextBehavior(): void {
@@ -109,23 +115,114 @@ export class PetCanvas {
     }
 
     this.#frameIndex = 0;
-    this.#frameElapsed = 0;
     this.#loopsDone = 0;
   }
 
   start(): void {
-    if (this.#handle === null) {
-      this.#handle = requestAnimationFrame(this.#step);
+    if (this.#running) {
+      return;
+    }
+
+    this.#running = true;
+    this.#dirty = true;
+    document.addEventListener("visibilitychange", this.#onVisibilityChange);
+    if (!document.hidden) {
+      this.#requestPaint();
+      this.#scheduleNextFrame();
     }
   }
 
   stop(): void {
-    if (this.#handle !== null) {
-      cancelAnimationFrame(this.#handle);
-      this.#handle = null;
-      this.#lastTimestamp = 0;
+    if (!this.#running) {
+      return;
+    }
+
+    this.#running = false;
+    document.removeEventListener("visibilitychange", this.#onVisibilityChange);
+    this.#clearTimers();
+  }
+
+  #clearTimers(): void {
+    if (this.#rafHandle !== null) {
+      cancelAnimationFrame(this.#rafHandle);
+      this.#rafHandle = null;
+    }
+    if (this.#timerHandle !== null) {
+      clearTimeout(this.#timerHandle);
+      this.#timerHandle = null;
     }
   }
+
+  readonly #onVisibilityChange = (): void => {
+    if (!this.#running) {
+      return;
+    }
+    if (document.hidden) {
+      this.#clearTimers();
+    } else {
+      this.#dirty = true;
+      this.#requestPaint();
+      this.#scheduleNextFrame();
+    }
+  };
+
+  #requestPaint(): void {
+    if (!this.#running || document.hidden || !this.#dirty || this.#rafHandle !== null) {
+      return;
+    }
+
+    this.#rafHandle = requestAnimationFrame(this.#paint);
+  }
+
+  readonly #paint = (): void => {
+    this.#rafHandle = null;
+    if (this.#dirty) {
+      this.#draw();
+      this.#dirty = false;
+    }
+  };
+
+  #scheduleNextFrame(): void {
+    if (this.#timerHandle !== null) {
+      clearTimeout(this.#timerHandle);
+      this.#timerHandle = null;
+    }
+    if (!this.#running || document.hidden) {
+      return;
+    }
+
+    const frames = this.#behavior?.frames ?? [];
+    const current = frames[this.#frameIndex];
+    if (!current) {
+      return;
+    }
+
+    this.#timerHandle = setTimeout(this.#advanceFrame, current.durationMs);
+  }
+
+  readonly #advanceFrame = (): void => {
+    this.#timerHandle = null;
+    if (!this.#running || document.hidden) {
+      return;
+    }
+
+    const frames = this.#behavior?.frames ?? [];
+    this.#frameIndex += 1;
+    this.#dirty = true;
+
+    if (this.#frameIndex >= frames.length) {
+      this.#frameIndex = 0;
+      this.#loopsDone += 1;
+
+      // Performance over: draw again rather than repeating on a loop.
+      if (this.#loopsDone >= (this.#behavior?.loops ?? 1)) {
+        this.#nextBehavior();
+      }
+    }
+
+    this.#requestPaint();
+    this.#scheduleNextFrame();
+  };
 
   #resize(): void {
     const layout = (window.devicePixelRatio || 1) * this.#resolution;
@@ -147,38 +244,6 @@ export class PetCanvas {
     this.#canvas.style.width = `${width / layout}px`;
     this.#canvas.style.height = `${height / layout}px`;
   }
-
-  readonly #step = (timestamp: number): void => {
-    const frames = this.#behavior?.frames ?? [];
-    const elapsed = this.#lastTimestamp === 0 ? 0 : timestamp - this.#lastTimestamp;
-    this.#lastTimestamp = timestamp;
-    this.#frameElapsed += elapsed;
-
-    const current = frames[this.#frameIndex];
-    if (current && this.#frameElapsed >= current.durationMs) {
-      this.#frameElapsed = 0;
-      this.#frameIndex += 1;
-      this.#dirty = true;
-
-      if (this.#frameIndex >= frames.length) {
-        this.#frameIndex = 0;
-        this.#loopsDone += 1;
-
-        // Performance over: draw again rather than repeating on a loop.
-        if (this.#loopsDone >= (this.#behavior?.loops ?? 1)) {
-          this.#nextBehavior();
-        }
-      }
-    }
-
-    // Repainting only on a frame change keeps this near-free between blinks.
-    if (this.#dirty) {
-      this.#draw();
-      this.#dirty = false;
-    }
-
-    this.#handle = requestAnimationFrame(this.#step);
-  };
 
   #draw(): void {
     const frames = this.#behavior?.frames ?? [];
