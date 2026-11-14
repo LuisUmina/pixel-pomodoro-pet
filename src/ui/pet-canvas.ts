@@ -188,7 +188,8 @@ export class PetCanvas {
     }
 
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
-    drawSprite(this.#ctx, applyPatches(this.#character.base, frame.patches), this.#palette, {
+    const grid = frame.grid ?? applyPatches(this.#character.base, frame.patches);
+    drawSprite(this.#ctx, grid, this.#palette, {
       scale: this.#pixel,
       // The character sits mid-strip and walks from there.
       x: (MAX_SHIFT + (frame.offsetX ?? 0)) * this.#pixel,
