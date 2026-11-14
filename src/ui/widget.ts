@@ -252,6 +252,7 @@ export class Widget {
   render(model: WidgetModel): void {
     const { state, settings, theme } = model;
     const accent = phaseColor(theme, state);
+    const prev = this.#model;
     this.#model = model;
 
     if (model.language !== this.#language) {
@@ -272,17 +273,45 @@ export class Widget {
       }
     }
 
-    this.#widget.dataset["phase"] = state.phase;
-    this.#widget.dataset["status"] = state.status;
+    if (!prev || prev.state.phase !== state.phase) {
+      this.#widget.dataset["phase"] = state.phase;
+    }
+    if (!prev || prev.state.status !== state.status) {
+      this.#widget.dataset["status"] = state.status;
+    }
     // Click-through and a vow of silence leave no other trace on screen, and
     // a ghosted widget cannot be clicked to ask, so the title bar says both.
-    this.#path.textContent = titlePath(state, model);
+    if (
+      !prev ||
+      prev.state.phase !== state.phase ||
+      prev.ghost !== model.ghost ||
+      prev.quietMinutesLeft !== model.quietMinutesLeft ||
+      prev.language !== model.language
+    ) {
+      this.#path.textContent = titlePath(state, model);
+    }
 
     this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
-    this.#phase.textContent = `${phaseLabel(state.phase, model.language)} · ${state.round}/${settings.roundsPerCycle}`;
-    this.#progress.style.width = `${(progress(state) * 100).toFixed(1)}%`;
-    this.#toggle.textContent = t(TOGGLE_LABEL_KEYS[state.status], model.language);
+
+    if (
+      !prev ||
+      prev.state.phase !== state.phase ||
+      prev.state.round !== state.round ||
+      prev.settings.roundsPerCycle !== settings.roundsPerCycle ||
+      prev.language !== model.language
+    ) {
+      this.#phase.textContent = `${phaseLabel(state.phase, model.language)} · ${state.round}/${settings.roundsPerCycle}`;
+    }
+
+    const progressWidth = `${(progress(state) * 100).toFixed(1)}%`;
+    if (this.#progress.style.width !== progressWidth) {
+      this.#progress.style.width = progressWidth;
+    }
+
+    if (!prev || prev.state.status !== state.status || prev.language !== model.language) {
+      this.#toggle.textContent = t(TOGGLE_LABEL_KEYS[state.status], model.language);
+    }
 
     // Writing unconditionally would fight the caret while the user types.
     if (this.#task.value !== state.task) {
@@ -290,19 +319,35 @@ export class Widget {
     }
 
     this.#renderRounds(state.round, settings.roundsPerCycle);
-    this.#tally.textContent =
-      model.dailyGoal > 0
-        ? `${state.completedToday}/${model.dailyGoal} ${t("status.today", model.language)}`
-        : `${state.completedToday} ${t("status.today", model.language)}`;
 
-    this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
-    this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
-    this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
-    this.#checklistButton.setAttribute("aria-pressed", String(model.taskChecklist));
-    this.frame.dataset["ghost"] = String(model.ghost);
-    this.#widget.dataset["ghost"] = String(model.ghost);
-    this.frame.dataset["mini"] = String(model.miniMode);
-    this.#widget.dataset["mini"] = String(model.miniMode);
+    if (
+      !prev ||
+      prev.state.completedToday !== state.completedToday ||
+      prev.dailyGoal !== model.dailyGoal ||
+      prev.language !== model.language
+    ) {
+      this.#tally.textContent =
+        model.dailyGoal > 0
+          ? `${state.completedToday}/${model.dailyGoal} ${t("status.today", model.language)}`
+          : `${state.completedToday} ${t("status.today", model.language)}`;
+    }
+
+    if (!prev || prev.soundEnabled !== model.soundEnabled) {
+      this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
+    }
+    if (!prev || prev.ghost !== model.ghost) {
+      this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
+      this.frame.dataset["ghost"] = String(model.ghost);
+      this.#widget.dataset["ghost"] = String(model.ghost);
+    }
+    if (!prev || prev.miniMode !== model.miniMode) {
+      this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
+      this.frame.dataset["mini"] = String(model.miniMode);
+      this.#widget.dataset["mini"] = String(model.miniMode);
+    }
+    if (!prev || prev.taskChecklist !== model.taskChecklist) {
+      this.#checklistButton.setAttribute("aria-pressed", String(model.taskChecklist));
+    }
 
     // Only rebuilds the rows on an actual show/hide transition, the same
     // reasoning as settings/history/tasks below -- not on every one of these
@@ -315,7 +360,9 @@ export class Widget {
       }
     }
 
-    this.#pet.setCharacter(getCharacter(model.characterId));
+    if (!prev || prev.characterId !== model.characterId) {
+      this.#pet.setCharacter(getCharacter(model.characterId));
+    }
     this.#pet.setResolution(model.uiScale);
     this.#pet.setPalette(theme.sprite);
     this.#pet.setState(model.petState);
