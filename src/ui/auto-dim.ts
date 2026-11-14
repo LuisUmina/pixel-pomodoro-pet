@@ -4,9 +4,13 @@
  * An always-on-top window that stays at full opacity becomes unbearable within
  * the hour, so the default is to get out of the way and come back on hover.
  */
+const POINTER_MOVE_THROTTLE_MS = 250;
+
 export class AutoDim {
   #timer: ReturnType<typeof setTimeout> | null = null;
   #enabled = false;
+  #dimmed = false;
+  #lastWakeAt = 0;
 
   constructor(
     private readonly element: HTMLElement,
@@ -15,7 +19,12 @@ export class AutoDim {
     const wake = (): void => this.wake();
 
     this.element.addEventListener("pointerenter", wake);
-    this.element.addEventListener("pointermove", wake);
+    this.element.addEventListener("pointermove", () => {
+      if (!this.#dimmed && Date.now() - this.#lastWakeAt < POINTER_MOVE_THROTTLE_MS) {
+        return;
+      }
+      this.wake();
+    });
     this.element.addEventListener("pointerdown", wake);
     window.addEventListener("focus", wake);
   }
@@ -37,11 +46,16 @@ export class AutoDim {
    * able to read it, dimmed or not.
    */
   wake(): void {
-    this.element.classList.remove("is-dimmed");
+    this.#lastWakeAt = Date.now();
+    if (this.#dimmed) {
+      this.#dimmed = false;
+      this.element.classList.remove("is-dimmed");
+    }
     this.#clear();
 
     if (this.#enabled) {
       this.#timer = setTimeout(() => {
+        this.#dimmed = true;
         this.element.classList.add("is-dimmed");
       }, this.delayMs);
     }
