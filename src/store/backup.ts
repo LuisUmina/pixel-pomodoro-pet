@@ -53,13 +53,23 @@ export function restoreBackupJson(
 
   const rawHistory = isRecord(parsed["history"])
     ? parsed["history"]
-    : parsed["pixel-pomodoro-pet:history"];
+    : isRecord(parsed["pixel-pomodoro-pet:history"])
+      ? parsed["pixel-pomodoro-pet:history"]
+      : undefined;
   const rawTasks = isRecord(parsed["tasks"])
     ? parsed["tasks"]
-    : parsed["pixel-pomodoro-pet:tasks"];
+    : isRecord(parsed["pixel-pomodoro-pet:tasks"])
+      ? parsed["pixel-pomodoro-pet:tasks"]
+      : undefined;
   const rawPreferences = isRecord(parsed["preferences"])
     ? parsed["preferences"]
-    : parsed["pixel-pomodoro-pet:preferences"];
+    : isRecord(parsed["pixel-pomodoro-pet:preferences"])
+      ? parsed["pixel-pomodoro-pet:preferences"]
+      : undefined;
+
+  if (rawHistory === undefined && rawTasks === undefined && rawPreferences === undefined) {
+    return { success: false, error: t("settings.importInvalidBackup", language) };
+  }
 
   const tempStore: JsonStore = {
     get(key: string) {
@@ -71,13 +81,15 @@ export function restoreBackupJson(
     set() {},
   };
 
-  const history = loadHistory(tempStore);
-  const tasks = loadTasks(tempStore);
-  const preferences = loadPreferences(tempStore, today);
-
-  saveHistory(store, history);
-  saveTasks(store, tasks);
-  savePreferences(store, preferences);
+  if (rawHistory !== undefined) {
+    saveHistory(store, loadHistory(tempStore));
+  }
+  if (rawTasks !== undefined) {
+    saveTasks(store, loadTasks(tempStore));
+  }
+  if (rawPreferences !== undefined) {
+    savePreferences(store, loadPreferences(tempStore, today));
+  }
 
   return { success: true };
 }

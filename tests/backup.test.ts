@@ -163,4 +163,31 @@ describe("backup store", () => {
     expect(prefs.soundEnabled).toBe(true); // default
     expect(prefs.uiScale).toBeLessThanOrEqual(2); // clamped
   });
+
+  it("rejects unrelated JSON objects without wiping existing store data", () => {
+    const store = memoryStore();
+    saveHistory(store, {
+      days: { "2026-08-01": 7 },
+      totalSessions: 7,
+      bestDayCount: 7,
+      bestDay: "2026-08-01",
+      bestWeekCount: 7,
+      bestStreak: 1,
+    });
+
+    const resultEn = restoreBackupJson(
+      store,
+      JSON.stringify({ name: "some-package", version: "1.0.0" }),
+      TODAY,
+      "en",
+    );
+    expect(resultEn.success).toBe(false);
+    expect(resultEn.error).toBe("That file does not contain valid backup data.");
+
+    const resultEs = restoreBackupJson(store, "{}", TODAY, "es");
+    expect(resultEs.success).toBe(false);
+    expect(resultEs.error).toBe("El archivo no contiene datos de respaldo válidos.");
+
+    expect(loadHistory(store).totalSessions).toBe(7);
+  });
 });
