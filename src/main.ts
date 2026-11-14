@@ -88,6 +88,7 @@ function main(): void {
   });
 
   let uiScale = preferences.uiScale;
+  let appliedWindowScale: number | null = null;
   let savedSignature = JSON.stringify(preferences);
   let ghost = false;
   let celebrating = false;
@@ -520,16 +521,22 @@ function main(): void {
     uiScale = clampUiScale(scale);
     document.documentElement.style.setProperty("--ui-scale", String(uiScale));
 
-    if (resizeWindow) {
-      desktop.setScale(uiScale);
-    }
-
     if (persist) {
       preferences = { ...preferences, uiScale };
       save();
     }
 
     render();
+
+    if (resizeWindow && uiScale !== appliedWindowScale) {
+      appliedWindowScale = uiScale;
+      if (preferences.miniMode) {
+        const size = widget.measureFrame();
+        desktop.resizeKeepCenter(size.width, size.height);
+      } else {
+        desktop.setScale(uiScale);
+      }
+    }
   }
 
   function setGhost(enabled: boolean): void {
