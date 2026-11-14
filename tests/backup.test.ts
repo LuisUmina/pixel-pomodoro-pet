@@ -163,4 +163,124 @@ describe("backup store", () => {
     expect(prefs.soundEnabled).toBe(true); // default
     expect(prefs.uiScale).toBeLessThanOrEqual(2); // clamped
   });
+
+  it("rejects unrelated JSON objects without wiping existing store data", () => {
+    const store = seededStore();
+
+    const resultEn = restoreBackupJson(
+      store,
+      JSON.stringify({ name: "some-package", version: "1.0.0" }),
+      TODAY,
+      "en",
+    );
+    expect(resultEn.success).toBe(false);
+    expect(resultEn.error).toBe("That file does not contain valid backup data.");
+
+    const resultEs = restoreBackupJson(store, "{}", TODAY, "es");
+    expect(resultEs.success).toBe(false);
+    expect(resultEs.error).toBe("El archivo no contiene datos de respaldo válidos.");
+
+    expectSeedUnchanged(store);
+  });
+
+  it("rejects arrays and malformed JSON without wiping existing store data", () => {
+    const store = seededStore();
+
+    const arrayResult = restoreBackupJson(store, "[]", TODAY, "en");
+    expect(arrayResult.success).toBe(false);
+    expect(arrayResult.error).toBe("That file's contents are not a valid object.");
+
+    const malformed = restoreBackupJson(store, "{ invalid json ...", TODAY, "en");
+    expect(malformed.success).toBe(false);
+    expect(malformed.error).toBe("Invalid JSON file.");
+
+    expectSeedUnchanged(store);
+  });
+
+  it("restores only the sections present in a partial backup", () => {
+    const store = seededStore();
+
+    const result = restoreBackupJson(
+      store,
+      JSON.stringify({
+        history: {
+          days: { "2026-08-01": 99 },
+          totalSessions: 99,
+          bestDayCount: 99,
+          bestDay: "2026-08-01",
+          bestWeekCount: 99,
+          bestStreak: 4,
+        },
+      }),
+      TODAY,
+      "en",
+    );
+
+    expect(result.success).toBe(true);
+    expect(loadHistory(store).totalSessions).toBe(99);
+    expect(loadTasks(store).tasks[0]?.text).toBe("KEEP-ME");
+    expect(loadPreferences(store, TODAY).settings.focusMinutes).toBe(33);
+  });
+
+  it("restores a backup keyed with the storage key names", () => {
+    const store = memoryStore();
+    const result = restoreBackupJson(
+      store,
+      JSON.stringify({
+        "pixel-pomodoro-pet:history": {
+          days: { "2026-08-01": 3 },
+          totalSessions: 3,
+          bestDayCount: 3,
+          bestDay: "2026-08-01",
+          bestWeekCount: 3,
+          bestStreak: 1,
+        },
+      }),
+      TODAY,
+      "en",
+    );
+
+    expect(result.success).toBe(true);
+    expect(loadHistory(store).totalSessions).toBe(3);
+  });
 });
+
+const SEED_HISTORY = {
+  days: { "2026-08-01": 7 },
+  totalSessions: 7,
+  bestDayCount: 7,
+  bestDay: "2026-08-01",
+  bestWeekCount: 7,
+  bestStreak: 1,
+} as const;
+
+function seededStore() {
+  const store = memoryStore();
+  saveHistory(store, SEED_HISTORY);
+  saveTasks(store, {
+    tasks: [
+      {
+        id: "keep",
+        text: "KEEP-ME",
+        section: "",
+        estimatePomodoros: 2,
+        completedPomodoros: 0,
+        done: false,
+        createdAt: "2026-08-01T10:00:00.000Z",
+      },
+    ],
+    activeId: "keep",
+  });
+  const prefs = loadPreferences(store, TODAY);
+  savePreferences(store, {
+    ...prefs,
+    settings: { ...prefs.settings, focusMinutes: 33 },
+  });
+  return store;
+}
+
+function expectSeedUnchanged(store: ReturnType<typeof memoryStore>): void {
+  expect(loadHistory(store).totalSessions).toBe(7);
+  expect(loadTasks(store).tasks[0]?.text).toBe("KEEP-ME");
+  expect(loadPreferences(store, TODAY).settings.focusMinutes).toBe(33);
+}
