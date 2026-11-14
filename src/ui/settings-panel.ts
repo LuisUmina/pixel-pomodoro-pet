@@ -474,11 +474,15 @@ export class SettingsPanel {
     disabled: boolean,
     force = false,
   ): void {
-    const serialized = JSON.stringify(reminders);
+    const serialized = customRemindersSignature(reminders);
     if (
-      !force &&
-      serialized === this.#lastCustomRemindersSignature &&
-      disabled === this.#lastCustomRemindersDisabled
+      shouldSkipCustomReminderRender(
+        serialized,
+        disabled,
+        this.#lastCustomRemindersSignature,
+        this.#lastCustomRemindersDisabled,
+        force,
+      )
     ) {
       return;
     }
@@ -727,7 +731,21 @@ function read(
   return Math.min(max, Math.max(min, Math.round(value)));
 }
 
-function sameSettingsModel(a: SettingsModel, b: SettingsModel): boolean {
+export function customRemindersSignature(reminders: readonly CustomReminder[]): string {
+  return JSON.stringify(reminders);
+}
+
+export function shouldSkipCustomReminderRender(
+  serialized: string,
+  disabled: boolean,
+  lastSerialized: string,
+  lastDisabled: boolean | null,
+  force = false,
+): boolean {
+  return !force && serialized === lastSerialized && disabled === lastDisabled;
+}
+
+export function sameSettingsModel(a: SettingsModel, b: SettingsModel): boolean {
   return (
     samePomodoroSettings(a.settings, b.settings) &&
     a.uiScale === b.uiScale &&
@@ -774,7 +792,7 @@ function sameRecord(
   return keysA.every((key) => a[key] === b[key]);
 }
 
-function sameCustomReminders(
+export function sameCustomReminders(
   a: readonly CustomReminder[],
   b: readonly CustomReminder[],
 ): boolean {
