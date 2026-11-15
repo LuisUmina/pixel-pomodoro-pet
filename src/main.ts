@@ -14,10 +14,14 @@ import { currentStreak, heatmap, recordSession } from "./core/history";
 import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
+import { withCompletedToday, preferencesUnchanged } from "./core/persist-skip";
+import {
+  resolveReminderConfig,
+  type ReminderConfig,
+} from "./core/reminder-config";
 import {
   INITIAL_REMINDERS,
   accrueReminders,
-  customReminderPacks,
   takeReminder,
 } from "./core/reminders";
 import {
@@ -38,7 +42,6 @@ import { applyLanguage } from "./i18n/apply";
 import type { Language } from "./i18n/language";
 import { t } from "./i18n/strings";
 import { catalogFor } from "./messages/catalog";
-import { reminderPacksFor } from "./messages/reminders";
 import type { Mood, Trigger, Voice } from "./messages/types";
 import { clampDailyGoal } from "./dailyGoal";
 import { clampDimOpacity } from "./dim";
@@ -55,7 +58,6 @@ import {
   loadPreferences,
   restorePanelDefaults,
   savePreferences,
-  type Preferences,
 } from "./store/preferences";
 import { loadTasks, readLegacyTaskText, saveTasks } from "./store/tasks";
 import { AutoDim } from "./ui/auto-dim";
@@ -313,42 +315,16 @@ function main(): void {
    * which phase. A poll would have to attribute a whole minute to whatever
    * the state happened to be when it woke up.
    */
-  let cachedReminderConfig: {
-    reminders: Preferences["reminders"];
-    customReminders: Preferences["customReminders"];
-    language: Language;
-    enabled: Readonly<Record<string, boolean>>;
-    allReminders: ReturnType<typeof customReminderPacks>;
-  } | null = null;
+  let cachedReminderConfig: ReminderConfig | null = null;
 
-  function getReminderConfig(): {
-    enabled: Readonly<Record<string, boolean>>;
-    allReminders: ReturnType<typeof customReminderPacks>;
-  } {
-    if (
-      cachedReminderConfig !== null &&
-      cachedReminderConfig.reminders === preferences.reminders &&
-      cachedReminderConfig.customReminders === preferences.customReminders &&
-      cachedReminderConfig.language === preferences.language
-    ) {
-      return cachedReminderConfig;
-    }
-
-    const custom = customReminderPacks(preferences.customReminders);
-    const enabled = {
-      ...preferences.reminders,
-      ...Object.fromEntries(custom.map((reminder) => [reminder.id, true])),
-    };
-    const allReminders = [...reminderPacksFor(preferences.language), ...custom];
-    const next = {
+  function getReminderConfig(): ReminderConfig {
+    const resolved = resolveReminderConfig(cachedReminderConfig, {
       reminders: preferences.reminders,
       customReminders: preferences.customReminders,
       language: preferences.language,
-      enabled,
-      allReminders,
-    };
-    cachedReminderConfig = next;
-    return next;
+    });
+    cachedReminderConfig = resolved.config;
+    return resolved.config;
   }
 
   function trackReminders(elapsedMs: number, phase: Phase, alreadySpoke: boolean): void {
@@ -757,14 +733,9 @@ function main(): void {
   }
 
   function save(): void {
-    if (preferences.completedToday !== state.completedToday) {
-      preferences = {
-        ...preferences,
-        completedToday: state.completedToday,
-      };
-    }
+    preferences = withCompletedToday(preferences, state.completedToday);
 
-    if (preferences === savedPreferences) {
+    if (preferencesUnchanged(preferences, savedPreferences)) {
       return;
     }
 
