@@ -8,6 +8,7 @@ import { QUIET_PRESETS, formatQuiet } from "../core/quiet";
 import type { Phase, PomodoroSettings } from "../core/types";
 import { DAILY_GOAL_PRESETS, formatDailyGoal } from "../dailyGoal";
 import { DIM_OPACITY_PRESETS, formatDimOpacity } from "../dim";
+import { petHintTitle, shortcutUpdateFailedMessage } from "../i18n/chrome-titles";
 import { DEFAULT_LANGUAGE, LANGUAGES, type Language } from "../i18n/language";
 import { t, type UiStringKey } from "../i18n/strings";
 import { reminderPacksFor } from "../messages/reminders";
@@ -106,17 +107,6 @@ const SHORTCUT_LABEL_KEYS: Readonly<Record<ShortcutAction, UiStringKey>> = {
   ghost: "shortcuts.ghost",
   mini: "shortcuts.mini",
   hide: "shortcuts.hide",
-};
-
-const PET_HINT_KEYS: Readonly<Record<string, UiStringKey>> = {
-  duck: "pet.duck.hint",
-  tentacat: "pet.tentacat.hint",
-  bug: "pet.bug.hint",
-  coffee: "pet.coffee.hint",
-  ninja: "pet.ninja.hint",
-  pill: "pet.pill.hint",
-  terminal: "pet.terminal.hint",
-  spark: "pet.spark.hint",
 };
 
 /** The durations and widget size, behind the gear button. */
@@ -281,10 +271,7 @@ export class SettingsPanel {
         button.title = t(VOICE_HINT_KEYS[voice], this.#language);
       }
       for (const [id, button] of this.#petButtons) {
-        const key = PET_HINT_KEYS[id];
-        if (key) {
-          button.title = t(key, this.#language);
-        }
+        button.title = petHintTitle(id, this.#language, button.title);
       }
     }
 
@@ -643,7 +630,7 @@ export class SettingsPanel {
     this.#shortcutsError.hidden = true;
     const res = await this.actions.changeShortcuts(current as ShortcutMap);
     if (!res.success) {
-      this.#shortcutsError.textContent = t("shortcuts.updateFailed", this.#language);
+      this.#shortcutsError.textContent = shortcutUpdateFailedMessage(this.#language);
       this.#shortcutsError.hidden = false;
       for (const input of this.#shortcutInputs.values()) {
         input.classList.add("shortcut__input--error");
@@ -664,8 +651,7 @@ export class SettingsPanel {
   #buildPetButtons(): void {
     for (const character of CHARACTERS) {
       const button = chip(character.label, () => this.actions.changeCharacter(character.id));
-      const hintKey = PET_HINT_KEYS[character.id];
-      button.title = hintKey ? t(hintKey, this.#language) : character.hint;
+      button.title = petHintTitle(character.id, this.#language, character.hint);
 
       this.#petButtons.set(character.id, button);
       this.#pets.append(button);

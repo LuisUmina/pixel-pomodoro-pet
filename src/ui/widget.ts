@@ -7,6 +7,7 @@ import { getCharacter, type PetState } from "../sprites/characters";
 import type { ShortcutMap } from "../core/shortcuts";
 import type { CustomReminder } from "../core/reminders";
 import type { Theme } from "../sprites/themes";
+import { shortcutChromeTitle } from "../i18n/chrome-titles";
 import { DEFAULT_LANGUAGE, type Language } from "../i18n/language";
 import { t, type UiStringKey } from "../i18n/strings";
 import { applyLanguage } from "../i18n/apply";
@@ -280,29 +281,14 @@ export class Widget {
       this.#shortcutsSignature = "";
     }
 
-    const shortcutsSignature = JSON.stringify(model.shortcuts);
+    const shortcutsSignature = `${model.language}:${JSON.stringify(model.shortcuts)}`;
     if (shortcutsSignature !== this.#shortcutsSignature) {
       this.#shortcutsSignature = shortcutsSignature;
-      this.#ghostButton.title = t("titlebar.ghost", model.language).replace(
-        "Ctrl+Alt+G",
-        model.shortcuts.ghost,
-      );
-      this.#miniButton.title = t("titlebar.mini", model.language).replace(
-        "Ctrl+Alt+Z",
-        model.shortcuts.mini,
-      );
-      this.#hideButton.title = t("titlebar.hide", model.language).replace(
-        "Ctrl+Alt+H",
-        model.shortcuts.hide,
-      );
-      this.#skipButton.title = t("controls.skipHint", model.language).replace(
-        "Ctrl+Alt+N",
-        model.shortcuts.skip,
-      );
-      this.#resetButton.title = t("controls.resetHint", model.language).replace(
-        "Ctrl+Alt+R",
-        model.shortcuts.reset,
-      );
+      this.#ghostButton.title = shortcutChromeTitle("ghost", model.language, model.shortcuts);
+      this.#miniButton.title = shortcutChromeTitle("mini", model.language, model.shortcuts);
+      this.#hideButton.title = shortcutChromeTitle("hide", model.language, model.shortcuts);
+      this.#skipButton.title = shortcutChromeTitle("skip", model.language, model.shortcuts);
+      this.#resetButton.title = shortcutChromeTitle("reset", model.language, model.shortcuts);
     }
 
     this.#widget.dataset["phase"] = state.phase;
