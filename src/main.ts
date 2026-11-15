@@ -8,7 +8,8 @@ import {
   noteSpoken,
   speak,
 } from "./core/dialogue";
-import { completionNotice, isoDay } from "./core/format";
+import { completionNotice, formatClock, isoDay } from "./core/format";
+import { miniDispatchNeedsResize, shouldSkipMiniResize } from "./core/mini-footprint";
 import { currentStreak, heatmap, recordSession } from "./core/history";
 import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
@@ -154,6 +155,7 @@ function main(): void {
       preferences = { ...preferences, characterId: id };
       save();
       render();
+      syncMiniWindowSize();
     },
     changeMiniMode: (enabled) => applyMiniMode(enabled),
     changeTaskChecklist: (enabled) => applyTaskChecklist(enabled),
@@ -187,6 +189,7 @@ function main(): void {
     const wasRunning = state.status === "running";
     // The phase the elapsed time belongs to, which a completing tick changes.
     const phaseBefore = state.phase;
+    const clockLengthBefore = formatClock(state.remainingMs).length;
     const transition = reduce(state, event, preferences.settings);
     state = transition.state;
 
@@ -234,6 +237,16 @@ function main(): void {
     autoDim.setEnabled(state.status === "running" && preferences.dimOpacity > 0);
     save();
     render();
+    if (
+      preferences.miniMode &&
+      miniDispatchNeedsResize(
+        transition.completed,
+        clockLengthBefore,
+        formatClock(state.remainingMs).length,
+      )
+    ) {
+      syncMiniWindowSize();
+    }
   }
 
   function announce(phase: Phase): void {
@@ -415,6 +428,7 @@ function main(): void {
     saveTasks(browserStore, tasks);
     dispatch({ type: "setTask", task: activeTaskText(tasks) });
     widget.refreshTasks();
+    syncMiniWindowSize();
   }
 
   /**
@@ -518,6 +532,7 @@ function main(): void {
     state = withSettings(state, settings);
     save();
     render();
+    syncMiniWindowSize();
   }
 
   /**
@@ -544,8 +559,9 @@ function main(): void {
     if (resizeWindow && uiScale !== appliedWindowScale) {
       appliedWindowScale = uiScale;
       if (preferences.miniMode) {
-        const size = widget.measureFrame();
-        desktop.resizeKeepCenter(size.width, size.height);
+        // Keep lastMiniSize in lockstep with applyScale's mini resize so a
+        // later syncMiniWindowSize does not fire a duplicate IPC.
+        syncMiniWindowSize(true);
       } else {
         desktop.setScale(uiScale);
       }
@@ -577,6 +593,23 @@ function main(): void {
    * taken now would read that still-small viewport and lock the window at
    * whatever full mode could be squeezed into rather than its real size.
    */
+  let lastMiniSize: { width: number; height: number } | null = null;
+
+  function syncMiniWindowSize(force = false): void {
+    if (!preferences.miniMode) {
+      lastMiniSize = null;
+      return;
+    }
+
+    const size = widget.measureFrame();
+    if (shouldSkipMiniResize(lastMiniSize, size, force)) {
+      return;
+    }
+
+    lastMiniSize = size;
+    desktop.resizeKeepCenter(size.width, size.height);
+  }
+
   function applyMiniMode(enabled: boolean): void {
     preferences = { ...preferences, miniMode: enabled };
     save();
@@ -587,10 +620,9 @@ function main(): void {
       // still open from before; mini mode has nowhere to put either panel,
       // and its hover-revealed titlebar sits above them anyway.
       widget.closePanels();
-
-      const size = widget.measureFrame();
-      desktop.resizeKeepCenter(size.width, size.height);
+      syncMiniWindowSize(true);
     } else {
+      lastMiniSize = null;
       desktop.resizeKeepCenter(BASE_WIDGET_WIDTH * uiScale, BASE_WIDGET_HEIGHT * uiScale);
     }
   }
@@ -608,11 +640,7 @@ function main(): void {
     preferences = { ...preferences, taskChecklist: enabled };
     save();
     render();
-
-    if (preferences.miniMode) {
-      const size = widget.measureFrame();
-      desktop.resizeKeepCenter(size.width, size.height);
-    }
+    syncMiniWindowSize(true);
   }
 
   /**
