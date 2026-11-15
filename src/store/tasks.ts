@@ -27,6 +27,32 @@ export function loadTasks(store: JsonStore): TasksState {
     return INITIAL_TASKS;
   }
 
+  return tasksFromRecord(raw);
+}
+
+/**
+ * Whether a backup value may replace the stored checklist.
+ *
+ * `loadTasks` turns a missing or empty-looking object into
+ * {@link INITIAL_TASKS}. That is the right read for a missing store key and
+ * the wrong write for import. A payload is importable when at least one task
+ * survives the same checks, or when it is a complete tasks record — including
+ * `{ tasks: [], activeId: null }`, which is what export writes for a profile
+ * with no tasks.
+ */
+export function isImportableTasks(raw: unknown): boolean {
+  if (!isRecord(raw)) {
+    return false;
+  }
+
+  if (Array.isArray(raw["tasks"]) && raw["tasks"].some((entry) => readTask(entry) !== null)) {
+    return true;
+  }
+
+  return isCompleteTasksRecord(raw);
+}
+
+function tasksFromRecord(raw: Record<string, unknown>): TasksState {
   const tasks = Array.isArray(raw["tasks"]) ? raw["tasks"].map(readTask).filter(isTask) : [];
 
   const activeId = raw["activeId"];
@@ -34,6 +60,28 @@ export function loadTasks(store: JsonStore): TasksState {
   const active = typeof activeId === "string" && activeTask && !activeTask.done ? activeId : null;
 
   return { tasks, activeId: active };
+}
+
+function isCompleteTasksRecord(raw: Record<string, unknown>): boolean {
+  if (!Array.isArray(raw["tasks"])) {
+    return false;
+  }
+
+  const tasks: Task[] = [];
+  for (const entry of raw["tasks"]) {
+    const task = readTask(entry);
+    if (task === null) {
+      return false;
+    }
+    tasks.push(task);
+  }
+
+  const activeId = raw["activeId"];
+  if (activeId === null) {
+    return true;
+  }
+
+  return typeof activeId === "string" && tasks.some((task) => task.id === activeId);
 }
 
 /**
