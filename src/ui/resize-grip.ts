@@ -43,7 +43,11 @@ export class ResizeGrip {
 
   readonly #onPointerMove = (event: PointerEvent): void => {
     const travel = (event.screenX - this.#startX) / BASE_WIDGET_WIDTH;
-    this.#scale = clampUiScale(this.#startScale + travel);
+    const nextScale = clampUiScale(this.#startScale + travel);
+    if (nextScale === this.#scale) {
+      return;
+    }
+    this.#scale = nextScale;
     this.onPreview(this.#scale);
   };
 
