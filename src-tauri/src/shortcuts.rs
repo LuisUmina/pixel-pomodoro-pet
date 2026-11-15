@@ -100,7 +100,7 @@ pub fn update_shortcuts<R: Runtime>(
                 active_bindings.insert(*shortcut, *action);
                 next_configured.insert(action_key.clone(), *shortcut);
             }
-            Err(err) if is_best_effort || was_unchanged => {
+            Err(err) if tolerate_register_error(is_best_effort, was_unchanged) => {
                 eprintln!("could not bind a global shortcut for {action_key}: {err}");
                 next_configured.insert(action_key.clone(), *shortcut);
             }
@@ -120,6 +120,12 @@ pub fn update_shortcuts<R: Runtime>(
     *current_guard = active_bindings;
     *configured_guard = next_configured;
     Ok(())
+}
+
+/// Skip rollback when restoring a saved map (`best_effort`) or when the key did
+/// not change. Must stay in sync with `src/core/shortcut-register.ts`.
+fn tolerate_register_error(best_effort: bool, was_unchanged: bool) -> bool {
+    best_effort || was_unchanged
 }
 
 pub fn plugin<R: Runtime>() -> TauriPlugin<R> {
@@ -179,4 +185,17 @@ pub fn setup(app: &App) -> Result<(), Box<dyn std::error::Error>> {
     });
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::tolerate_register_error;
+
+    #[test]
+    fn interactive_edit_rolls_back_only_a_changed_key_failure() {
+        assert!(!tolerate_register_error(false, false));
+        assert!(tolerate_register_error(false, true));
+        assert!(tolerate_register_error(true, false));
+        assert!(tolerate_register_error(true, true));
+    }
 }
