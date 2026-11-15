@@ -9,6 +9,7 @@ import {
   speak,
 } from "./core/dialogue";
 import { completionNotice, formatClock, isoDay } from "./core/format";
+import { miniDispatchNeedsResize, shouldSkipMiniResize } from "./core/mini-footprint";
 import { currentStreak, heatmap, recordSession } from "./core/history";
 import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
@@ -238,7 +239,11 @@ function main(): void {
     render();
     if (
       preferences.miniMode &&
-      (transition.completed !== null || formatClock(state.remainingMs).length !== clockLengthBefore)
+      miniDispatchNeedsResize(
+        transition.completed,
+        clockLengthBefore,
+        formatClock(state.remainingMs).length,
+      )
     ) {
       syncMiniWindowSize();
     }
@@ -554,8 +559,9 @@ function main(): void {
     if (resizeWindow && uiScale !== appliedWindowScale) {
       appliedWindowScale = uiScale;
       if (preferences.miniMode) {
-        const size = widget.measureFrame();
-        desktop.resizeKeepCenter(size.width, size.height);
+        // Keep lastMiniSize in lockstep with applyScale's mini resize so a
+        // later syncMiniWindowSize does not fire a duplicate IPC.
+        syncMiniWindowSize(true);
       } else {
         desktop.setScale(uiScale);
       }
@@ -596,12 +602,7 @@ function main(): void {
     }
 
     const size = widget.measureFrame();
-    if (
-      !force &&
-      lastMiniSize !== null &&
-      Math.abs(size.width - lastMiniSize.width) < 0.5 &&
-      Math.abs(size.height - lastMiniSize.height) < 0.5
-    ) {
+    if (shouldSkipMiniResize(lastMiniSize, size, force)) {
       return;
     }
 
