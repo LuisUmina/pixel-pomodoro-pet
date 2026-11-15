@@ -8,7 +8,8 @@ import {
   noteSpoken,
   speak,
 } from "./core/dialogue";
-import { completionNotice, isoDay } from "./core/format";
+import { completionNotice, formatClock, isoDay } from "./core/format";
+import { miniDispatchNeedsResize, shouldSkipMiniResize } from "./core/mini-footprint";
 import { currentStreak, heatmap, recordSession } from "./core/history";
 import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
@@ -30,6 +31,7 @@ import {
   type TasksState,
 } from "./core/tasks";
 import { Ticker } from "./core/ticker";
+import { storedShortcutsAfterRestore } from "./core/shortcut-register";
 import { DEFAULT_SHORTCUTS, type ShortcutMap } from "./core/shortcuts";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { applyLanguage } from "./i18n/apply";
@@ -48,7 +50,7 @@ import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { exportBackupJson, restoreBackupJson } from "./store/backup";
 import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
-import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
+import { defaultPreferences, loadPreferences, restorePanelDefaults, savePreferences } from "./store/preferences";
 import { loadTasks, readLegacyTaskText, saveTasks } from "./store/tasks";
 import { AutoDim } from "./ui/auto-dim";
 import type { HistoryModel } from "./ui/history-panel";
@@ -88,6 +90,7 @@ function main(): void {
   });
 
   let uiScale = preferences.uiScale;
+  let appliedWindowScale: number | null = null;
   let savedSignature = JSON.stringify(preferences);
   let ghost = false;
   let celebrating = false;
@@ -153,6 +156,7 @@ function main(): void {
       preferences = { ...preferences, characterId: id };
       save();
       render();
+      syncMiniWindowSize();
     },
     changeMiniMode: (enabled) => applyMiniMode(enabled),
     changeTaskChecklist: (enabled) => applyTaskChecklist(enabled),
@@ -186,6 +190,7 @@ function main(): void {
     const wasRunning = state.status === "running";
     // The phase the elapsed time belongs to, which a completing tick changes.
     const phaseBefore = state.phase;
+    const clockLengthBefore = formatClock(state.remainingMs).length;
     const transition = reduce(state, event, preferences.settings);
     state = transition.state;
 
@@ -233,6 +238,16 @@ function main(): void {
     autoDim.setEnabled(state.status === "running" && preferences.dimOpacity > 0);
     save();
     render();
+    if (
+      preferences.miniMode &&
+      miniDispatchNeedsResize(
+        transition.completed,
+        clockLengthBefore,
+        formatClock(state.remainingMs).length,
+      )
+    ) {
+      syncMiniWindowSize();
+    }
   }
 
   function announce(phase: Phase): void {
@@ -414,6 +429,7 @@ function main(): void {
     saveTasks(browserStore, tasks);
     dispatch({ type: "setTask", task: activeTaskText(tasks) });
     widget.refreshTasks();
+    syncMiniWindowSize();
   }
 
   /**
@@ -428,17 +444,7 @@ function main(): void {
     const shipped = defaultPreferences(preferences.day);
     const previousShortcuts = preferences.shortcuts;
 
-    preferences = {
-      ...preferences,
-      settings: shipped.settings,
-      voice: shipped.voice,
-      reminders: shipped.reminders,
-      customReminders: shipped.customReminders,
-      shortcuts: shipped.shortcuts,
-      quietUntil: shipped.quietUntil,
-      characterId: shipped.characterId,
-      taskChecklist: shipped.taskChecklist,
-    };
+    preferences = restorePanelDefaults(preferences, shipped);
 
     state = withSettings(state, shipped.settings);
     reminders = INITIAL_REMINDERS;
@@ -446,9 +452,15 @@ function main(): void {
     applyMiniMode(shipped.miniMode);
     applyDimOpacity(shipped.dimOpacity, true);
     applyDailyGoal(shipped.dailyGoal, true);
-    void desktop.updateShortcuts(shipped.shortcuts).then((res) => {
+    // Keep #5's best-effort OS register (a conflict must not abort Restore
+    // Defaults). If the invoke itself fails, the native shell rolled back —
+    // put stored shortcuts back so the UI matches the OS.
+    void desktop.updateShortcuts(shipped.shortcuts, { bestEffort: true }).then((res) => {
       if (!res.success) {
-        preferences = { ...preferences, shortcuts: previousShortcuts };
+        preferences = {
+          ...preferences,
+          shortcuts: storedShortcutsAfterRestore(previousShortcuts, shipped.shortcuts, res.success),
+        };
         save();
         render();
       }
@@ -485,21 +497,34 @@ function main(): void {
     const result = restoreBackupJson(browserStore, rawJson, today, preferences.language);
 
     if (result.success) {
+      ticker.stop();
+      if (celebrationTimer !== null) {
+        clearTimeout(celebrationTimer);
+        celebrationTimer = null;
+      }
+      celebrating = false;
+      dialogue = INITIAL_DIALOGUE;
+      reminders = INITIAL_REMINDERS;
+      lastBreakEndedAt = Date.now();
+
       history = loadHistory(browserStore);
       tasks = loadTasks(browserStore);
       preferences = loadPreferences(browserStore, today);
+      savedSignature = JSON.stringify(preferences);
       state = createInitialState(preferences.settings, {
         task: activeTaskText(tasks),
         completedToday: preferences.completedToday,
       });
+      refreshMood();
       theme = getTheme(preferences.themeId);
       applyThemeCss(theme, document.documentElement);
-      applyScale(preferences.uiScale, false);
+      applyScale(preferences.uiScale, false, !preferences.miniMode);
       applyMiniMode(preferences.miniMode);
       applyDimOpacity(preferences.dimOpacity, false);
       applyDailyGoal(preferences.dailyGoal, false);
       applyTasksChange(tasks);
-      void desktop.updateShortcuts(preferences.shortcuts);
+      widget.refreshHistory();
+      void desktop.updateShortcuts(preferences.shortcuts, { bestEffort: true });
       render();
       utter(t("settings.importSuccess", preferences.language), Date.now());
     } else {
@@ -512,6 +537,7 @@ function main(): void {
     state = withSettings(state, settings);
     save();
     render();
+    syncMiniWindowSize();
   }
 
   /**
@@ -528,16 +554,23 @@ function main(): void {
     uiScale = clampUiScale(scale);
     document.documentElement.style.setProperty("--ui-scale", String(uiScale));
 
-    if (resizeWindow) {
-      desktop.setScale(uiScale);
-    }
-
     if (persist) {
       preferences = { ...preferences, uiScale };
       save();
     }
 
     render();
+
+    if (resizeWindow && uiScale !== appliedWindowScale) {
+      appliedWindowScale = uiScale;
+      if (preferences.miniMode) {
+        // Keep lastMiniSize in lockstep with applyScale's mini resize so a
+        // later syncMiniWindowSize does not fire a duplicate IPC.
+        syncMiniWindowSize(true);
+      } else {
+        desktop.setScale(uiScale);
+      }
+    }
   }
 
   function setGhost(enabled: boolean): void {
@@ -565,6 +598,23 @@ function main(): void {
    * taken now would read that still-small viewport and lock the window at
    * whatever full mode could be squeezed into rather than its real size.
    */
+  let lastMiniSize: { width: number; height: number } | null = null;
+
+  function syncMiniWindowSize(force = false): void {
+    if (!preferences.miniMode) {
+      lastMiniSize = null;
+      return;
+    }
+
+    const size = widget.measureFrame();
+    if (shouldSkipMiniResize(lastMiniSize, size, force)) {
+      return;
+    }
+
+    lastMiniSize = size;
+    desktop.resizeKeepCenter(size.width, size.height);
+  }
+
   function applyMiniMode(enabled: boolean): void {
     preferences = { ...preferences, miniMode: enabled };
     save();
@@ -575,10 +625,9 @@ function main(): void {
       // still open from before; mini mode has nowhere to put either panel,
       // and its hover-revealed titlebar sits above them anyway.
       widget.closePanels();
-
-      const size = widget.measureFrame();
-      desktop.resizeKeepCenter(size.width, size.height);
+      syncMiniWindowSize(true);
     } else {
+      lastMiniSize = null;
       desktop.resizeKeepCenter(BASE_WIDGET_WIDTH * uiScale, BASE_WIDGET_HEIGHT * uiScale);
     }
   }
@@ -596,11 +645,7 @@ function main(): void {
     preferences = { ...preferences, taskChecklist: enabled };
     save();
     render();
-
-    if (preferences.miniMode) {
-      const size = widget.measureFrame();
-      desktop.resizeKeepCenter(size.width, size.height);
-    }
+    syncMiniWindowSize(true);
   }
 
   /**
@@ -782,7 +827,7 @@ function main(): void {
 
   widget.start();
   if (JSON.stringify(preferences.shortcuts) !== JSON.stringify(DEFAULT_SHORTCUTS)) {
-    void desktop.updateShortcuts(preferences.shortcuts);
+    void desktop.updateShortcuts(preferences.shortcuts, { bestEffort: true });
   }
   // Restores the size the widget was left at, window included -- unless
   // mini mode is about to override it right below. The native window

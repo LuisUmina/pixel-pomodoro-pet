@@ -127,6 +127,10 @@ export const UI_STRINGS = {
     en: "That file's contents are not a valid object.",
     es: "El contenido del archivo no es un objeto válido.",
   },
+  "settings.importInvalidBackup": {
+    en: "That file does not contain valid backup data.",
+    es: "El archivo no contiene datos de respaldo válidos.",
+  },
 
   "customReminder.message": { en: "message", es: "mensaje" },
   "customReminder.cadenceHint": {
