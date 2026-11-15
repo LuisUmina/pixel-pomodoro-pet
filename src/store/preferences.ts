@@ -78,6 +78,26 @@ export function defaultPreferences(day: string): Preferences {
 }
 
 /**
+ * Fields Restore Defaults writes from the shipped profile. Theme, language,
+ * sound, and the day's tally are not in that panel and stay on `current`.
+ * `taskChecklist` is: leaving it out kept the mini-mode checklist on after
+ * a reset that otherwise returned every other panel control to stock.
+ */
+export function restorePanelDefaults(current: Preferences, shipped: Preferences): Preferences {
+  return {
+    ...current,
+    settings: shipped.settings,
+    voice: shipped.voice,
+    reminders: shipped.reminders,
+    customReminders: shipped.customReminders,
+    shortcuts: shipped.shortcuts,
+    quietUntil: shipped.quietUntil,
+    characterId: shipped.characterId,
+    taskChecklist: shipped.taskChecklist,
+  };
+}
+
+/**
  * Whether a backup value may replace stored preferences.
  *
  * `loadPreferences` fills every gap from the defaults. An empty object would

@@ -31,6 +31,7 @@ import {
   type TasksState,
 } from "./core/tasks";
 import { Ticker } from "./core/ticker";
+import { storedShortcutsAfterRestore } from "./core/shortcut-register";
 import { DEFAULT_SHORTCUTS, type ShortcutMap } from "./core/shortcuts";
 import type { Phase, PomodoroEvent, PomodoroSettings } from "./core/types";
 import { applyLanguage } from "./i18n/apply";
@@ -49,7 +50,7 @@ import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { exportBackupJson, restoreBackupJson } from "./store/backup";
 import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
-import { defaultPreferences, loadPreferences, savePreferences } from "./store/preferences";
+import { defaultPreferences, loadPreferences, restorePanelDefaults, savePreferences } from "./store/preferences";
 import { loadTasks, readLegacyTaskText, saveTasks } from "./store/tasks";
 import { AutoDim } from "./ui/auto-dim";
 import type { HistoryModel } from "./ui/history-panel";
@@ -441,17 +442,9 @@ function main(): void {
    */
   function restoreDefaults(): void {
     const shipped = defaultPreferences(preferences.day);
+    const previousShortcuts = preferences.shortcuts;
 
-    preferences = {
-      ...preferences,
-      settings: shipped.settings,
-      voice: shipped.voice,
-      reminders: shipped.reminders,
-      customReminders: shipped.customReminders,
-      shortcuts: shipped.shortcuts,
-      quietUntil: shipped.quietUntil,
-      characterId: shipped.characterId,
-    };
+    preferences = restorePanelDefaults(preferences, shipped);
 
     state = withSettings(state, shipped.settings);
     reminders = INITIAL_REMINDERS;
@@ -459,7 +452,19 @@ function main(): void {
     applyMiniMode(shipped.miniMode);
     applyDimOpacity(shipped.dimOpacity, true);
     applyDailyGoal(shipped.dailyGoal, true);
-    void desktop.updateShortcuts(shipped.shortcuts, { bestEffort: true });
+    // Keep #5's best-effort OS register (a conflict must not abort Restore
+    // Defaults). If the invoke itself fails, the native shell rolled back —
+    // put stored shortcuts back so the UI matches the OS.
+    void desktop.updateShortcuts(shipped.shortcuts, { bestEffort: true }).then((res) => {
+      if (!res.success) {
+        preferences = {
+          ...preferences,
+          shortcuts: storedShortcutsAfterRestore(previousShortcuts, shipped.shortcuts, res.success),
+        };
+        save();
+        render();
+      }
+    });
   }
 
   async function applyShortcuts(
