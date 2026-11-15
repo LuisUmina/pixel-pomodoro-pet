@@ -444,7 +444,7 @@ function main(): void {
     applyMiniMode(shipped.miniMode);
     applyDimOpacity(shipped.dimOpacity, true);
     applyDailyGoal(shipped.dailyGoal, true);
-    void desktop.updateShortcuts(shipped.shortcuts);
+    void desktop.updateShortcuts(shipped.shortcuts, { bestEffort: true });
   }
 
   async function applyShortcuts(
@@ -504,7 +504,7 @@ function main(): void {
       applyDailyGoal(preferences.dailyGoal, false);
       applyTasksChange(tasks);
       widget.refreshHistory();
-      void desktop.updateShortcuts(preferences.shortcuts);
+      void desktop.updateShortcuts(preferences.shortcuts, { bestEffort: true });
       render();
       utter(t("settings.importSuccess", preferences.language), Date.now());
     } else {
@@ -787,7 +787,7 @@ function main(): void {
 
   widget.start();
   if (JSON.stringify(preferences.shortcuts) !== JSON.stringify(DEFAULT_SHORTCUTS)) {
-    void desktop.updateShortcuts(preferences.shortcuts);
+    void desktop.updateShortcuts(preferences.shortcuts, { bestEffort: true });
   }
   // Restores the size the widget was left at, window included -- unless
   // mini mode is about to override it right below. The native window
