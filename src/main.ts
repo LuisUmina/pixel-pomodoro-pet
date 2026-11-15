@@ -477,20 +477,33 @@ function main(): void {
     const result = restoreBackupJson(browserStore, rawJson, today, preferences.language);
 
     if (result.success) {
+      ticker.stop();
+      if (celebrationTimer !== null) {
+        clearTimeout(celebrationTimer);
+        celebrationTimer = null;
+      }
+      celebrating = false;
+      dialogue = INITIAL_DIALOGUE;
+      reminders = INITIAL_REMINDERS;
+      lastBreakEndedAt = Date.now();
+
       history = loadHistory(browserStore);
       tasks = loadTasks(browserStore);
       preferences = loadPreferences(browserStore, today);
+      savedSignature = JSON.stringify(preferences);
       state = createInitialState(preferences.settings, {
         task: activeTaskText(tasks),
         completedToday: preferences.completedToday,
       });
+      refreshMood();
       theme = getTheme(preferences.themeId);
       applyThemeCss(theme, document.documentElement);
-      applyScale(preferences.uiScale, false);
+      applyScale(preferences.uiScale, false, !preferences.miniMode);
       applyMiniMode(preferences.miniMode);
       applyDimOpacity(preferences.dimOpacity, false);
       applyDailyGoal(preferences.dailyGoal, false);
       applyTasksChange(tasks);
+      widget.refreshHistory();
       void desktop.updateShortcuts(preferences.shortcuts);
       render();
       utter(t("settings.importSuccess", preferences.language), Date.now());
