@@ -28,6 +28,7 @@ export const UI_STRINGS = {
     es: "Ocultar — Ctrl+Alt+H para volver a mostrarlo",
   },
   "titlebar.close": { en: "Close", es: "Cerrar" },
+  "bubble.dismiss": { en: "Click to dismiss", es: "Clic para cerrar" },
 
   "task.placeholder": { en: "what are you working on?", es: "¿en qué estás trabajando?" },
   "task.list": { en: "Task list", es: "Lista de tareas" },
@@ -75,6 +76,38 @@ export const UI_STRINGS = {
   "settings.petPreview": {
     en: "Animated preview of the selected character",
     es: "Vista previa animada del personaje seleccionado",
+  },
+  "pet.duck.hint": {
+    en: "The classic debugging companion",
+    es: "El clásico compañero de depuración",
+  },
+  "pet.tentacat.hint": {
+    en: "A curious cat with too many legs",
+    es: "Un gato curioso con demasiadas patas",
+  },
+  "pet.bug.hint": {
+    en: "The one bug you actually want to find",
+    es: "El bug que sí querés encontrar",
+  },
+  "pet.coffee.hint": {
+    en: "A mug that never lets focus go cold",
+    es: "Una taza que nunca deja enfriar el foco",
+  },
+  "pet.ninja.hint": {
+    en: "Silent focus",
+    es: "Foco silencioso",
+  },
+  "pet.pill.hint": {
+    en: "Doctor's orders: take your breaks",
+    es: "Órdenes del médico: tomá tus descansos",
+  },
+  "pet.terminal.hint": {
+    en: "A living command prompt",
+    es: "Una consola con vida propia",
+  },
+  "pet.spark.hint": {
+    en: "Pure electric energy",
+    es: "Pura energía eléctrica",
   },
   "settings.voice": { en: "voice", es: "voz" },
   "voice.dev.hint": { en: "Dry developer humour", es: "Humor seco de programador" },
@@ -126,6 +159,10 @@ export const UI_STRINGS = {
   "settings.importNotAnObject": {
     en: "That file's contents are not a valid object.",
     es: "El contenido del archivo no es un objeto válido.",
+  },
+  "settings.importInvalidBackup": {
+    en: "That file does not contain valid backup data.",
+    es: "El archivo no contiene datos de respaldo válidos.",
   },
 
   "customReminder.message": { en: "message", es: "mensaje" },
