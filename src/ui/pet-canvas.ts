@@ -9,6 +9,7 @@ import {
 } from "../sprites/characters";
 import { applyPatches, drawSprite } from "../sprites/renderer";
 import type { SpritePalette } from "../sprites/types";
+import { advancePetLoopCursor, petLoopShouldRun } from "./pet-loop";
 
 /** Screen pixels per sprite pixel, before device pixel ratio. */
 const SCALE = 5;
@@ -167,7 +168,7 @@ export class PetCanvas {
   };
 
   #requestPaint(): void {
-    if (!this.#running || document.hidden || !this.#dirty || this.#rafHandle !== null) {
+    if (!petLoopShouldRun(this.#running, document.hidden) || !this.#dirty || this.#rafHandle !== null) {
       return;
     }
 
@@ -187,7 +188,7 @@ export class PetCanvas {
       clearTimeout(this.#timerHandle);
       this.#timerHandle = null;
     }
-    if (!this.#running || document.hidden) {
+    if (!petLoopShouldRun(this.#running, document.hidden)) {
       return;
     }
 
@@ -202,22 +203,24 @@ export class PetCanvas {
 
   readonly #advanceFrame = (): void => {
     this.#timerHandle = null;
-    if (!this.#running || document.hidden) {
+    if (!petLoopShouldRun(this.#running, document.hidden)) {
       return;
     }
 
     const frames = this.#behavior?.frames ?? [];
-    this.#frameIndex += 1;
+    const next = advancePetLoopCursor(
+      this.#frameIndex,
+      frames.length,
+      this.#loopsDone,
+      this.#behavior?.loops ?? 1,
+    );
     this.#dirty = true;
 
-    if (this.#frameIndex >= frames.length) {
-      this.#frameIndex = 0;
-      this.#loopsDone += 1;
-
-      // Performance over: draw again rather than repeating on a loop.
-      if (this.#loopsDone >= (this.#behavior?.loops ?? 1)) {
-        this.#nextBehavior();
-      }
+    if (next.pickNextBehavior) {
+      this.#nextBehavior();
+    } else {
+      this.#frameIndex = next.frameIndex;
+      this.#loopsDone = next.loopsDone;
     }
 
     this.#requestPaint();
