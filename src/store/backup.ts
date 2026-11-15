@@ -2,10 +2,15 @@ import type { HistoryState } from "../core/history";
 import type { TasksState } from "../core/tasks";
 import type { Language } from "../i18n/language";
 import { t } from "../i18n/strings";
-import { loadHistory, saveHistory } from "./history";
+import { isImportableHistory, loadHistory, saveHistory } from "./history";
 import type { JsonStore } from "./persistence";
-import { loadPreferences, savePreferences, type Preferences } from "./preferences";
-import { loadTasks, saveTasks } from "./tasks";
+import {
+  isImportablePreferences,
+  loadPreferences,
+  savePreferences,
+  type Preferences,
+} from "./preferences";
+import { isImportableTasks, loadTasks, saveTasks } from "./tasks";
 
 export interface BackupPayload {
   version: 1;
@@ -51,15 +56,18 @@ export function restoreBackupJson(
     return { success: false, error: t("settings.importNotAnObject", language) };
   }
 
-  const rawHistory = isRecord(parsed["history"])
-    ? parsed["history"]
-    : parsed["pixel-pomodoro-pet:history"];
-  const rawTasks = isRecord(parsed["tasks"])
-    ? parsed["tasks"]
-    : parsed["pixel-pomodoro-pet:tasks"];
-  const rawPreferences = isRecord(parsed["preferences"])
-    ? parsed["preferences"]
-    : parsed["pixel-pomodoro-pet:preferences"];
+  const rawHistory = readSection(parsed, "history", "pixel-pomodoro-pet:history", isImportableHistory);
+  const rawTasks = readSection(parsed, "tasks", "pixel-pomodoro-pet:tasks", isImportableTasks);
+  const rawPreferences = readSection(
+    parsed,
+    "preferences",
+    "pixel-pomodoro-pet:preferences",
+    isImportablePreferences,
+  );
+
+  if (rawHistory === undefined && rawTasks === undefined && rawPreferences === undefined) {
+    return { success: false, error: t("settings.importInvalidBackup", language) };
+  }
 
   const tempStore: JsonStore = {
     get(key: string) {
@@ -71,15 +79,45 @@ export function restoreBackupJson(
     set() {},
   };
 
-  const history = loadHistory(tempStore);
-  const tasks = loadTasks(tempStore);
-  const preferences = loadPreferences(tempStore, today);
-
-  saveHistory(store, history);
-  saveTasks(store, tasks);
-  savePreferences(store, preferences);
+  if (rawHistory !== undefined) {
+    saveHistory(store, loadHistory(tempStore));
+  }
+  if (rawTasks !== undefined) {
+    saveTasks(store, loadTasks(tempStore));
+  }
+  if (rawPreferences !== undefined) {
+    savePreferences(store, loadPreferences(tempStore, today));
+  }
 
   return { success: true };
+}
+
+/**
+ * A section worth writing, or undefined when it is missing or would only
+ * normalize into a default.
+ *
+ * A non-object (`null`, an array) still falls through to the legacy storage
+ * key. An object the section predicate rejects does not: the loaders fill
+ * gaps with defaults, and writing that result would erase data the file
+ * never held.
+ */
+function readSection(
+  parsed: Record<string, unknown>,
+  key: string,
+  legacyKey: string,
+  accept: (value: Record<string, unknown>) => boolean,
+): Record<string, unknown> | undefined {
+  const primary = parsed[key];
+  if (isRecord(primary)) {
+    return accept(primary) ? primary : undefined;
+  }
+
+  const legacy = parsed[legacyKey];
+  if (isRecord(legacy)) {
+    return accept(legacy) ? legacy : undefined;
+  }
+
+  return undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

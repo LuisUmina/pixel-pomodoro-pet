@@ -32,6 +32,32 @@ export function loadHistory(store: JsonStore): HistoryState {
     return INITIAL_HISTORY;
   }
 
+  return historyFromRecord(raw);
+}
+
+/**
+ * Whether a backup value may replace stored history.
+ *
+ * `loadHistory` fills every gap with a zero. That is the right read for a
+ * missing store key and the wrong write for import: `{}` would become
+ * {@link INITIAL_HISTORY} and erase a real log. A payload is importable when
+ * the same day checks keep at least one session, or when it is a complete
+ * history record — including an explicit all-zero log, which is what export
+ * writes for a profile that has no sessions yet.
+ */
+export function isImportableHistory(raw: unknown): boolean {
+  if (!isRecord(raw)) {
+    return false;
+  }
+
+  if (Object.keys(readDays(raw["days"])).length > 0) {
+    return true;
+  }
+
+  return isCompleteHistoryRecord(raw);
+}
+
+function historyFromRecord(raw: Record<string, unknown>): HistoryState {
   return {
     days: readDays(raw["days"]),
     totalSessions: readCount(raw["totalSessions"]),
@@ -40,6 +66,25 @@ export function loadHistory(store: JsonStore): HistoryState {
     bestWeekCount: readCount(raw["bestWeekCount"]),
     bestStreak: readCount(raw["bestStreak"]),
   };
+}
+
+function isCompleteHistoryRecord(raw: Record<string, unknown>): boolean {
+  return (
+    isRecord(raw["days"]) &&
+    isStoredCount(raw["totalSessions"]) &&
+    isStoredCount(raw["bestDayCount"]) &&
+    isStoredCount(raw["bestWeekCount"]) &&
+    isStoredCount(raw["bestStreak"]) &&
+    isStoredBestDay(raw["bestDay"])
+  );
+}
+
+function isStoredCount(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function isStoredBestDay(value: unknown): boolean {
+  return typeof value === "string" && (value === "" || isValidIsoDay(value));
 }
 
 export function saveHistory(store: JsonStore, state: HistoryState): void {
