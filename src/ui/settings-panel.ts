@@ -146,6 +146,10 @@ export class SettingsPanel {
   #scale = 1;
   #language: Language = DEFAULT_LANGUAGE;
   #lastShortcuts: ShortcutMap | null = null;
+  #lastModel: SettingsModel | null = null;
+  #lastCustomRemindersSignature = "";
+  #lastCustomRemindersDisabled: boolean | null = null;
+  #forceSync = true;
 
   constructor(private readonly actions: SettingsPanelActions) {
     this.#root = element("settings");
@@ -223,6 +227,7 @@ export class SettingsPanel {
   }
 
   open(): void {
+    this.#forceSync = true;
     this.#root.hidden = false;
     this.#petPreview.start();
   }
@@ -234,16 +239,27 @@ export class SettingsPanel {
   }
 
   restoreDefaults(): void {
+    this.#forceSync = true;
     this.actions.restoreDefaults();
   }
 
   render(model: SettingsModel): void {
+    if (!this.#forceSync && this.#lastModel !== null && sameSettingsModel(this.#lastModel, model)) {
+      return;
+    }
+
+    const forceSync = this.#forceSync;
+    const prevModel = this.#lastModel;
+    const languageChanged = model.language !== this.#language;
+
+    this.#forceSync = false;
+    this.#lastModel = model;
     this.#settings = model.settings;
     this.#scale = model.uiScale;
     this.#lastShortcuts = model.shortcuts;
     this.#writeSettings();
 
-    if (model.language !== this.#language) {
+    if (languageChanged) {
       this.#language = model.language;
       // These are built once and only ever carry the words a language
       // change would touch -- rebuilding them beats threading a relabel
@@ -273,15 +289,26 @@ export class SettingsPanel {
       // none of them; saying so beats letting the switches look live.
       box.disabled = model.voice === "off";
     }
-    this.#renderCustomReminders(model.customReminders, model.voice === "off");
+    this.#renderCustomReminders(
+      model.customReminders,
+      model.voice === "off",
+      forceSync || languageChanged,
+    );
 
-    for (const [id, input] of this.#shortcutInputs) {
-      if (document.activeElement !== input) {
-        input.value = model.shortcuts[id] ?? "";
-        input.classList.remove("shortcut__input--error");
+    if (
+      forceSync ||
+      languageChanged ||
+      prevModel === null ||
+      !sameShortcuts(prevModel.shortcuts, model.shortcuts)
+    ) {
+      for (const [id, input] of this.#shortcutInputs) {
+        if (document.activeElement !== input) {
+          input.value = model.shortcuts[id] ?? "";
+          input.classList.remove("shortcut__input--error");
+        }
       }
+      this.#shortcutsError.hidden = true;
     }
-    this.#shortcutsError.hidden = true;
 
     const active = activeQuietPreset(model.quietMinutesLeft);
     for (const [preset, button] of this.#quietButtons) {
@@ -442,8 +469,27 @@ export class SettingsPanel {
     });
   }
 
-  #renderCustomReminders(reminders: readonly CustomReminder[], disabled: boolean): void {
-    this.#customReminders.dataset["value"] = JSON.stringify(reminders);
+  #renderCustomReminders(
+    reminders: readonly CustomReminder[],
+    disabled: boolean,
+    force = false,
+  ): void {
+    const serialized = customRemindersSignature(reminders);
+    if (
+      shouldSkipCustomReminderRender(
+        serialized,
+        disabled,
+        this.#lastCustomRemindersSignature,
+        this.#lastCustomRemindersDisabled,
+        force,
+      )
+    ) {
+      return;
+    }
+
+    this.#lastCustomRemindersSignature = serialized;
+    this.#lastCustomRemindersDisabled = disabled;
+    this.#customReminders.dataset["value"] = serialized;
     this.#customReminders.replaceChildren(
       ...reminders.map((reminder) => {
         const row = document.createElement("div");
@@ -683,4 +729,94 @@ function read(
   }
 
   return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+export function customRemindersSignature(reminders: readonly CustomReminder[]): string {
+  return JSON.stringify(reminders);
+}
+
+export function shouldSkipCustomReminderRender(
+  serialized: string,
+  disabled: boolean,
+  lastSerialized: string,
+  lastDisabled: boolean | null,
+  force = false,
+): boolean {
+  return !force && serialized === lastSerialized && disabled === lastDisabled;
+}
+
+export function sameSettingsModel(a: SettingsModel, b: SettingsModel): boolean {
+  return (
+    samePomodoroSettings(a.settings, b.settings) &&
+    a.uiScale === b.uiScale &&
+    a.voice === b.voice &&
+    a.language === b.language &&
+    sameRecord(a.reminders, b.reminders) &&
+    sameCustomReminders(a.customReminders, b.customReminders) &&
+    sameShortcuts(a.shortcuts, b.shortcuts) &&
+    a.quietMinutesLeft === b.quietMinutesLeft &&
+    a.characterId === b.characterId &&
+    a.miniMode === b.miniMode &&
+    a.dimOpacity === b.dimOpacity &&
+    a.dailyGoal === b.dailyGoal &&
+    a.theme.id === b.theme.id
+  );
+}
+
+function samePomodoroSettings(a: PomodoroSettings, b: PomodoroSettings): boolean {
+  if (a === b) {
+    return true;
+  }
+  return (
+    a.focusMinutes === b.focusMinutes &&
+    a.shortBreakMinutes === b.shortBreakMinutes &&
+    a.longBreakMinutes === b.longBreakMinutes &&
+    a.roundsPerCycle === b.roundsPerCycle &&
+    a.autoStartBreaks === b.autoStartBreaks &&
+    a.autoStartFocus === b.autoStartFocus
+  );
+}
+
+function sameRecord(
+  a: Readonly<Record<string, boolean>>,
+  b: Readonly<Record<string, boolean>>,
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) {
+    return false;
+  }
+  return keysA.every((key) => a[key] === b[key]);
+}
+
+export function sameCustomReminders(
+  a: readonly CustomReminder[],
+  b: readonly CustomReminder[],
+): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (a.length !== b.length) {
+    return false;
+  }
+  return a.every((item, index) => {
+    const other = b[index];
+    return (
+      other !== undefined &&
+      item.id === other.id &&
+      item.text === other.text &&
+      item.everyMinutes === other.everyMinutes &&
+      item.anchor === other.anchor
+    );
+  });
+}
+
+function sameShortcuts(a: ShortcutMap, b: ShortcutMap): boolean {
+  if (a === b) {
+    return true;
+  }
+  return SHORTCUT_DEFINITIONS.every((def) => a[def.id] === b[def.id]);
 }
