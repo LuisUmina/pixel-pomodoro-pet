@@ -14,10 +14,14 @@ import { currentStreak, heatmap, recordSession } from "./core/history";
 import { computeMood } from "./core/mood";
 import { createInitialState, isBreak, reduce, withSettings } from "./core/pomodoro";
 import { isQuiet, quietMinutesLeft, quietUntilFrom } from "./core/quiet";
+import { withCompletedToday, preferencesUnchanged } from "./core/persist-skip";
+import {
+  resolveReminderConfig,
+  type ReminderConfig,
+} from "./core/reminder-config";
 import {
   INITIAL_REMINDERS,
   accrueReminders,
-  customReminderPacks,
   takeReminder,
 } from "./core/reminders";
 import {
@@ -38,7 +42,6 @@ import { applyLanguage } from "./i18n/apply";
 import type { Language } from "./i18n/language";
 import { t } from "./i18n/strings";
 import { catalogFor } from "./messages/catalog";
-import { reminderPacksFor } from "./messages/reminders";
 import type { Mood, Trigger, Voice } from "./messages/types";
 import { clampDailyGoal } from "./dailyGoal";
 import { clampDimOpacity } from "./dim";
@@ -50,7 +53,12 @@ import { applyThemeCss, getTheme, nextThemeId } from "./sprites/themes";
 import { exportBackupJson, restoreBackupJson } from "./store/backup";
 import { loadHistory, saveHistory } from "./store/history";
 import { browserStore } from "./store/persistence";
-import { defaultPreferences, loadPreferences, restorePanelDefaults, savePreferences } from "./store/preferences";
+import {
+  defaultPreferences,
+  loadPreferences,
+  restorePanelDefaults,
+  savePreferences,
+} from "./store/preferences";
 import { loadTasks, readLegacyTaskText, saveTasks } from "./store/tasks";
 import { AutoDim } from "./ui/auto-dim";
 import type { HistoryModel } from "./ui/history-panel";
@@ -91,6 +99,7 @@ function main(): void {
 
   let uiScale = preferences.uiScale;
   let appliedWindowScale: number | null = null;
+  let savedPreferences = preferences;
   let savedSignature = JSON.stringify(preferences);
   let ghost = false;
   let celebrating = false;
@@ -306,14 +315,21 @@ function main(): void {
    * which phase. A poll would have to attribute a whole minute to whatever
    * the state happened to be when it woke up.
    */
+  let cachedReminderConfig: ReminderConfig | null = null;
+
+  function getReminderConfig(): ReminderConfig {
+    const resolved = resolveReminderConfig(cachedReminderConfig, {
+      reminders: preferences.reminders,
+      customReminders: preferences.customReminders,
+      language: preferences.language,
+    });
+    cachedReminderConfig = resolved.config;
+    return resolved.config;
+  }
+
   function trackReminders(elapsedMs: number, phase: Phase, alreadySpoke: boolean): void {
     const now = Date.now();
-    const custom = customReminderPacks(preferences.customReminders);
-    const enabled = {
-      ...preferences.reminders,
-      ...Object.fromEntries(custom.map((reminder) => [reminder.id, true])),
-    };
-    const allReminders = [...reminderPacksFor(preferences.language), ...custom];
+    const { enabled, allReminders } = getReminderConfig();
     const check = { phase, enabled };
     const delivering =
       preferences.voice !== "off" && !isQuiet(preferences.quietUntil, now);
@@ -510,6 +526,7 @@ function main(): void {
       history = loadHistory(browserStore);
       tasks = loadTasks(browserStore);
       preferences = loadPreferences(browserStore, today);
+      savedPreferences = preferences;
       savedSignature = JSON.stringify(preferences);
       state = createInitialState(preferences.settings, {
         task: activeTaskText(tasks),
@@ -716,14 +733,16 @@ function main(): void {
   }
 
   function save(): void {
-    preferences = {
-      ...preferences,
-      completedToday: state.completedToday,
-    };
+    preferences = withCompletedToday(preferences, state.completedToday);
+
+    if (preferencesUnchanged(preferences, savedPreferences)) {
+      return;
+    }
 
     // `save` runs on every tick — four times a second for hours. Comparing
     // first keeps that from becoming four synchronous disk writes a second.
     const signature = JSON.stringify(preferences);
+    savedPreferences = preferences;
     if (signature === savedSignature) {
       return;
     }
