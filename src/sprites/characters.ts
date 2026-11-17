@@ -11,6 +11,8 @@
 
 import type { SpriteGrid, SpritePatch } from "./types";
 import type { Behavior } from "./behaviors";
+import { framePatchSignature, memoizedComposedGrid } from "./compose";
+import { applyPatches } from "./renderer";
 import bug from "./characters/bug.json";
 import coffee from "./characters/coffee.json";
 import duck from "./characters/duck.json";
@@ -27,6 +29,8 @@ export type PetState = (typeof PET_STATES)[number];
 
 export interface PetFrame {
   readonly patches: readonly SpritePatch[];
+  /** Pre-composed sprite grid (`applyPatches(base, patches)`), computed once at load time. */
+  readonly grid?: SpriteGrid;
   /** Vertical bob in sprite pixels — this is the whole "breathing" effect. */
   readonly offsetY: number;
   /** Sideways shift in sprite pixels, for shuffling about. */
@@ -122,7 +126,7 @@ export function parseCharacter(value: unknown): Character {
 
   const base = parseGrid(value["base"], id, size);
   const patches = parsePatches(value["patches"], id, size);
-  const behaviors = parseBehaviors(value["behaviors"], id, patches);
+  const behaviors = parseBehaviors(value["behaviors"], id, base, patches);
 
   return { id, name, label, hint, size, base, behaviors };
 }
@@ -191,6 +195,7 @@ function parsePatches(
 function parseBehaviors(
   value: unknown,
   id: string,
+  base: SpriteGrid,
   patches: ReadonlyMap<string, SpritePatch>,
 ): readonly Behavior[] {
   if (!Array.isArray(value) || value.length === 0) {
@@ -198,7 +203,10 @@ function parseBehaviors(
   }
 
   const seen = new Set<string>();
-  const behaviors = value.map((raw) => parseBehavior(raw, id, patches, seen));
+  const composedCache = new Map<string, SpriteGrid>();
+  const behaviors = value.map((raw) =>
+    parseBehavior(raw, id, base, patches, seen, composedCache),
+  );
 
   // A state with nothing to perform would freeze the mascot on screen.
   for (const state of PET_STATES) {
@@ -214,8 +222,10 @@ function parseBehaviors(
 function parseBehavior(
   value: unknown,
   id: string,
+  base: SpriteGrid,
   patches: ReadonlyMap<string, SpritePatch>,
   seen: Set<string>,
+  composedCache: Map<string, SpriteGrid>,
 ): Behavior {
   if (!isRecord(value)) {
     throw new Error(`character "${id}" has a behaviour that is not an object`);
@@ -233,7 +243,7 @@ function parseBehavior(
   }
 
   const weights = parseWeights(value["weights"], id, behaviorId);
-  const frames = parseFrames(value["frames"], id, behaviorId, patches);
+  const frames = parseFrames(value["frames"], id, behaviorId, base, patches, composedCache);
 
   return { id: behaviorId, loops, weights, frames };
 }
@@ -268,7 +278,9 @@ function parseFrames(
   value: unknown,
   id: string,
   behaviorId: string,
+  base: SpriteGrid,
   patches: ReadonlyMap<string, SpritePatch>,
+  composedCache: Map<string, SpriteGrid>,
 ): readonly PetFrame[] {
   if (!Array.isArray(value) || value.length === 0) {
     throw new Error(`behaviour "${behaviorId}" of "${id}" has no frames`);
@@ -293,6 +305,11 @@ function parseFrames(
       return patch;
     });
 
+    const signature = framePatchSignature(names as string[]);
+    const grid = memoizedComposedGrid(composedCache, signature, () =>
+      applyPatches(base, resolved),
+    );
+
     const durationMs = raw["durationMs"];
     if (
       typeof durationMs !== "number" ||
@@ -316,6 +333,7 @@ function parseFrames(
 
     return {
       patches: resolved,
+      grid,
       offsetY,
       durationMs,
       ...(offsetX !== undefined ? { offsetX } : {}),
