@@ -4,7 +4,20 @@
  * An always-on-top window that stays at full opacity becomes unbearable within
  * the hour, so the default is to get out of the way and come back on hover.
  */
-const POINTER_MOVE_THROTTLE_MS = 250;
+export const POINTER_MOVE_THROTTLE_MS = 250;
+
+/**
+ * While already awake, pointermove is a 60–120 Hz stream of no-ops. Skip
+ * until the throttle elapses. A dimmed widget always wakes on the first move.
+ */
+export function shouldSkipPointerMoveWake(
+  dimmed: boolean,
+  now: number,
+  lastWakeAt: number,
+  throttleMs = POINTER_MOVE_THROTTLE_MS,
+): boolean {
+  return !dimmed && now - lastWakeAt < throttleMs;
+}
 
 export class AutoDim {
   #timer: ReturnType<typeof setTimeout> | null = null;
@@ -20,7 +33,7 @@ export class AutoDim {
 
     this.element.addEventListener("pointerenter", wake);
     this.element.addEventListener("pointermove", () => {
-      if (!this.#dimmed && Date.now() - this.#lastWakeAt < POINTER_MOVE_THROTTLE_MS) {
+      if (shouldSkipPointerMoveWake(this.#dimmed, Date.now(), this.#lastWakeAt)) {
         return;
       }
       this.wake();
