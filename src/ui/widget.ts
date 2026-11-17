@@ -20,6 +20,7 @@ import { PetCanvas } from "./pet-canvas";
 import { ResizeGrip } from "./resize-grip";
 import { SettingsPanel } from "./settings-panel";
 import { TasksPanel, type TasksModel } from "./tasks-panel";
+import { progressWidthChanged, widgetChromeFields, widgetChromeWrites } from "./widget-chrome";
 
 export interface WidgetActions {
   toggle(): void;
@@ -292,43 +293,36 @@ export class Widget {
       this.#resetButton.title = shortcutChromeTitle("reset", model.language, model.shortcuts);
     }
 
-    if (!prev || prev.state.phase !== state.phase) {
+    const chrome = widgetChromeWrites(
+      prev ? widgetChromeFields(prev) : null,
+      widgetChromeFields(model),
+    );
+
+    if (chrome.phase) {
       this.#widget.dataset["phase"] = state.phase;
     }
-    if (!prev || prev.state.status !== state.status) {
+    if (chrome.status) {
       this.#widget.dataset["status"] = state.status;
     }
     // Click-through and a vow of silence leave no other trace on screen, and
     // a ghosted widget cannot be clicked to ask, so the title bar says both.
-    if (
-      !prev ||
-      prev.state.phase !== state.phase ||
-      prev.ghost !== model.ghost ||
-      prev.quietMinutesLeft !== model.quietMinutesLeft ||
-      prev.language !== model.language
-    ) {
+    if (chrome.path) {
       this.#path.textContent = titlePath(state, model);
     }
 
     this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
 
-    if (
-      !prev ||
-      prev.state.phase !== state.phase ||
-      prev.state.round !== state.round ||
-      prev.settings.roundsPerCycle !== settings.roundsPerCycle ||
-      prev.language !== model.language
-    ) {
+    if (chrome.phaseLabel) {
       this.#phase.textContent = `${phaseLabel(state.phase, model.language)} · ${state.round}/${settings.roundsPerCycle}`;
     }
 
     const progressWidth = `${(progress(state) * 100).toFixed(1)}%`;
-    if (this.#progress.style.width !== progressWidth) {
+    if (progressWidthChanged(this.#progress.style.width, progressWidth)) {
       this.#progress.style.width = progressWidth;
     }
 
-    if (!prev || prev.state.status !== state.status || prev.language !== model.language) {
+    if (chrome.toggle) {
       this.#toggle.textContent = t(TOGGLE_LABEL_KEYS[state.status], model.language);
     }
 
@@ -339,32 +333,27 @@ export class Widget {
 
     this.#renderRounds(state.round, settings.roundsPerCycle);
 
-    if (
-      !prev ||
-      prev.state.completedToday !== state.completedToday ||
-      prev.dailyGoal !== model.dailyGoal ||
-      prev.language !== model.language
-    ) {
+    if (chrome.tally) {
       this.#tally.textContent =
         model.dailyGoal > 0
           ? `${state.completedToday}/${model.dailyGoal} ${t("status.today", model.language)}`
           : `${state.completedToday} ${t("status.today", model.language)}`;
     }
 
-    if (!prev || prev.soundEnabled !== model.soundEnabled) {
+    if (chrome.sound) {
       this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
     }
-    if (!prev || prev.ghost !== model.ghost) {
+    if (chrome.ghost) {
       this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
       this.frame.dataset["ghost"] = String(model.ghost);
       this.#widget.dataset["ghost"] = String(model.ghost);
     }
-    if (!prev || prev.miniMode !== model.miniMode) {
+    if (chrome.mini) {
       this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
       this.frame.dataset["mini"] = String(model.miniMode);
       this.#widget.dataset["mini"] = String(model.miniMode);
     }
-    if (!prev || prev.taskChecklist !== model.taskChecklist) {
+    if (chrome.checklist) {
       this.#checklistButton.setAttribute("aria-pressed", String(model.taskChecklist));
     }
 
@@ -379,7 +368,7 @@ export class Widget {
       }
     }
 
-    if (!prev || prev.characterId !== model.characterId) {
+    if (chrome.character) {
       this.#pet.setCharacter(getCharacter(model.characterId));
     }
     this.#pet.setResolution(model.uiScale);
