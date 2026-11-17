@@ -7,6 +7,7 @@ import { getCharacter, type PetState } from "../sprites/characters";
 import type { ShortcutMap } from "../core/shortcuts";
 import type { CustomReminder } from "../core/reminders";
 import type { Theme } from "../sprites/themes";
+import { shortcutChromeTitle } from "../i18n/chrome-titles";
 import { DEFAULT_LANGUAGE, type Language } from "../i18n/language";
 import { t, type UiStringKey } from "../i18n/strings";
 import { applyLanguage } from "../i18n/apply";
@@ -19,6 +20,7 @@ import { PetCanvas } from "./pet-canvas";
 import { ResizeGrip } from "./resize-grip";
 import { SettingsPanel } from "./settings-panel";
 import { TasksPanel, type TasksModel } from "./tasks-panel";
+import { progressWidthChanged, widgetChromeFields, widgetChromeWrites } from "./widget-chrome";
 
 export interface WidgetActions {
   toggle(): void;
@@ -127,12 +129,16 @@ export class Widget {
   readonly #ghostButton: HTMLElement;
   readonly #settingsButton: HTMLElement;
   readonly #miniButton: HTMLElement;
+  readonly #hideButton: HTMLElement;
+  readonly #skipButton: HTMLElement;
+  readonly #resetButton: HTMLElement;
   readonly #tasksButton: HTMLElement;
   readonly #checklistButton: HTMLElement;
   readonly #viewHistory: () => HistoryModel;
   readonly #viewTasks: () => TasksModel;
 
   #roundsSignature = "";
+  #shortcutsSignature = "";
   /** Last rendered model, so opening the panel can fill it in immediately. */
   #model: WidgetModel | null = null;
   #language: Language = DEFAULT_LANGUAGE;
@@ -224,6 +230,9 @@ export class Widget {
     this.#ghostButton = actionElement("ghost");
     this.#settingsButton = actionElement("settings");
     this.#miniButton = actionElement("mini");
+    this.#hideButton = actionElement("hide");
+    this.#skipButton = actionElement("skip");
+    this.#resetButton = actionElement("reset");
     this.#tasksButton = actionElement("tasks");
     this.#checklistButton = actionElement("checklist");
 
@@ -252,6 +261,7 @@ export class Widget {
   render(model: WidgetModel): void {
     const { state, settings, theme } = model;
     const accent = phaseColor(theme, state);
+    const prev = this.#model;
     this.#model = model;
 
     if (model.language !== this.#language) {
@@ -270,19 +280,51 @@ export class Widget {
       if (this.#history.isOpen) {
         this.#history.render(this.#viewHistory(), this.#language);
       }
+      this.#shortcutsSignature = "";
     }
 
-    this.#widget.dataset["phase"] = state.phase;
-    this.#widget.dataset["status"] = state.status;
+    const shortcutsSignature = `${model.language}:${JSON.stringify(model.shortcuts)}`;
+    if (shortcutsSignature !== this.#shortcutsSignature) {
+      this.#shortcutsSignature = shortcutsSignature;
+      this.#ghostButton.title = shortcutChromeTitle("ghost", model.language, model.shortcuts);
+      this.#miniButton.title = shortcutChromeTitle("mini", model.language, model.shortcuts);
+      this.#hideButton.title = shortcutChromeTitle("hide", model.language, model.shortcuts);
+      this.#skipButton.title = shortcutChromeTitle("skip", model.language, model.shortcuts);
+      this.#resetButton.title = shortcutChromeTitle("reset", model.language, model.shortcuts);
+    }
+
+    const chrome = widgetChromeWrites(
+      prev ? widgetChromeFields(prev) : null,
+      widgetChromeFields(model),
+    );
+
+    if (chrome.phase) {
+      this.#widget.dataset["phase"] = state.phase;
+    }
+    if (chrome.status) {
+      this.#widget.dataset["status"] = state.status;
+    }
     // Click-through and a vow of silence leave no other trace on screen, and
     // a ghosted widget cannot be clicked to ask, so the title bar says both.
-    this.#path.textContent = titlePath(state, model);
+    if (chrome.path) {
+      this.#path.textContent = titlePath(state, model);
+    }
 
     this.#clock.setResolution(model.uiScale);
     this.#clock.render(formatClock(state.remainingMs), accent);
-    this.#phase.textContent = `${phaseLabel(state.phase, model.language)} · ${state.round}/${settings.roundsPerCycle}`;
-    this.#progress.style.width = `${(progress(state) * 100).toFixed(1)}%`;
-    this.#toggle.textContent = t(TOGGLE_LABEL_KEYS[state.status], model.language);
+
+    if (chrome.phaseLabel) {
+      this.#phase.textContent = `${phaseLabel(state.phase, model.language)} · ${state.round}/${settings.roundsPerCycle}`;
+    }
+
+    const progressWidth = `${(progress(state) * 100).toFixed(1)}%`;
+    if (progressWidthChanged(this.#progress.style.width, progressWidth)) {
+      this.#progress.style.width = progressWidth;
+    }
+
+    if (chrome.toggle) {
+      this.#toggle.textContent = t(TOGGLE_LABEL_KEYS[state.status], model.language);
+    }
 
     // Writing unconditionally would fight the caret while the user types.
     if (this.#task.value !== state.task) {
@@ -290,19 +332,30 @@ export class Widget {
     }
 
     this.#renderRounds(state.round, settings.roundsPerCycle);
-    this.#tally.textContent =
-      model.dailyGoal > 0
-        ? `${state.completedToday}/${model.dailyGoal} ${t("status.today", model.language)}`
-        : `${state.completedToday} ${t("status.today", model.language)}`;
 
-    this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
-    this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
-    this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
-    this.#checklistButton.setAttribute("aria-pressed", String(model.taskChecklist));
-    this.frame.dataset["ghost"] = String(model.ghost);
-    this.#widget.dataset["ghost"] = String(model.ghost);
-    this.frame.dataset["mini"] = String(model.miniMode);
-    this.#widget.dataset["mini"] = String(model.miniMode);
+    if (chrome.tally) {
+      this.#tally.textContent =
+        model.dailyGoal > 0
+          ? `${state.completedToday}/${model.dailyGoal} ${t("status.today", model.language)}`
+          : `${state.completedToday} ${t("status.today", model.language)}`;
+    }
+
+    if (chrome.sound) {
+      this.#soundButton.setAttribute("aria-pressed", String(model.soundEnabled));
+    }
+    if (chrome.ghost) {
+      this.#ghostButton.setAttribute("aria-pressed", String(model.ghost));
+      this.frame.dataset["ghost"] = String(model.ghost);
+      this.#widget.dataset["ghost"] = String(model.ghost);
+    }
+    if (chrome.mini) {
+      this.#miniButton.setAttribute("aria-pressed", String(model.miniMode));
+      this.frame.dataset["mini"] = String(model.miniMode);
+      this.#widget.dataset["mini"] = String(model.miniMode);
+    }
+    if (chrome.checklist) {
+      this.#checklistButton.setAttribute("aria-pressed", String(model.taskChecklist));
+    }
 
     // Only rebuilds the rows on an actual show/hide transition, the same
     // reasoning as settings/history/tasks below -- not on every one of these
@@ -315,7 +368,9 @@ export class Widget {
       }
     }
 
-    this.#pet.setCharacter(getCharacter(model.characterId));
+    if (chrome.character) {
+      this.#pet.setCharacter(getCharacter(model.characterId));
+    }
     this.#pet.setResolution(model.uiScale);
     this.#pet.setPalette(theme.sprite);
     this.#pet.setState(model.petState);
