@@ -11,6 +11,7 @@
 
 import type { SpriteGrid, SpritePatch } from "./types";
 import type { Behavior } from "./behaviors";
+import { framePatchSignature, memoizedComposedGrid } from "./compose";
 import { applyPatches } from "./renderer";
 import bug from "./characters/bug.json";
 import coffee from "./characters/coffee.json";
@@ -304,12 +305,10 @@ function parseFrames(
       return patch;
     });
 
-    const signature = (names as string[]).join("\0");
-    let grid = composedCache.get(signature);
-    if (!grid) {
-      grid = applyPatches(base, resolved);
-      composedCache.set(signature, grid);
-    }
+    const signature = framePatchSignature(names as string[]);
+    const grid = memoizedComposedGrid(composedCache, signature, () =>
+      applyPatches(base, resolved),
+    );
 
     const durationMs = raw["durationMs"];
     if (

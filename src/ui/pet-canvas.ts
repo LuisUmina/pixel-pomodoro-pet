@@ -7,7 +7,8 @@ import {
   type Character,
   type PetState,
 } from "../sprites/characters";
-import { applyPatches, drawSprite } from "../sprites/renderer";
+import { spriteGridForFrame } from "../sprites/compose";
+import { drawSprite } from "../sprites/renderer";
 import type { SpritePalette } from "../sprites/types";
 import { advancePetLoopCursor, petLoopShouldRun } from "./pet-loop";
 
@@ -256,8 +257,7 @@ export class PetCanvas {
     }
 
     this.#ctx.clearRect(0, 0, this.#canvas.width, this.#canvas.height);
-    const grid = frame.grid ?? applyPatches(this.#character.base, frame.patches);
-    drawSprite(this.#ctx, grid, this.#palette, {
+    drawSprite(this.#ctx, spriteGridForFrame(frame, this.#character.base), this.#palette, {
       scale: this.#pixel,
       // The character sits mid-strip and walks from there.
       x: (MAX_SHIFT + (frame.offsetX ?? 0)) * this.#pixel,
