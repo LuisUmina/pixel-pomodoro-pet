@@ -2,14 +2,19 @@ import { DEFAULT_SETTINGS } from "../core/pomodoro";
 import { MAX_QUIET_MS } from "../core/quiet";
 import { defaultEnabled, readCustomReminder, type CustomReminder } from "../core/reminders";
 import type { PomodoroSettings } from "../core/types";
-import { DEFAULT_DAILY_GOAL, clampDailyGoal } from "../dailyGoal";
-import { DEFAULT_DIM_OPACITY, clampDimOpacity } from "../dim";
+import { DEFAULT_DAILY_GOAL, MAX_DAILY_GOAL, MIN_DAILY_GOAL, clampDailyGoal } from "../dailyGoal";
+import { DEFAULT_DIM_OPACITY, MAX_DIM_OPACITY, MIN_DIM_OPACITY, clampDimOpacity } from "../dim";
 import { DEFAULT_LANGUAGE, isLanguage, type Language } from "../i18n/language";
 import { REMINDER_PACKS } from "../messages/reminders";
 import { isVoice, type Voice } from "../messages/types";
-import { DEFAULT_UI_SCALE, clampUiScale } from "../scale";
+import { DEFAULT_UI_SCALE, MAX_UI_SCALE, MIN_UI_SCALE, clampUiScale } from "../scale";
 import { DEFAULT_CHARACTER_ID, isCharacterId } from "../sprites/characters";
-import { DEFAULT_SHORTCUTS, readShortcuts, type ShortcutMap } from "../core/shortcuts";
+import {
+  DEFAULT_SHORTCUTS,
+  SHORTCUT_DEFINITIONS,
+  readShortcuts,
+  type ShortcutMap,
+} from "../core/shortcuts";
 import { DEFAULT_THEME_ID, isThemeId, type ThemeId } from "../sprites/themes";
 import type { JsonStore } from "./persistence";
 
@@ -70,6 +75,47 @@ export function defaultPreferences(day: string): Preferences {
     day,
     completedToday: 0,
   };
+}
+
+/**
+ * Fields Restore Defaults writes from the shipped profile. Theme, language,
+ * sound, and the day's tally are not in that panel and stay on `current`.
+ * `taskChecklist` is: leaving it out kept the mini-mode checklist on after
+ * a reset that otherwise returned every other panel control to stock.
+ */
+export function restorePanelDefaults(current: Preferences, shipped: Preferences): Preferences {
+  return {
+    ...current,
+    settings: shipped.settings,
+    voice: shipped.voice,
+    reminders: shipped.reminders,
+    customReminders: shipped.customReminders,
+    shortcuts: shipped.shortcuts,
+    quietUntil: shipped.quietUntil,
+    characterId: shipped.characterId,
+    taskChecklist: shipped.taskChecklist,
+  };
+}
+
+/**
+ * Whether a backup value may replace stored preferences.
+ *
+ * `loadPreferences` fills every gap from the defaults. An empty object would
+ * therefore wipe a real setup. A payload is importable when it has at least
+ * one recognized field with a value the loader would keep, or when it is a
+ * complete preferences record — including the all-default object export
+ * writes for a new profile.
+ */
+export function isImportablePreferences(raw: unknown): boolean {
+  if (!isRecord(raw)) {
+    return false;
+  }
+
+  if (hasUsablePreference(raw)) {
+    return true;
+  }
+
+  return isCompletePreferences(raw);
 }
 
 /**
@@ -217,6 +263,171 @@ function clampInteger(value: unknown, fallback: number, min: number, max: number
   }
 
   return Math.min(max, Math.max(min, Math.round(value)));
+}
+
+function hasUsablePreference(raw: Record<string, unknown>): boolean {
+  return (
+    isThemeId(raw["themeId"]) ||
+    isCharacterId(raw["characterId"]) ||
+    isLanguage(raw["language"]) ||
+    hasUsableSettings(raw["settings"]) ||
+    typeof raw["soundEnabled"] === "boolean" ||
+    isVoice(raw["voice"]) ||
+    hasUsableReminderChoice(raw["reminders"]) ||
+    hasUsableCustomReminder(raw["customReminders"]) ||
+    hasUsableShortcut(raw["shortcuts"]) ||
+    isQuietUntil(raw["quietUntil"]) ||
+    isUiScale(raw["uiScale"]) ||
+    typeof raw["miniMode"] === "boolean" ||
+    typeof raw["taskChecklist"] === "boolean" ||
+    isDimOpacity(raw["dimOpacity"]) ||
+    isDailyGoal(raw["dailyGoal"]) ||
+    isStoredDay(raw["day"]) ||
+    isStoredCount(raw["completedToday"])
+  );
+}
+
+function isCompletePreferences(raw: Record<string, unknown>): boolean {
+  return (
+    isThemeId(raw["themeId"]) &&
+    isCharacterId(raw["characterId"]) &&
+    isLanguage(raw["language"]) &&
+    isCompleteSettings(raw["settings"]) &&
+    typeof raw["soundEnabled"] === "boolean" &&
+    isVoice(raw["voice"]) &&
+    isCompleteReminders(raw["reminders"]) &&
+    isCompleteCustomReminders(raw["customReminders"]) &&
+    isCompleteShortcuts(raw["shortcuts"]) &&
+    isQuietUntil(raw["quietUntil"]) &&
+    isUiScale(raw["uiScale"]) &&
+    typeof raw["miniMode"] === "boolean" &&
+    typeof raw["taskChecklist"] === "boolean" &&
+    isDimOpacity(raw["dimOpacity"]) &&
+    isDailyGoal(raw["dailyGoal"]) &&
+    isStoredDay(raw["day"]) &&
+    isStoredCount(raw["completedToday"])
+  );
+}
+
+function hasUsableSettings(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isMinute(value["focusMinutes"]) ||
+    isMinute(value["shortBreakMinutes"]) ||
+    isMinute(value["longBreakMinutes"]) ||
+    isRounds(value["roundsPerCycle"]) ||
+    typeof value["autoStartBreaks"] === "boolean" ||
+    typeof value["autoStartFocus"] === "boolean"
+  );
+}
+
+function isCompleteSettings(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    isMinute(value["focusMinutes"]) &&
+    isMinute(value["shortBreakMinutes"]) &&
+    isMinute(value["longBreakMinutes"]) &&
+    isRounds(value["roundsPerCycle"]) &&
+    typeof value["autoStartBreaks"] === "boolean" &&
+    typeof value["autoStartFocus"] === "boolean"
+  );
+}
+
+function hasUsableReminderChoice(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return REMINDER_PACKS.some((pack) => typeof value[pack.id] === "boolean");
+}
+
+function isCompleteReminders(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return REMINDER_PACKS.every((pack) => typeof value[pack.id] === "boolean");
+}
+
+function hasUsableCustomReminder(value: unknown): boolean {
+  return Array.isArray(value) && value.some((entry) => readCustomReminder(entry) !== null);
+}
+
+function isCompleteCustomReminders(value: unknown): boolean {
+  return Array.isArray(value) && value.every((entry) => readCustomReminder(entry) !== null);
+}
+
+function hasUsableShortcut(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return SHORTCUT_DEFINITIONS.some((definition) => isShortcut(value[definition.id]));
+}
+
+function isCompleteShortcuts(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return SHORTCUT_DEFINITIONS.every((definition) => isShortcut(value[definition.id]));
+}
+
+function isShortcut(value: unknown): boolean {
+  return typeof value === "string" && value.trim() !== "";
+}
+
+function isQuietUntil(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function isUiScale(value: unknown): boolean {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= MIN_UI_SCALE &&
+    value <= MAX_UI_SCALE
+  );
+}
+
+function isDimOpacity(value: unknown): boolean {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= MIN_DIM_OPACITY &&
+    value <= MAX_DIM_OPACITY
+  );
+}
+
+function isDailyGoal(value: unknown): boolean {
+  return (
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= MIN_DAILY_GOAL &&
+    value <= MAX_DAILY_GOAL
+  );
+}
+
+function isStoredDay(value: unknown): boolean {
+  return typeof value === "string" && value !== "";
+}
+
+function isStoredCount(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function isMinute(value: unknown): boolean {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 180;
+}
+
+function isRounds(value: unknown): boolean {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 12;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
